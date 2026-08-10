@@ -1,91 +1,74 @@
-   import { NextResponse } from "next/server";
-   import { amazonSuggestions, searchBooks, hasLiveProvider } from "../../../lib/provider";
-   import { bsrToDailySales, opportunityScore, monthlyRevenue } from "../../../lib/estimate";
+import { NextResponse } from "next/server";
+import { amazonSuggestions, searchBooks, enrichWithBsr, hasKey } from "../../../lib/provider";
+import { bsrToDailySales, monthlyRevenue, opportunityScore, confidenceLevel } from "../../../lib/estimate";
 
-   const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+export const dynamic = "force-dynamic";
+const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
 
-   export async function GET(req) {
-     const { searchParams } = new URL(req.url);
-       const kw = (searchParams.get("q") || "").trim();
-         const domain = searchParams.get("domain") || "amazon.com";
+export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+  const kw = (searchParams.get("q") || "").trim();
+  const domain = searchParams.get("domain") || "amazon.com";
+  const depth = Math.min(Number(searchParams.get("depth") || 5), 10);
 
-           if (!kw) return NextResponse.json({ error: "missing q" }, { status: 400 });
+  if (!kw) return NextResponse.json({ error: "MISSING_QUERY" }, { status: 400 });
 
-             try {
-                 const suggestionsPromise = amazonSuggestions(kw, domain);
+  if (!hasKey()) {
+    return NextResponse.json({
+      error: "NO_API_KEY",
+      message: "لم يُضبط RAINFOREST_API_KEY على الخادم. لا تُعرض أي بيانات تقديرية بديلة."
+    }, { status: 503 });
+  }
 
-                     if (!hasLiveProvider()) {
-                           return NextResponse.json({
-                                   keyword: kw,
-                                           domain,
-                                                   mock: true,
-                                                           source: "amazon-autocomplete-only",
-                                                                   metrics: {
-                                                                             avgBsr: null,
-                                                                                       rankedCount: 0,
-                                                                                                 avgReviews: null,
-                                                                                                           avgPrice: null,
-                                                                                                                     avgDailySales: null,
-                                                                                                                               nicheMonthlyRoyalty: null,
-                                                                                                                                         score: null
-                                                                                                                                                 },
-                                                                                                                                                         suggestions: await suggestionsPromise,
-                                                                                                                                                                 books: [],
-                                                                                                                                                                         warning: "RAINFOREST_API_KEY is not configured; market metrics are intentionally hidden instead of fabricated."
-                                                                                                                                                                               });
-                                                                                                                                                                                   }
+  let books = [];
+  let suggestions = [];
 
-                                                                                                                                                                                       const [suggestions, books] = await Promise.all([
-                                                                                                                                                                                             suggestionsPromise,
-                                                                                                                                                                                                   searchBooks(kw, domain, 12)
-                                                                                                                                                                                                       ]);
+  try {
+    const r = await Promise.all([amazonSuggestions(kw), searchBooks(kw, domain)]);
+    suggestions = r[0];
+    books = await enrichWithBsr(r[1], domain, depth);
+  } catch (e) {
+    return NextResponse.json({ error: "UPSTREAM_FAILED", detail: String(e.message || e) }, { status: 502 });
+  }
 
-                                                                                                                                                                                                           const ranked = books.filter(b => Number.isFinite(Number(b.bsr)) && Number(b.bsr) > 0);
-                                                                                                                                                                                                               const priced = books.filter(b => Number.isFinite(Number(b.price)) && Number(b.price) > 0);
+  const live = books.filter(b => Number.isFinite(b.bsr));
+  const prices = books.map(b => b.price).filter(Number.isFinite);
+  const revs = books.map(b => b.reviews).filter(Number.isFinite);
 
-                                                                                                                                                                                                                   const avgBsrRaw = avg(ranked.map(b => Number(b.bsr)));
-                                                                                                                                                                                                                       const avgReviewsRaw = avg(books.map(b => Number(b.reviews || 0)));
-                                                                                                                                                                                                                           const avgPriceRaw = avg(priced.map(b => Number(b.price)));
+  const avgBsr = live.length ? Math.round(avg(live.map(b => b.bsr))) : null;
+  const avgPrice = prices.length ? Math.round(avg(prices) * 100) / 100 : null;
+  const avgReviews = revs.length ? Math.round(avg(revs)) : null;
+  const avgDailySales = live.length ? Math.round(avg(live.map(b => bsrToDailySales(b.bsr, domain))) * 10) / 10 : null;
 
-                                                                                                                                                                                                                               const sales = ranked
-                                                                                                                                                                                                                                     .map(b => bsrToDailySales(b.bsr, domain))
-                                                                                                                                                                                                                                           .filter(v => v != null);
+  let nicheMonthlyRoyalty = null;
+  if (live.length) {
+    let sum = 0;
+    for (const b of live) {
+      const m = monthlyRevenue(b.bsr, b.price, domain, b.pages || 120, false);
+      if (m && Number.isFinite(m.royalty)) sum += m.royalty;
+    }
+    nicheMonthlyRoyalty = Math.round(sum);
+  }
 
-                                                                                                                                                                                                                                               const royalties = ranked
-                                                                                                                                                                                                                                                     .filter(b => b.price)
-                                                                                                                                                                                                                                                           .map(b => monthlyRevenue(b.bsr, b.price, domain, 120, "black", "regular").royalty)
-                                                                                                                                                                                                                                                                 .filter(v => v != null);
-
-                                                                                                                                                                                                                                                                     const avgBsr = avgBsrRaw == null ? null : Math.round(avgBsrRaw);
-                                                                                                                                                                                                                                                                         const avgReviews = avgReviewsRaw == null ? null : Math.round(avgReviewsRaw);
-                                                                                                                                                                                                                                                                             const avgPrice = avgPriceRaw == null ? null : Math.round(avgPriceRaw * 100) / 100;
-
-                                                                                                                                                                                                                                                                                 return NextResponse.json({
-                                                                                                                                                                                                                                                                                       keyword: kw,
-                                                                                                                                                                                                                                                                                             domain,
-                                                                                                                                                                                                                                                                                                   mock: false,
-                                                                                                                                                                                                                                                                                                         source: "rainforest",
-                                                                                                                                                                                                                                                                                                               metrics: {
-                                                                                                                                                                                                                                                                                                                       avgBsr,
-                                                                                                                                                                                                                                                                                                                               rankedCount: ranked.length,
-                                                                                                                                                                                                                                                                                                                                       avgReviews,
-                                                                                                                                                                                                                                                                                                                                               avgPrice,
-                                                                                                                                                                                                                                                                                                                                                       avgDailySales: sales.length ? Math.round(avg(sales) * 10) / 10 : null,
-                                                                                                                                                                                                                                                                                                                                                               nicheMonthlyRoyalty: royalties.length ? Math.round(royalties.reduce((a, b) => a + b, 0)) : null,
-                                                                                                                                                                                                                                                                                                                                                                       score: opportunityScore({
-                                                                                                                                                                                                                                                                                                                                                                                 avgBsr,
-                                                                                                                                                                                                                                                                                                                                                                                           competitors: books.length,
-                                                                                                                                                                                                                                                                                                                                                                                                     avgReviews
-                                                                                                                                                                                                                                                                                                                                                                                                             })
-                                                                                                                                                                                                                                                                                                                                                                                                                   },
-                                                                                                                                                                                                                                                                                                                                                                                                                         suggestions,
-                                                                                                                                                                                                                                                                                                                                                                                                                               books
-                                                                                                                                                                                                                                                                                                                                                                                                                                   });
-                                                                                                                                                                                                                                                                                                                                                                                                                                     } catch (e) {
-                                                                                                                                                                                                                                                                                                                                                                                                                                         return NextResponse.json(
-                                                                                                                                                                                                                                                                                                                                                                                                                                               { error: e.message || "keyword analysis failed", keyword: kw, domain },
-                                                                                                                                                                                                                                                                                                                                                                                                                                                     { status: 502 }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                         );
-                                                                                                                                                                                                                                                                                                                                                                                                                                                           }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                           }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+  return NextResponse.json({
+    keyword: kw,
+    domain,
+    generatedAt: new Date().toISOString(),
+    confidence: {
+      measuredBooks: live.length,
+      totalBooks: books.length,
+      level: confidenceLevel(live.length),
+      note: "BSR يُقرأ فعلياً لأول " + depth + " كتب فقط لتوفير الرصيد. الباقي غير مقاس."
+    },
+    metrics: {
+      avgBsr,
+      avgPrice,
+      avgReviews,
+      avgDailySales,
+      nicheMonthlyRoyalty,
+      score: opportunityScore({ avgBsr, competitors: books.length * 40, avgReviews })
+    },
+    suggestions,
+    books
+  });
+}
