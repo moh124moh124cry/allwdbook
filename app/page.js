@@ -6,8 +6,23 @@ import { printCost } from "../lib/estimate";
 
 const DOMAINS = ["amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it", "amazon.es", "amazon.ca"];
 
-// 2 = مكتشف الفئات · معروض معطّلاً بعلامة "قريباً"
-const SOON_TABS = [2,3];
+// 2 = مكتشف الفئات · 3 = متتبع الكتب · معروضان معطّلين بعلامة "قريباً"
+const SOON_TABS = [2, 3];
+
+// تحويل رموز الأخطاء التقنية إلى رسائل عربية مفهومة
+function errText(d) {
+  if (!d) return "تعذّر إتمام الطلب.";
+  const code = String(d.error || "");
+  const detail = String(d.detail || "");
+  if (code === "NO_API_KEY") return "هذه الميزة قيد التجهيز. بيانات أمازون الحيّة ستُفعَّل قريباً.";
+  if (code === "SEARCH_FAILED" && detail.indexOf("402") >= 0) return "رصيد بيانات أمازون منتهٍ حالياً. نعمل على تجديده.";
+  if (code === "SEARCH_FAILED") return "تعذّر جلب البيانات من أمازون الآن. حاول بعد قليل.";
+  if (code === "MISSING_QUERY") return "اكتب كلمة مفتاحية أولاً.";
+  if (code === "NETWORK") return "تعذّر الاتصال بالخادم. تحقّق من اتصالك وحاول مجدداً.";
+  if (code === "NO_GEMINI_KEY") return "مولّد الأفكار قيد التجهيز.";
+  if (code === "AI_FAILED") return "مولّد الأفكار مشغول الآن. حاول بعد دقائق.";
+  return d.message || "تعذّر إتمام الطلب.";
+}
 
 export default function Home() {
   const [lang, setLang] = useState("ar");
@@ -69,7 +84,6 @@ export default function Home() {
 
       {tab === 0 && <Keywords t={t} domain={domain} seed={seedKw} />}
       {tab === 1 && <Niches t={t} lang={lang} domain={domain} onAnalyze={sendToKeywords} />}
-      {tab === 3 && <Tracker t={t} domain={domain} />}
       {tab === 4 && <Formatter t={t} />}
       {tab === 5 && <Calc t={t} />}
 
@@ -103,7 +117,7 @@ function Keywords({ t, domain, seed }) {
       const r = await fetch("/api/keywords?q=" + encodeURIComponent(k) + "&domain=" + domain);
       setD(await r.json());
     } catch (e) {
-      setD({ error: "NETWORK", message: "تعذّر الاتصال بالخادم. حاول مرة أخرى." });
+      setD({ error: "NETWORK" });
     }
     setBusy(false);
   }
@@ -115,7 +129,7 @@ function Keywords({ t, domain, seed }) {
       const r = await fetch("/api/ai?q=" + encodeURIComponent(q) + "&limit=15");
       setAi(await r.json());
     } catch (e) {
-      setAi({ error: "NETWORK", message: "تعذّر الاتصال.", rows: [] });
+      setAi({ error: "NETWORK", rows: [] });
     }
     setAiBusy(false);
   }
@@ -142,7 +156,7 @@ function Keywords({ t, domain, seed }) {
 
       {ai && (
         <div style={{ marginTop: 12 }}>
-          {ai.error && <p className="mut">⛔ {ai.message || ai.detail || ai.error}</p>}
+          {ai.error && <p className="mut">⏳ {errText(ai)}</p>}
           {aiRows.length > 0 && (
             <>
               <h3>🤖 مقترح — غير مؤكد</h3>
@@ -163,7 +177,14 @@ function Keywords({ t, domain, seed }) {
 
       {d && (
         <>
-          {d.error && <p className="mut">⛔ {d.message || d.detail || d.error}</p>}
+          {d.error && (
+            <div style={{ marginTop: 12, padding: "12px", border: "1px solid var(--line)", borderRadius: "10px" }}>
+              <p className="mut" style={{ margin: 0 }}>⏳ {errText(d)}</p>
+              <p className="mut" style={{ margin: "6px 0 0", fontSize: "12px" }}>
+                جرّب تبويب <b>الميكرو نيتش</b> — يعمل الآن ويولّد أفكار كلمات مجاناً.
+              </p>
+            </div>
+          )}
 
           {conf && (
             <div className={"badge b-" + (conf.level === "high" ? "high" : conf.level === "medium" ? "medium" : conf.level === "low" ? "low" : "none")}>
@@ -291,65 +312,6 @@ function Niches({ t, lang, domain, onAnalyze }) {
           ))}
         </>
       )}
-    </div>
-  );
-}
-
-function Tracker({ t, domain }) {
-  const [asin, setAsin] = useState("");
-  const [items, setItems] = useState([]);
-
-  useEffect(() => {
-    try {
-      setItems(JSON.parse(localStorage.getItem("awd_track") || "[]"));
-    } catch (e) {
-      setItems([]);
-    }
-  }, []);
-
-  function save(v) {
-    setItems(v);
-    localStorage.setItem("awd_track", JSON.stringify(v));
-  }
-
-  async function add() {
-    if (!asin) return;
-    const r = await fetch("/api/books?asin=" + asin.trim() + "&domain=" + domain);
-    const b = await r.json();
-    if (!b || !b.asin) return;
-    save([b, ...items.filter(x => x.asin !== b.asin)]);
-    setAsin("");
-  }
-
-  async function refreshAll() {
-    const out = [];
-    for (const it of items) {
-      const r = await fetch("/api/books?asin=" + it.asin + "&domain=" + (it.domain || domain));
-      out.push(await r.json());
-    }
-    save(out);
-  }
-
-  function clearAll() {
-    save([]);
-  }
-
-  return (
-    <div className="card">
-      <input placeholder={t.asinPlaceholder} value={asin} onChange={e => setAsin(e.target.value)} />
-      <button className="go" onClick={add}>{t.addTrack}</button>
-      {items.length > 0 && (
-        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-          <button className="mini" onClick={refreshAll}>{t.refreshAll}</button>
-          <button className="mini" onClick={clearAll}>🗑</button>
-        </div>
-      )}
-      {items.map(b => (
-        <div key={b.asin} className="row">
-          <span>{b.title}</span>
-          <span className="mut">BSR {typeof b.bsr === "number" ? b.bsr.toLocaleString() : "—"} · {b.monthly?.units ?? "—"} {t.copiesMonth} · ${b.monthly?.royalty ?? "—"} {t.royaltyShort}</span>
-        </div>
-      ))}
     </div>
   );
 }
