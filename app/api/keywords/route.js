@@ -1,4 +1,4 @@
-// AllWDbook v2.0.2 - keywords/route.js
+// AllWDbook v2.0.3 - keywords/route.js
 import { NextResponse } from "next/server";
 import {
   hasKey,
@@ -16,46 +16,54 @@ import {
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+function withTimeout(promise, ms, fallback) {
+  return Promise.race([
+    promise,
+    new Promise(res => setTimeout(() => res(fallback), ms))
+  ]);
+}
+
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get("q") || "").trim();
   const domain = searchParams.get("domain") || "amazon.com";
+  const noBsr = searchParams.get("nobsr") === "1";
 
   if (!q) {
-    return NextResponse.json(
-      { error: "MISSING_QUERY", message: "أدخل كلمة مفتاحية" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "MISSING_QUERY" }, { status: 200 });
   }
-
   if (!hasKey()) {
-    return NextResponse.json(
-      {
-        error: "NO_API_KEY",
-        message: "مفتاح البيانات غير مضبوط. لا نعرض أرقاماً تقديرية."
-      },
-      { status: 503 }
-    );
+    return NextResponse.json({ error: "NO_API_KEY" }, { status: 200 });
   }
 
   let books = [];
   let suggestions = [];
+  const notes = [];
 
   try {
-    const both = await Promise.all([
-      searchBooks(q, domain),
-      amazonSuggestions(q, domain).catch(() => [])
-    ]);
-    books = both[0];
-    suggestions = both[1];
+    books = await searchBooks(q, domain);
   } catch (e) {
     return NextResponse.json(
-      { error: "PROVIDER_FAILED", message: String(e.message || e) },
-      { status: 502 }
+      { error: "SEARCH_FAILED", detail: String(e && e.message ? e.message : e) },
+      { status: 200 }
     );
   }
 
-  books = await enrichWithBsr(books, domain, 5);
+  try {
+    suggestions = await withTimeout(amazonSuggestions(q, domain), 5000, []);
+  } catch (e) {
+    suggestions = [];
+  }
+
+  if (noBsr) {
+    notes.push("BSR skipped by request");
+  } else {
+    try {
+      await withTimeout(enrichWithBsr(books, domain, 3), 25000, null);
+    } catch (e) {
+      notes.push("BSR failed: " + String(e && e.message ? e.message : e));
+    }
+  }
 
   for (const b of books) {
     b.dailySales = bsrToDailySales(b.bsr, domain);
@@ -69,14 +77,10 @@ export async function GET(req) {
   const measured = books.filter(b => b.bsr !== null);
   const priced = books.filter(b => b.price !== null);
   const rated = books.filter(b => b.reviews !== null);
-
-  const avg = (arr, f) =>
-    arr.length ? arr.reduce((s, x) => s + f(x), 0) / arr.length : null;
+  const avg = (a, f) => (a.length ? a.reduce((s, x) => s + f(x), 0) / a.length : null);
 
   const avgBsr = measured.length ? Math.round(avg(measured, b => b.bsr)) : null;
-  const avgPrice = priced.length
-    ? Math.round(avg(priced, b => b.price) * 100) / 100
-    : null;
+  const avgPrice = priced.length ? Math.round(avg(priced, b => b.price) * 100) / 100 : null;
   const avgReviews = rated.length ? Math.round(avg(rated, b => b.reviews)) : null;
   const avgDailySales = measured.length
     ? Math.round(avg(measured, b => b.dailySales || 0) * 10) / 10
@@ -90,8 +94,9 @@ export async function GET(req) {
   return NextResponse.json({
     keyword: q,
     domain: domain,
-    version: "2.0.2",
+    version: "2.0.3",
     generatedAt: new Date().toISOString(),
+    notes: notes,
     metrics: {
       avgBsr: avgBsr,
       avgPrice: avgPrice,
