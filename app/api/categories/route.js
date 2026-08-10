@@ -1,21 +1,25 @@
-import { NextResponse } from "next/server";
-import { CATEGORIES } from "../../../lib/provider";
-import { bsrToDailySales } from "../../../lib/estimate";
+  import { NextResponse } from "next/server";
+  import { CATEGORIES } from "../../../lib/provider";
 
-export async function GET(req) {
-  const { searchParams } = new URL(req.url);
-    const domain = searchParams.get("domain") || "amazon.com";
-      const max = Number(searchParams.get("maxBsr") || 999999);
+  export async function GET(req) {
+    const { searchParams } = new URL(req.url);
+      const domain = searchParams.get("domain") || "amazon.com";
 
-        const rows = CATEGORIES
-            .filter(c => c.top100Bsr <= max)
-                .map(c => ({
-                      ...c,
-                            salesToTop100: bsrToDailySales(c.top100Bsr, domain),
-                                  difficulty: c.top100Bsr < 40000 ? "صعبة" : c.top100Bsr < 80000 ? "متوسطة" : "سهلة"
-                                      }))
-                                          .sort((a, b) => b.top100Bsr - a.top100Bsr);
+        // We intentionally do NOT fabricate "Top 100 BSR", sales/day, or difficulty.
+          // These are reference category ideas until a live category-rank source is added.
+            const rows = CATEGORIES.map(c => ({
+                ...c,
+                    source: "reference",
+                        top100Bsr: null,
+                            salesToTop100: null,
+                                difficulty: null
+                                  }));
 
-                                            return NextResponse.json({ domain, count: rows.length, rows });
-                                            }
-                                            
+                                    return NextResponse.json({
+                                        domain,
+                                            count: rows.length,
+                                                rows,
+                                                    note: "Reference category paths only; no fabricated BSR or sales estimates."
+                                                      });
+                                                      }
+                                                      
