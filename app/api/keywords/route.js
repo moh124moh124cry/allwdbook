@@ -1,4 +1,4 @@
-// AllWDbook v2.0.0 - keywords/route.js
+// AllWDbook v2.0.2 - keywords/route.js
 import { NextResponse } from "next/server";
 import {
   hasKey,
@@ -14,6 +14,7 @@ import {
 } from "../../../lib/estimate";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
@@ -41,18 +42,17 @@ export async function GET(req) {
   let suggestions = [];
 
   try {
-    books = await searchBooks(q, domain);
+    const both = await Promise.all([
+      searchBooks(q, domain),
+      amazonSuggestions(q, domain).catch(() => [])
+    ]);
+    books = both[0];
+    suggestions = both[1];
   } catch (e) {
     return NextResponse.json(
       { error: "PROVIDER_FAILED", message: String(e.message || e) },
       { status: 502 }
     );
-  }
-
-  try {
-    suggestions = await amazonSuggestions(q, domain);
-  } catch (e) {
-    suggestions = [];
   }
 
   books = await enrichWithBsr(books, domain, 5);
@@ -73,15 +73,11 @@ export async function GET(req) {
   const avg = (arr, f) =>
     arr.length ? arr.reduce((s, x) => s + f(x), 0) / arr.length : null;
 
-  const avgBsr = measured.length
-    ? Math.round(avg(measured, b => b.bsr))
-    : null;
+  const avgBsr = measured.length ? Math.round(avg(measured, b => b.bsr)) : null;
   const avgPrice = priced.length
     ? Math.round(avg(priced, b => b.price) * 100) / 100
     : null;
-  const avgReviews = rated.length
-    ? Math.round(avg(rated, b => b.reviews))
-    : null;
+  const avgReviews = rated.length ? Math.round(avg(rated, b => b.reviews)) : null;
   const avgDailySales = measured.length
     ? Math.round(avg(measured, b => b.dailySales || 0) * 10) / 10
     : null;
@@ -94,7 +90,7 @@ export async function GET(req) {
   return NextResponse.json({
     keyword: q,
     domain: domain,
-    version: "2.0.0",
+    version: "2.0.2",
     generatedAt: new Date().toISOString(),
     metrics: {
       avgBsr: avgBsr,
