@@ -7,7 +7,7 @@ import { printCost } from "../lib/estimate";
 const DOMAINS = ["amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it", "amazon.es", "amazon.ca"];
 
 // 2 = مكتشف الفئات · معروض معطّلاً بعلامة "قريباً"
-const SOON_TABS = [2];
+const SOON_TABS = [2,3];
 
 export default function Home() {
   const [lang, setLang] = useState("ar");
