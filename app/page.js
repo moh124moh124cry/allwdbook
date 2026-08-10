@@ -6,7 +6,8 @@ import { printCost } from "../lib/estimate";
 
 const DOMAINS = ["amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it", "amazon.es", "amazon.ca"];
 
-const HIDDEN_TABS = [2];
+// 2 = مكتشف الفئات · معروض معطّلاً بعلامة "قريباً"
+const SOON_TABS = [2];
 
 export default function Home() {
   const [lang, setLang] = useState("ar");
@@ -51,7 +52,16 @@ export default function Home() {
 
       <div className="tabs">
         {t.tabs.map((x, i) => (
-          HIDDEN_TABS.includes(i) ? null : (
+          SOON_TABS.includes(i) ? (
+            <button
+              key={i}
+              className="tab"
+              disabled
+              style={{ opacity: 0.4, cursor: "not-allowed", filter: "grayscale(1)" }}
+            >
+              🔒 {x} · قريباً
+            </button>
+          ) : (
             <button key={i} className={"tab" + (i === tab ? " on" : "")} onClick={() => setTab(i)}>{x}</button>
           )
         ))}
