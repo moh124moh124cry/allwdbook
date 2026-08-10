@@ -6,8 +6,6 @@ import { printCost } from "../lib/estimate";
 
 const DOMAINS = ["amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it", "amazon.es", "amazon.ca"];
 
-// التبويبات المخفية · 2 = مكتشف الفئات (معرّفات الفئات غير حقيقية بعد)
-// لإعادته: غيّر السطر إلى  const HIDDEN_TABS = [];
 const HIDDEN_TABS = [2];
 
 export default function Home() {
@@ -61,7 +59,6 @@ export default function Home() {
 
       {tab === 0 && <Keywords t={t} domain={domain} seed={seedKw} />}
       {tab === 1 && <Niches t={t} lang={lang} domain={domain} onAnalyze={sendToKeywords} />}
-      {/* {tab === 2 && <Categories t={t} domain={domain} />} */}
       {tab === 3 && <Tracker t={t} domain={domain} />}
       {tab === 4 && <Formatter t={t} />}
       {tab === 5 && <Calc t={t} />}
@@ -78,6 +75,8 @@ function Keywords({ t, domain, seed }) {
   const [q, setQ] = useState("");
   const [d, setD] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [ai, setAi] = useState(null);
+  const [aiBusy, setAiBusy] = useState(false);
 
   useEffect(() => {
     if (seed) {
@@ -99,20 +98,58 @@ function Keywords({ t, domain, seed }) {
     setBusy(false);
   }
 
-  // قراءة مرنة: تدعم شكل الاستجابة القديم والجديد
+  async function askAi() {
+    if (!q) return;
+    setAiBusy(true);
+    try {
+      const r = await fetch("/api/ai?q=" + encodeURIComponent(q) + "&limit=15");
+      setAi(await r.json());
+    } catch (e) {
+      setAi({ error: "NETWORK", message: "تعذّر الاتصال.", rows: [] });
+    }
+    setAiBusy(false);
+  }
+
   const conf = d && d.confidence ? d.confidence : null;
   const measured = conf ? (conf.bsrSampleSize ?? conf.measuredBooks ?? 0) : 0;
   const total = conf ? (conf.totalResults ?? conf.totalBooks ?? 0) : 0;
   const m = (d && d.metrics) ? d.metrics : null;
   const suggestions = (d && Array.isArray(d.suggestions)) ? d.suggestions : [];
   const books = (d && Array.isArray(d.books)) ? d.books : [];
+  const aiRows = (ai && Array.isArray(ai.rows)) ? ai.rows : [];
 
   const num = v => (typeof v === "number" ? v.toLocaleString() : "—");
 
   return (
     <div className="card">
       <input placeholder={t.kwPlaceholder} value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === "Enter" && run()} />
+
       <button className="go" onClick={() => run()}>{busy ? t.analyzing : t.analyze}</button>
+
+      <button className="mini" style={{ marginTop: 8, width: "100%" }} onClick={askAi}>
+        {aiBusy ? "🤖 جارٍ التوليد..." : "🤖 أفكار كلمات (يقبل العربية)"}
+      </button>
+
+      {ai && (
+        <div style={{ marginTop: 12 }}>
+          {ai.error && <p className="mut">⛔ {ai.message || ai.detail || ai.error}</p>}
+          {aiRows.length > 0 && (
+            <>
+              <h3>🤖 مقترح — غير مؤكد</h3>
+              <p className="mut" style={{ fontSize: "12px" }}>
+                هذه أفكار مولّدة آلياً، وليست بيانات من أمازون. اضغط أي كلمة لقياسها بأرقام حقيقية.
+              </p>
+              <div>
+                {aiRows.map(x => (
+                  <span key={x.keyword} className="chip" onClick={() => { setQ(x.keyword); run(x.keyword); }}>
+                    🤖 {x.keyword}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {d && (
         <>
@@ -136,14 +173,14 @@ function Keywords({ t, domain, seed }) {
               </div>
 
               <p className="mut" style={{ fontSize: "12px", marginTop: "10px" }}>
-                🟢 = BSR مقروء من أمازون الآن · ⚪ = غير مقاس · المبيعات تقدير إحصائي من BSR وليس رقماً رسمياً من أمازون.
+                🟢 = BSR مقروء من أمازون الآن · ⚪ = غير مقاس · 🤖 = اقتراح آلي غير مؤكد · المبيعات تقدير إحصائي من BSR وليس رقماً رسمياً من أمازون.
               </p>
             </>
           )}
 
           {suggestions.length > 0 && (
             <>
-              <h3>{t.suggested}</h3>
+              <h3>✅ {t.suggested}</h3>
               <div>{suggestions.map(s => <span key={s} className="chip" onClick={() => { setQ(s); run(s); }}>{s}</span>)}</div>
             </>
           )}
@@ -244,33 +281,6 @@ function Niches({ t, lang, domain, onAnalyze }) {
           ))}
         </>
       )}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────
-   مكتشف الفئات — معطّل مؤقتاً
-   السبب: معرّفات الفئات في app/api/categories/route.js غير حقيقية.
-   لا تحذف هذا المكوّن. سيُعاد تفعيله بعد استبدالها بمعرّفات
-   node= حقيقية من أمازون، بتغيير HIDDEN_TABS في أعلى الملف.
-   ───────────────────────────────────────────────────────────── */
-function Categories({ t, domain }) {
-  const [rows, setRows] = useState([]);
-  useEffect(() => {
-    fetch("/api/categories?domain=" + domain).then(r => r.json()).then(j => setRows(j.rows || []));
-  }, [domain]);
-
-  const diff = b => (b < 40000 ? t.hard : b < 80000 ? t.med : t.easy);
-
-  return (
-    <div className="card">
-      <p className="mut">{t.catNote}</p>
-      {rows.map(c => (
-        <div key={c.id} className="row">
-          <span>{c.path}</span>
-          <span className="mut">{c.source === "live" ? t.live : t.static} · {diff(c.top100Bsr)} · BSR ≤ {c.top100Bsr.toLocaleString()} · {c.salesToTop100}{t.perDay}</span>
-        </div>
-      ))}
     </div>
   );
 }
