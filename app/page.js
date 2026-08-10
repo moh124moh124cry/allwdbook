@@ -6,6 +6,10 @@ import { printCost } from "../lib/estimate";
 
 const DOMAINS = ["amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it", "amazon.es", "amazon.ca"];
 
+// التبويبات المخفية · 2 = مكتشف الفئات (معرّفات الفئات غير حقيقية بعد)
+// لإعادته: غيّر السطر إلى  const HIDDEN_TABS = [];
+const HIDDEN_TABS = [2];
+
 export default function Home() {
   const [lang, setLang] = useState("ar");
   const [tab, setTab] = useState(0);
@@ -42,24 +46,26 @@ export default function Home() {
           {lang === "ar" ? "EN" : "عر"}
         </button>
       </header>
-      
+
       <select value={domain} onChange={e => setDomain(e.target.value)}>
         {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
       </select>
-      
+
       <div className="tabs">
         {t.tabs.map((x, i) => (
-          <button key={i} className={"tab" + (i === tab ? " on" : "")} onClick={() => setTab(i)}>{x}</button>
+          HIDDEN_TABS.includes(i) ? null : (
+            <button key={i} className={"tab" + (i === tab ? " on" : "")} onClick={() => setTab(i)}>{x}</button>
+          )
         ))}
       </div>
-      
+
       {tab === 0 && <Keywords t={t} domain={domain} seed={seedKw} />}
       {tab === 1 && <Niches t={t} lang={lang} domain={domain} onAnalyze={sendToKeywords} />}
-      {tab === 2 && <Categories t={t} domain={domain} />}
+      {/* {tab === 2 && <Categories t={t} domain={domain} />} */}
       {tab === 3 && <Tracker t={t} domain={domain} />}
       {tab === 4 && <Formatter t={t} />}
       {tab === 5 && <Calc t={t} />}
-      
+
       <footer className="foot">
         <img src="/logo.png" alt="" />
         <span>{t.by} <b>All World Digital</b> © {new Date().getFullYear()} · {t.rights}</span>
@@ -84,48 +90,77 @@ function Keywords({ t, domain, seed }) {
     const k = term || q;
     if (!k) return;
     setBusy(true);
-    const r = await fetch("/api/keywords?q=" + encodeURIComponent(k) + "&domain=" + domain);
-    setD(await r.json());
+    try {
+      const r = await fetch("/api/keywords?q=" + encodeURIComponent(k) + "&domain=" + domain);
+      setD(await r.json());
+    } catch (e) {
+      setD({ error: "NETWORK", message: "تعذّر الاتصال بالخادم. حاول مرة أخرى." });
+    }
     setBusy(false);
   }
+
+  // قراءة مرنة: تدعم شكل الاستجابة القديم والجديد
+  const conf = d && d.confidence ? d.confidence : null;
+  const measured = conf ? (conf.bsrSampleSize ?? conf.measuredBooks ?? 0) : 0;
+  const total = conf ? (conf.totalResults ?? conf.totalBooks ?? 0) : 0;
+  const m = (d && d.metrics) ? d.metrics : null;
+  const suggestions = (d && Array.isArray(d.suggestions)) ? d.suggestions : [];
+  const books = (d && Array.isArray(d.books)) ? d.books : [];
+
+  const num = v => (typeof v === "number" ? v.toLocaleString() : "—");
 
   return (
     <div className="card">
       <input placeholder={t.kwPlaceholder} value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === "Enter" && run()} />
       <button className="go" onClick={() => run()}>{busy ? t.analyzing : t.analyze}</button>
-      
+
       {d && (
         <>
-          {d.error && <p className="mut">⛔ {d.message || d.error}</p>}
-          {d.confidence && (
-            <div className={"badge b-" + (d.confidence.level === "high" ? "high" : d.confidence.level === "medium" ? "medium" : "low")}>
-              درجة الثقة: {d.confidence.level} · قيست {d.confidence.measuredBooks} من {d.confidence.totalBooks} كتب
+          {d.error && <p className="mut">⛔ {d.message || d.detail || d.error}</p>}
+
+          {conf && (
+            <div className={"badge b-" + (conf.level === "high" ? "high" : conf.level === "medium" ? "medium" : conf.level === "low" ? "low" : "none")}>
+              درجة الثقة: {conf.level || "—"} · قيست {measured} من {total} كتب
             </div>
           )}
-          
-          <div className="grid" style={{ marginTop: 12 }}>
-            <div className="kpi"><b>{d.metrics.score ?? "—"}/100</b><span>{t.score}</span></div>
-            <div className="kpi"><b>{d.metrics.avgBsr ? d.metrics.avgBsr.toLocaleString() : "—"}</b><span>{t.avgBsr} ({t.sample} {d.metrics.rankedCount})</span></div>
-            <div className="kpi"><b>{d.metrics.avgDailySales ?? "—"}</b><span>{t.dailySales}</span></div>
-            <div className="kpi"><b>${d.metrics.avgPrice}</b><span>{t.avgPrice}</span></div>
-            <div className="kpi"><b>{d.metrics.nicheMonthlyRoyalty ? "$" + d.metrics.nicheMonthlyRoyalty.toLocaleString() : "—"}</b><span>{t.nicheMonthly}</span></div>
-            <div className="kpi"><b>{d.metrics.avgReviews}</b><span>{t.avgReviews}</span></div>
-          </div>
-          
-          <p className="mut" style={{fontSize: "12px", marginTop: "10px"}}>🟢 = BSR مقروء من أمازون الآن · ⚪ = غير مقاس · المبيعات تقدير إحصائي من BSR وليس رقماً رسمياً من أمازون.</p>
-          
-          <h3>{t.suggested}</h3>
-          <div>{d.suggestions.map(s => <span key={s} className="chip" onClick={() => { setQ(s); run(s); }}>{s}</span>)}</div>
-          
-          <h3>{t.topResults}</h3>
-          {d.books.map(b => (
-            <div key={b.asin} className="row">
-              <span>{b.title}</span>
-              <span className="mut">
-                {b.price !== null ? "$" + b.price : "—"} · BSR {b.bsr ? b.bsr.toLocaleString() : "—"}{b.source === "live" ? " 🟢" : " ⚪"} · ⭐{b.rating ?? "—"} ({b.reviews ?? "—"})
-              </span>
-            </div>
-          ))}
+
+          {m && (
+            <>
+              <div className="grid" style={{ marginTop: 12 }}>
+                <div className="kpi"><b>{m.score ?? "—"}/100</b><span>{t.score}</span></div>
+                <div className="kpi"><b>{num(m.avgBsr)}</b><span>{t.avgBsr} ({t.sample} {measured})</span></div>
+                <div className="kpi"><b>{m.avgDailySales ?? "—"}</b><span>{t.dailySales}</span></div>
+                <div className="kpi"><b>{typeof m.avgPrice === "number" ? "$" + m.avgPrice : "—"}</b><span>{t.avgPrice}</span></div>
+                <div className="kpi"><b>{typeof m.nicheMonthlyRoyalty === "number" ? "$" + num(m.nicheMonthlyRoyalty) : "—"}</b><span>{t.nicheMonthly}</span></div>
+                <div className="kpi"><b>{m.avgReviews ?? "—"}</b><span>{t.avgReviews}</span></div>
+              </div>
+
+              <p className="mut" style={{ fontSize: "12px", marginTop: "10px" }}>
+                🟢 = BSR مقروء من أمازون الآن · ⚪ = غير مقاس · المبيعات تقدير إحصائي من BSR وليس رقماً رسمياً من أمازون.
+              </p>
+            </>
+          )}
+
+          {suggestions.length > 0 && (
+            <>
+              <h3>{t.suggested}</h3>
+              <div>{suggestions.map(s => <span key={s} className="chip" onClick={() => { setQ(s); run(s); }}>{s}</span>)}</div>
+            </>
+          )}
+
+          {books.length > 0 && (
+            <>
+              <h3>{t.topResults}</h3>
+              {books.map(b => (
+                <div key={b.asin} className="row">
+                  <span>{b.title}</span>
+                  <span className="mut">
+                    {b.price !== null && b.price !== undefined ? "$" + b.price : "—"} · BSR {num(b.bsr)}{b.source === "live" ? " 🟢" : " ⚪"} · ⭐{b.rating ?? "—"} ({b.reviews ?? "—"})
+                  </span>
+                </div>
+              ))}
+            </>
+          )}
         </>
       )}
     </div>
@@ -143,18 +178,24 @@ function Niches({ t, lang, domain, onAnalyze }) {
     setBusy(true);
     const seed = String(Date.now());
     const u = "/api/niches?cat=" + cat + "&domain=" + domain + "&count=" + count + "&seed=" + seed + (validate ? "&validate=1" : "");
-    const r = await fetch(u);
-    const j = await r.json();
-    setRows(j.rows || []);
+    try {
+      const r = await fetch(u);
+      const j = await r.json();
+      setRows(j.rows || []);
+    } catch (e) {
+      setRows([]);
+    }
     setBusy(false);
   }
 
   async function validateCurrent() {
     if (!rows.length) return load(true);
     setBusy(true);
-    const r = await fetch("/api/niches?cat=" + cat + "&domain=" + domain + "&count=" + count + "&seed=fixed&validate=1");
-    const j = await r.json();
-    setRows(j.rows || []);
+    try {
+      const r = await fetch("/api/niches?cat=" + cat + "&domain=" + domain + "&count=" + count + "&seed=fixed&validate=1");
+      const j = await r.json();
+      setRows(j.rows || []);
+    } catch (e) {}
     setBusy(false);
   }
 
@@ -180,7 +221,7 @@ function Niches({ t, lang, domain, onAnalyze }) {
       <button className="go" onClick={() => load(false)}>
         {busy ? t.working : (rows.length ? t.nicheMore : t.nicheGen)}
       </button>
-      
+
       {rows.length > 0 && (
         <>
           <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
@@ -207,14 +248,20 @@ function Niches({ t, lang, domain, onAnalyze }) {
   );
 }
 
+/* ─────────────────────────────────────────────────────────────
+   مكتشف الفئات — معطّل مؤقتاً
+   السبب: معرّفات الفئات في app/api/categories/route.js غير حقيقية.
+   لا تحذف هذا المكوّن. سيُعاد تفعيله بعد استبدالها بمعرّفات
+   node= حقيقية من أمازون، بتغيير HIDDEN_TABS في أعلى الملف.
+   ───────────────────────────────────────────────────────────── */
 function Categories({ t, domain }) {
   const [rows, setRows] = useState([]);
   useEffect(() => {
     fetch("/api/categories?domain=" + domain).then(r => r.json()).then(j => setRows(j.rows || []));
   }, [domain]);
-  
+
   const diff = b => (b < 40000 ? t.hard : b < 80000 ? t.med : t.easy);
-  
+
   return (
     <div className="card">
       <p className="mut">{t.catNote}</p>
@@ -231,42 +278,56 @@ function Categories({ t, domain }) {
 function Tracker({ t, domain }) {
   const [asin, setAsin] = useState("");
   const [items, setItems] = useState([]);
-  
+
   useEffect(() => {
-    setItems(JSON.parse(localStorage.getItem("awd_track") || "[]"));
+    try {
+      setItems(JSON.parse(localStorage.getItem("awd_track") || "[]"));
+    } catch (e) {
+      setItems([]);
+    }
   }, []);
-  
+
   function save(v) {
     setItems(v);
     localStorage.setItem("awd_track", JSON.stringify(v));
   }
-  
+
   async function add() {
     if (!asin) return;
     const r = await fetch("/api/books?asin=" + asin.trim() + "&domain=" + domain);
     const b = await r.json();
+    if (!b || !b.asin) return;
     save([b, ...items.filter(x => x.asin !== b.asin)]);
     setAsin("");
   }
-  
+
   async function refreshAll() {
     const out = [];
     for (const it of items) {
-      const r = await fetch("/api/books?asin=" + it.asin + "&domain=" + it.domain);
+      const r = await fetch("/api/books?asin=" + it.asin + "&domain=" + (it.domain || domain));
       out.push(await r.json());
     }
     save(out);
   }
-  
+
+  function clearAll() {
+    save([]);
+  }
+
   return (
     <div className="card">
       <input placeholder={t.asinPlaceholder} value={asin} onChange={e => setAsin(e.target.value)} />
       <button className="go" onClick={add}>{t.addTrack}</button>
-      {items.length > 0 && <p className="mut" onClick={refreshAll}>{t.refreshAll}</p>}
+      {items.length > 0 && (
+        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+          <button className="mini" onClick={refreshAll}>{t.refreshAll}</button>
+          <button className="mini" onClick={clearAll}>🗑</button>
+        </div>
+      )}
       {items.map(b => (
         <div key={b.asin} className="row">
           <span>{b.title}</span>
-          <span className="mut">BSR {b.bsr ? b.bsr.toLocaleString() : "—"} · {b.monthly?.units ?? "—"} {t.copiesMonth} · ${b.monthly?.royalty ?? "—"} {t.royaltyShort}</span>
+          <span className="mut">BSR {typeof b.bsr === "number" ? b.bsr.toLocaleString() : "—"} · {b.monthly?.units ?? "—"} {t.copiesMonth} · ${b.monthly?.royalty ?? "—"} {t.royaltyShort}</span>
         </div>
       ))}
     </div>
@@ -281,7 +342,7 @@ function Formatter({ t }) {
     .filter(Boolean)
     .map(p => p.startsWith("- ") ? "<ul>" + p.split("\n").map(l => "<li>" + l.replace(/^- /, "") + "</li>").join("") + "</ul>" : p.startsWith("# ") ? "<h4>" + p.slice(2) + "</h4>" : "<p>" + p + "</p>")
     .join("");
-    
+
   return (
     <div className="card">
       <p className="mut">{t.fmtNote}</p>
@@ -299,10 +360,10 @@ function Calc({ t }) {
   const [p, setP] = useState(12.99);
   const [pg, setPg] = useState(120);
   const [color, setColor] = useState(false);
-  
+
   const cost = printCost(pg, color);
   const roy = Math.max(0, p * 0.6 - cost);
-  
+
   return (
     <div className="card">
       <label className="mut">{t.price}</label>
@@ -313,11 +374,13 @@ function Calc({ t }) {
         <input type="checkbox" checked={color} onChange={e => setColor(e.target.checked)} style={{ width: "auto", margin: "0 8px" }} />
         {t.colorPrint}
       </label>
-      <div className="grid" style={{marginTop: "12px"}}>
+      <div className="grid" style={{ marginTop: "12px" }}>
         <div className="kpi"><b>${cost.toFixed(2)}</b><span>{t.printCost}</span></div>
         <div className="kpi"><b>${roy.toFixed(2)}</b><span>{t.royaltyUnit}</span></div>
       </div>
+      <p className="mut" style={{ fontSize: "12px", marginTop: "10px" }}>
+        تكلفة الطباعة وفق أسعار KDP الأمريكية للغلاف الورقي · العائد = 60٪ من السعر − تكلفة الطباعة.
+      </p>
     </div>
   );
-        }
-        
+}
