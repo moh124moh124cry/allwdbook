@@ -6,22 +6,20 @@ import { printCost } from "../lib/estimate";
 
 const DOMAINS = ["amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it", "amazon.es", "amazon.ca"];
 
-// 2 = مكتشف الفئات · 3 = متتبع الكتب · معروضان معطّلين بعلامة "قريباً"
 const SOON_TABS = [2, 3];
 
-// تحويل رموز الأخطاء التقنية إلى رسائل عربية مفهومة
-function errText(d) {
-  if (!d) return "تعذّر إتمام الطلب.";
+function errText(t, d) {
+  if (!d) return t.errGeneric;
   const code = String(d.error || "");
   const detail = String(d.detail || "");
-  if (code === "NO_API_KEY") return "هذه الميزة قيد التجهيز. بيانات أمازون الحيّة ستُفعَّل قريباً.";
-  if (code === "SEARCH_FAILED" && detail.indexOf("402") >= 0) return "رصيد بيانات أمازون منتهٍ حالياً. نعمل على تجديده.";
-  if (code === "SEARCH_FAILED") return "تعذّر جلب البيانات من أمازون الآن. حاول بعد قليل.";
-  if (code === "MISSING_QUERY") return "اكتب كلمة مفتاحية أولاً.";
-  if (code === "NETWORK") return "تعذّر الاتصال بالخادم. تحقّق من اتصالك وحاول مجدداً.";
-  if (code === "NO_GEMINI_KEY") return "مولّد الأفكار قيد التجهيز.";
-  if (code === "AI_FAILED") return "مولّد الأفكار مشغول الآن. حاول بعد دقائق.";
-  return d.message || "تعذّر إتمام الطلب.";
+  if (code === "NO_API_KEY") return t.errNoKey;
+  if (code === "SEARCH_FAILED" && detail.indexOf("402") >= 0) return t.errNoCredit;
+  if (code === "SEARCH_FAILED") return t.errSearch;
+  if (code === "MISSING_QUERY") return t.errMissing;
+  if (code === "NETWORK") return t.errNetwork;
+  if (code === "NO_GEMINI_KEY") return t.errAiKey;
+  if (code === "AI_FAILED") return t.errAiBusy;
+  return t.errGeneric;
 }
 
 export default function Home() {
@@ -74,7 +72,7 @@ export default function Home() {
               disabled
               style={{ opacity: 0.4, cursor: "not-allowed", filter: "grayscale(1)" }}
             >
-              🔒 {x} · قريباً
+              🔒 {x} · {t.soon}
             </button>
           ) : (
             <button key={i} className={"tab" + (i === tab ? " on" : "")} onClick={() => setTab(i)}>{x}</button>
@@ -151,18 +149,16 @@ function Keywords({ t, domain, seed }) {
       <button className="go" onClick={() => run()}>{busy ? t.analyzing : t.analyze}</button>
 
       <button className="mini" style={{ marginTop: 8, width: "100%" }} onClick={askAi}>
-        {aiBusy ? "🤖 جارٍ التوليد..." : "🤖 أفكار كلمات (يقبل العربية)"}
+        🤖 {aiBusy ? t.aiWorking : t.aiBtn}
       </button>
 
       {ai && (
         <div style={{ marginTop: 12 }}>
-          {ai.error && <p className="mut">⏳ {errText(ai)}</p>}
+          {ai.error && <p className="mut">⏳ {errText(t, ai)}</p>}
           {aiRows.length > 0 && (
             <>
-              <h3>🤖 مقترح — غير مؤكد</h3>
-              <p className="mut" style={{ fontSize: "12px" }}>
-                هذه أفكار مولّدة آلياً، وليست بيانات من أمازون. اضغط أي كلمة لقياسها بأرقام حقيقية.
-              </p>
+              <h3>🤖 {t.aiTitle}</h3>
+              <p className="mut" style={{ fontSize: "12px" }}>{t.aiNote}</p>
               <div>
                 {aiRows.map(x => (
                   <span key={x.keyword} className="chip" onClick={() => { setQ(x.keyword); run(x.keyword); }}>
@@ -179,16 +175,14 @@ function Keywords({ t, domain, seed }) {
         <>
           {d.error && (
             <div style={{ marginTop: 12, padding: "12px", border: "1px solid var(--line)", borderRadius: "10px" }}>
-              <p className="mut" style={{ margin: 0 }}>⏳ {errText(d)}</p>
-              <p className="mut" style={{ margin: "6px 0 0", fontSize: "12px" }}>
-                جرّب تبويب <b>الميكرو نيتش</b> — يعمل الآن ويولّد أفكار كلمات مجاناً.
-              </p>
+              <p className="mut" style={{ margin: 0 }}>⏳ {errText(t, d)}</p>
+              <p className="mut" style={{ margin: "6px 0 0", fontSize: "12px" }}>{t.tryNiches}</p>
             </div>
           )}
 
           {conf && (
             <div className={"badge b-" + (conf.level === "high" ? "high" : conf.level === "medium" ? "medium" : conf.level === "low" ? "low" : "none")}>
-              درجة الثقة: {conf.level || "—"} · قيست {measured} من {total} كتب
+              {t.confidence}: {conf.level ? (t[conf.level] || conf.level) : "—"} · {t.measuredOf} {measured} {t.ofBooks} {total} {t.booksWord}
             </div>
           )}
 
@@ -204,7 +198,7 @@ function Keywords({ t, domain, seed }) {
               </div>
 
               <p className="mut" style={{ fontSize: "12px", marginTop: "10px" }}>
-                🟢 = BSR مقروء من أمازون الآن · ⚪ = غير مقاس · 🤖 = اقتراح آلي غير مؤكد · المبيعات تقدير إحصائي من BSR وليس رقماً رسمياً من أمازون.
+                🟢 ⚪ 🤖 — {t.legend}
               </p>
             </>
           )}
@@ -242,12 +236,11 @@ function Niches({ t, lang, domain, onAnalyze }) {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  async function load(validate) {
+  async function load() {
     setBusy(true);
     const seed = String(Date.now());
-    const u = "/api/niches?cat=" + cat + "&domain=" + domain + "&count=" + count + "&seed=" + seed + (validate ? "&validate=1" : "");
     try {
-      const r = await fetch(u);
+      const r = await fetch("/api/niches?cat=" + cat + "&domain=" + domain + "&count=" + count + "&seed=" + seed);
       const j = await r.json();
       setRows(j.rows || []);
     } catch (e) {
@@ -257,7 +250,6 @@ function Niches({ t, lang, domain, onAnalyze }) {
   }
 
   async function validateCurrent() {
-    if (!rows.length) return load(true);
     setBusy(true);
     try {
       const r = await fetch("/api/niches?cat=" + cat + "&domain=" + domain + "&count=" + count + "&seed=fixed&validate=1");
@@ -286,7 +278,7 @@ function Niches({ t, lang, domain, onAnalyze }) {
       <select value={count} onChange={e => setCount(Number(e.target.value))}>
         {[12, 24, 40, 60].map(n => <option key={n} value={n}>{n}</option>)}
       </select>
-      <button className="go" onClick={() => load(false)}>
+      <button className="go" onClick={load}>
         {busy ? t.working : (rows.length ? t.nicheMore : t.nicheGen)}
       </button>
 
@@ -304,7 +296,7 @@ function Niches({ t, lang, domain, onAnalyze }) {
               </span>
               <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 <span className={"badge " + (n.demand ? "b-" + n.demand : "b-none")}>
-                  {n.demand ? t[n.demand === "medium" ? "medium" : n.demand] : t.untested}
+                  {n.demand ? (t[n.demand] || n.demand) : t.untested}
                 </span>
                 <button className="mini" onClick={() => onAnalyze(n.keyword)}>{t.analyzeThis}</button>
               </span>
@@ -360,9 +352,7 @@ function Calc({ t }) {
         <div className="kpi"><b>${cost.toFixed(2)}</b><span>{t.printCost}</span></div>
         <div className="kpi"><b>${roy.toFixed(2)}</b><span>{t.royaltyUnit}</span></div>
       </div>
-      <p className="mut" style={{ fontSize: "12px", marginTop: "10px" }}>
-        تكلفة الطباعة وفق أسعار KDP الأمريكية للغلاف الورقي · العائد = 60٪ من السعر − تكلفة الطباعة.
-      </p>
+      <p className="mut" style={{ fontSize: "12px", marginTop: "10px" }}>{t.calcNote}</p>
     </div>
   );
 }
