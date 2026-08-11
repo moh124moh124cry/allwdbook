@@ -49,7 +49,7 @@ export default function Home() {
   return (
     <div className="wrap">
       <header>
-        <img src="/logo.png" alt="All World Digital" className="logo" />
+        <img src="/logo-v2.png" alt="All World Digital" className="logo" />
         <div className="brandbox">
           <h1>AllWDbook<span className="tm">™</span></h1>
           <span className="mut">{t.tagline}</span>
@@ -86,7 +86,7 @@ export default function Home() {
       {tab === 5 && <Calc t={t} />}
 
       <footer className="foot">
-        <img src="/logo.png" alt="" />
+        <img src="/logo-v2.png" alt="" />
         <span>{t.by} <b>All World Digital</b> © {new Date().getFullYear()} · {t.rights}</span>
       </footer>
     </div>
