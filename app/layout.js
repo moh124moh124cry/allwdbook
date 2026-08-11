@@ -5,13 +5,14 @@ import AdSlot from "./adslot";
 
 const ADS_ON = false;
 const MONETAG_ZONE = "";
+const LOGO = "/logov3.png";
 
 export const metadata = {
   title: "AllWDbook™ — Amazon KDP Publisher Tools | All World Digital",
   description: "Free cover designer, keyword research, micro-niche generation and royalty calculator for Amazon KDP publishers. Designed by All World Digital.",
   authors: [{ name: "All World Digital" }],
   applicationName: "AllWDbook",
-  icons: { icon: "/logo-v2.png", apple: "/logo-v2.png" }
+  icons: { icon: LOGO, apple: LOGO }
 };
 
 export default function RootLayout({ children }) {
