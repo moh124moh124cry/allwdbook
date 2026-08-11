@@ -1,16 +1,14 @@
 import "./globals.css";
 import Script from "next/script";
 import Feedback from "./feedback";
+import AdSlot from "./adslot";
 
-// ═══ مفتاح تشغيل الإعلانات ═══
-// اتركه false حتى تحصل على نطاق خاص وتُقبل في شبكة إعلانية.
 const ADS_ON = false;
 const MONETAG_ZONE = "";
 
 export const metadata = {
   title: "AllWDbook™ — Amazon KDP Publisher Tools | All World Digital",
-  description:
-    "Free cover designer, keyword research, micro-niche generation and royalty calculator for Amazon KDP publishers. Designed by All World Digital.",
+  description: "Free cover designer, keyword research, micro-niche generation and royalty calculator for Amazon KDP publishers. Designed by All World Digital.",
   authors: [{ name: "All World Digital" }],
   applicationName: "AllWDbook",
   icons: { icon: "/logo-v2.png", apple: "/logo-v2.png" }
@@ -22,6 +20,7 @@ export default function RootLayout({ children }) {
       <body>
         {children}
         <Feedback />
+        <AdSlot />
         {ADS_ON && MONETAG_ZONE ? (
           <Script
             id="monetag"
