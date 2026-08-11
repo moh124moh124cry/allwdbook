@@ -58,7 +58,7 @@ export default function Home() {
   return (
     <div className="wrap">
       <header>
-        <img src="/logo-v2.png" alt="All World Digital" className="logo" />
+        <img src="/logov3.png" alt="All World Digital" className="logo" />
         <div className="brandbox">
           <h1>AllWDbook<span className="tm">™</span></h1>
           <span className="mut">{t.tagline}</span>
