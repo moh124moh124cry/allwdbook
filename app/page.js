@@ -87,7 +87,7 @@ export default function Home() {
       {tab === 4 && <Formatter t={t} />}
 
       <footer className="foot">
-        <img src="/logo-v2.png" alt="" />
+        <img src="/logov3.png" alt="" />
         <span>{t.by} <b>All World Digital</b> © {new Date().getFullYear()} · {t.rights}</span>
       </footer>
     </div>
