@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { T } from "../lib/i18n";
 import { NICHE_CATEGORIES } from "../lib/niches";
 import { printCost } from "../lib/estimate";
-import CoverTool from "./CoverTool";
+import CoverTool from "./covertool";
 
 const DOMAINS = ["amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it", "amazon.es", "amazon.ca"];
 
