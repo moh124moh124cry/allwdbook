@@ -13,7 +13,6 @@ const L = {
     ltr: "انجليزي (يسار الى يمين)",
     rtlL: "عربي (يمين الى يسار)",
     bleed: "المحتوى الداخلي فيه نزيف",
-    upload: "ارفع صورة الغلاف الكامل",
     guides: "اظهار الخطوط الارشادية",
     spine: "عرض الكعب",
     cover: "مقاس الغلاف الكامل",
@@ -28,6 +27,11 @@ const L = {
     pdf: "تصدير PDF",
     png: "تصدير PNG",
     working: "جاري التصدير...",
+    fix: "اصلح الصورة تلقائيا",
+    fixing: "جاري الاصلاح...",
+    okFix: "تم الاصلاح. الابعاد الان مطابقة تماما لمتطلبات امازون.",
+    warnFix: "التكبير لا يخترع تفاصيل جديدة. للرسم الخطي النتيجة جيدة، وللصور الفوتوغرافية يفضل اعادة التصدير من المصدر.",
+    undo: "رجوع للصورة الاصلية",
     spineOk: "نص الكعب مسموح",
     spineNo: "نص الكعب ممنوع (اقل من 79 صفحة)",
     front: "الامامي",
@@ -47,7 +51,6 @@ const L = {
     ltr: "English (left to right)",
     rtlL: "Arabic (right to left)",
     bleed: "Interior uses bleed",
-    upload: "Upload full wrap cover image",
     guides: "Show guide lines",
     spine: "Spine width",
     cover: "Full cover size",
@@ -62,6 +65,11 @@ const L = {
     pdf: "Export PDF",
     png: "Export PNG",
     working: "Exporting...",
+    fix: "Auto fix this image",
+    fixing: "Fixing...",
+    okFix: "Fixed. Dimensions now match Amazon exactly.",
+    warnFix: "Upscaling cannot invent detail. Line art upscales well; photos are better re-exported from source.",
+    undo: "Back to original image",
     spineOk: "Spine text allowed",
     spineNo: "Spine text not allowed (under 79 pages)",
     front: "FRONT",
@@ -82,7 +90,11 @@ export default function CoverTool({ lang }) {
   const [rtl, setRtl] = useState(false);
   const [bleed, setBleed] = useState(true);
   const [guides, setGuides] = useState(true);
-  const [img, setImg] = useState(null);
+  const [src, setSrc] = useState(null);
+  const [dim, setDim] = useState({ w: 0, h: 0 });
+  const [orig, setOrig] = useState(null);
+  const [origDim, setOrigDim] = useState({ w: 0, h: 0 });
+  const [fixed, setFixed] = useState(false);
   const [busy, setBusy] = useState("");
   const cv = useRef(null);
 
@@ -91,21 +103,24 @@ export default function CoverTool({ lang }) {
   const cs = coverSize(trim.w, trim.h, n, paper);
   const ins = interiorSize(trim.w, trim.h, bleed);
   const lay = layout(trim.w, trim.h, n, paper, rtl);
-  const chk = img ? checkImage(img.width, img.height, cs.widthPx, cs.heightPx) : { level: "none", ratio: 0 };
+  const chk = src ? checkImage(dim.w, dim.h, cs.widthPx, cs.heightPx) : { level: "none", ratio: 0 };
+  const needFix = chk.level === "warn" || chk.level === "bad";
+
+  function cover(ctx, s, sw, sh, W, H) {
+    const ir = sw / sh;
+    const cr = W / H;
+    let dw = W;
+    let dh = H;
+    if (ir > cr) { dh = H; dw = H * ir; } else { dw = W; dh = W / ir; }
+    ctx.drawImage(s, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  }
 
   function paint(ctx, scale, withGuides) {
     const W = cs.widthIn * scale;
     const H = cs.heightIn * scale;
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, W, H);
-    if (img) {
-      const ir = img.width / img.height;
-      const cr = W / H;
-      let dw = W;
-      let dh = H;
-      if (ir > cr) { dh = H; dw = H * ir; } else { dw = W; dh = W / ir; }
-      ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
-    }
+    if (src) cover(ctx, src, dim.w, dim.h, W, H);
     if (!withGuides) return;
     const u = function (i) { return i * scale; };
     ctx.lineWidth = Math.max(1, scale / 150);
@@ -160,10 +175,65 @@ export default function CoverTool({ lang }) {
     const rd = new FileReader();
     rd.onload = function (ev) {
       const im = new Image();
-      im.onload = function () { setImg(im); };
+      im.onload = function () {
+        setSrc(im);
+        setDim({ w: im.width, h: im.height });
+        setOrig(im);
+        setOrigDim({ w: im.width, h: im.height });
+        setFixed(false);
+      };
       im.src = ev.target.result;
     };
     rd.readAsDataURL(f);
+  }
+
+  function autoFix() {
+    if (!src) return;
+    setBusy(t.fixing);
+    setTimeout(function () {
+      const tw = cs.widthPx;
+      const th = cs.heightPx;
+      let cur = src;
+      let cw = dim.w;
+      let ch = dim.h;
+      let steps = 0;
+      while ((cw * 2 < tw || ch * 2 < th) && steps < 6) {
+        const nw = Math.round(cw * 2);
+        const nh = Math.round(ch * 2);
+        const tmp = document.createElement("canvas");
+        tmp.width = nw;
+        tmp.height = nh;
+        const tc = tmp.getContext("2d");
+        tc.imageSmoothingEnabled = true;
+        tc.imageSmoothingQuality = "high";
+        tc.drawImage(cur, 0, 0, nw, nh);
+        cur = tmp;
+        cw = nw;
+        ch = nh;
+        steps = steps + 1;
+      }
+      const out = document.createElement("canvas");
+      out.width = tw;
+      out.height = th;
+      const oc = out.getContext("2d");
+      oc.fillStyle = "#ffffff";
+      oc.fillRect(0, 0, tw, th);
+      oc.imageSmoothingEnabled = true;
+      oc.imageSmoothingQuality = "high";
+      try { oc.filter = "contrast(1.12) saturate(1.04)"; } catch (err) { }
+      cover(oc, cur, cw, ch, tw, th);
+      setSrc(out);
+      setDim({ w: tw, h: th });
+      setFixed(true);
+      setBusy("");
+    }, 60);
+  }
+
+  function undoFix() {
+    if (!orig) return;
+    setSrc(orig);
+    setDim({ w: origDim.w, h: origDim.h });
+    setFixed(false);
   }
 
   function bigCanvas() {
@@ -183,7 +253,7 @@ export default function CoverTool({ lang }) {
       a.download = "allwdbook-cover.png";
       a.click();
       setBusy("");
-    }, 50);
+    }, 60);
   }
 
   function savePdf() {
@@ -201,7 +271,7 @@ export default function CoverTool({ lang }) {
         pdf.save("allwdbook-cover.pdf");
         setBusy("");
       });
-    }, 50);
+    }, 60);
   }
 
   const badge = chk.level === "good" ? t.good : chk.level === "warn" ? t.warn : chk.level === "bad" ? t.bad : t.none;
@@ -264,8 +334,26 @@ export default function CoverTool({ lang }) {
       </div>
 
       <p style={{ color: badgeColor, fontWeight: 700 }}>
-        {t.yours}: {img ? img.width + " x " + img.height + " (" + chk.ratio + "%)" : "-"} — {badge}
+        {t.yours}: {src ? dim.w + " x " + dim.h + " (" + chk.ratio + "%)" : "-"} — {badge}
       </p>
+
+      {needFix ? (
+        <div className="row">
+          <button className="go" onClick={autoFix} disabled={busy !== ""}>
+            {busy !== "" ? busy : "🪄 " + t.fix}
+          </button>
+        </div>
+      ) : null}
+
+      {fixed ? (
+        <div>
+          <p style={{ color: "#16a34a", fontWeight: 700 }}>✅ {t.okFix}</p>
+          <p className="mut">⚠️ {t.warnFix}</p>
+          <div className="row">
+            <button className="go" onClick={undoFix} disabled={busy !== ""}>↩️ {t.undo}</button>
+          </div>
+        </div>
+      ) : null}
 
       <div style={{ overflowX: "auto", background: "#0b1220", padding: 8, borderRadius: 10 }}>
         <canvas ref={cv} style={{ width: "100%", height: "auto", borderRadius: 6 }} />
