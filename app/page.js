@@ -9,6 +9,13 @@ const DOMAINS = ["amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon
 
 const SOON_TABS = [2, 3];
 
+const ORDER = [6, 1, 0, 5, 4, 2, 3];
+
+function tabLabel(t, lang, i) {
+  if (i === 6) return "📐 " + (lang === "en" ? "Cover Designer" : "مصمم الغلاف");
+  return t.tabs[i];
+}
+
 function errText(t, d) {
   if (!d) return t.errGeneric;
   const code = String(d.error || "");
@@ -25,7 +32,7 @@ function errText(t, d) {
 
 export default function Home() {
   const [lang, setLang] = useState("ar");
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(6);
   const [domain, setDomain] = useState("amazon.com");
   const [seedKw, setSeedKw] = useState("");
   const t = T[lang];
@@ -65,7 +72,7 @@ export default function Home() {
       </select>
 
       <div className="tabs">
-        {t.tabs.map((x, i) => (
+        {ORDER.map(i => (
           SOON_TABS.includes(i) ? (
             <button
               key={i}
@@ -73,22 +80,21 @@ export default function Home() {
               disabled
               style={{ opacity: 0.4, cursor: "not-allowed", filter: "grayscale(1)" }}
             >
-              🔒 {x} · {t.soon}
+              🔒 {tabLabel(t, lang, i)} · {t.soon}
             </button>
           ) : (
-            <button key={i} className={"tab" + (i === tab ? " on" : "")} onClick={() => setTab(i)}>{x}</button>
+            <button key={i} className={"tab" + (i === tab ? " on" : "")} onClick={() => setTab(i)}>
+              {tabLabel(t, lang, i)}
+            </button>
           )
         ))}
-        <button className={"tab" + (tab === 6 ? " on" : "")} onClick={() => setTab(6)}>
-          📐 {lang === "en" ? "Cover Designer" : "مصمم الغلاف"}
-        </button>
       </div>
 
-      {tab === 0 && <Keywords t={t} domain={domain} seed={seedKw} />}
-      {tab === 1 && <Niches t={t} lang={lang} domain={domain} onAnalyze={sendToKeywords} />}
-      {tab === 4 && <Formatter t={t} />}
-      {tab === 5 && <Calc t={t} />}
       {tab === 6 && <CoverTool lang={lang} />}
+      {tab === 1 && <Niches t={t} lang={lang} domain={domain} onAnalyze={sendToKeywords} />}
+      {tab === 0 && <Keywords t={t} domain={domain} seed={seedKw} />}
+      {tab === 5 && <Calc t={t} />}
+      {tab === 4 && <Formatter t={t} />}
 
       <footer className="foot">
         <img src="/logo-v2.png" alt="" />
