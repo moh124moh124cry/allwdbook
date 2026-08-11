@@ -1,11 +1,36 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { PAPER, TRIMS, coverSize, interiorSize, gutterFor, checkImage, layout } from "../lib/cover";
+import { PAPER, TRIMS, coverSize, interiorSize, gutterFor, checkImage, layout, mm } from "../lib/cover";
+
+const BOOK_TYPES = [
+  { ar: "كتاب تلوين / أنشطة", en: "Coloring / Activity book", ti: 12, paper: "white", bleed: true, pages: 60 },
+  { ar: "كتاب تمارين ومراجعة", en: "Workbook", ti: 12, paper: "white", bleed: false, pages: 100 },
+  { ar: "دفتر يوميات / جورنال", en: "Journal", ti: 3, paper: "cream", bleed: false, pages: 120 },
+  { ar: "مفكرة / بلانر", en: "Planner", ti: 12, paper: "white", bleed: false, pages: 130 },
+  { ar: "كتاب ألغاز وكلمات متقاطعة", en: "Puzzle book", ti: 6, paper: "white", bleed: false, pages: 110 },
+  { ar: "كتاب طبخ ملون", en: "Cookbook (color)", ti: 9, paper: "premium", bleed: true, pages: 90 },
+  { ar: "قصة أطفال مصورة ملونة", en: "Children picture book", ti: 11, paper: "premium", bleed: true, pages: 32 },
+  { ar: "رواية صغيرة", en: "Small novel", ti: 0, paper: "cream", bleed: false, pages: 200 },
+  { ar: "رواية وأدب", en: "Novel / Literature", ti: 1, paper: "cream", bleed: false, pages: 220 },
+  { ar: "رواية ومذكرات", en: "Novel / Memoir", ti: 2, paper: "cream", bleed: false, pages: 240 },
+  { ar: "تطوير ذات وكتب عامة", en: "Self-help / General", ti: 3, paper: "white", bleed: false, pages: 180 },
+  { ar: "كتاب أكاديمي", en: "Academic book", ti: 4, paper: "white", bleed: false, pages: 260 },
+  { ar: "كتاب غير خيالي", en: "Non-fiction", ti: 5, paper: "white", bleed: false, pages: 240 },
+  { ar: "كتاب تعليمي", en: "Educational book", ti: 6, paper: "white", bleed: false, pages: 150 },
+  { ar: "كتاب كبير الحجم", en: "Large format book", ti: 7, paper: "white", bleed: false, pages: 150 },
+  { ar: "كتاب مصور", en: "Illustrated book", ti: 8, paper: "white", bleed: true, pages: 120 },
+  { ar: "كتاب تعليم وفن", en: "Art / Teaching book", ti: 9, paper: "white", bleed: true, pages: 120 },
+  { ar: "كتاب مربع", en: "Square book", ti: 10, paper: "white", bleed: true, pages: 60 },
+  { ar: "كتاب مربع كبير", en: "Large square book", ti: 11, paper: "white", bleed: true, pages: 60 }
+];
 
 const L = {
   ar: {
     title: "مصمم الغلاف",
     note: "كل الحساب يتم داخل هاتفك. لا ترفع صورتك لاي خادم.",
+    btype: "نوع الكتاب (يضبط المقاس تلقائيا)",
+    custom: "مخصص — اختر يدويا",
+    hint: "المقاس المختار",
     trim: "مقاس الكتاب",
     pages: "عدد الصفحات",
     paper: "نوع الورق",
@@ -44,6 +69,9 @@ const L = {
   en: {
     title: "Cover Designer",
     note: "All math runs on your device. Your image is never uploaded.",
+    btype: "Book type (sets the size for you)",
+    custom: "Custom — choose manually",
+    hint: "Selected size",
     trim: "Trim size",
     pages: "Page count",
     paper: "Paper type",
@@ -84,8 +112,9 @@ const L = {
 export default function CoverTool({ lang }) {
   const t = L[lang === "en" ? "en" : "ar"];
   const isAr = lang !== "en";
-  const [ti, setTi] = useState(3);
-  const [pages, setPages] = useState(124);
+  const [bt, setBt] = useState(0);
+  const [ti, setTi] = useState(12);
+  const [pages, setPages] = useState(60);
   const [paper, setPaper] = useState("white");
   const [rtl, setRtl] = useState(false);
   const [bleed, setBleed] = useState(true);
@@ -105,6 +134,23 @@ export default function CoverTool({ lang }) {
   const lay = layout(trim.w, trim.h, n, paper, rtl);
   const chk = src ? checkImage(dim.w, dim.h, cs.widthPx, cs.heightPx) : { level: "none", ratio: 0 };
   const needFix = chk.level === "warn" || chk.level === "bad";
+
+  function applyType(e) {
+    const i = Number(e.target.value);
+    setBt(i);
+    if (i < 0) return;
+    const b = BOOK_TYPES[i];
+    if (!b) return;
+    setTi(b.ti);
+    setPaper(b.paper);
+    setBleed(b.bleed);
+    setPages(b.pages);
+  }
+
+  function pickTrim(e) {
+    setTi(Number(e.target.value));
+    setBt(-1);
+  }
 
   function cover(ctx, s, sw, sh, W, H) {
     const ir = sw / sh;
@@ -282,10 +328,21 @@ export default function CoverTool({ lang }) {
       <h3>📐 {t.title}</h3>
       <p className="mut">{t.note}</p>
 
+      <div className="mut">📚 {t.btype}</div>
+      <select value={bt} onChange={applyType}>
+        <option value="-1">{t.custom}</option>
+        {BOOK_TYPES.map(function (b, i) {
+          return <option key={i} value={i}>{isAr ? b.ar : b.en}</option>;
+        })}
+      </select>
+      <p className="mut" style={{ fontSize: "12px" }}>
+        📏 {t.hint}: {trim.w} x {trim.h} in · {mm(trim.w)} x {mm(trim.h)} mm
+      </p>
+
       <div className="grid">
         <div>
           <div className="mut">{t.trim}</div>
-          <select value={ti} onChange={function (e) { setTi(Number(e.target.value)); }}>
+          <select value={ti} onChange={pickTrim}>
             {TRIMS.map(function (x, i) {
               return <option key={i} value={i}>{x.w} x {x.h} in</option>;
             })}
