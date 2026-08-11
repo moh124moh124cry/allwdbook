@@ -7,13 +7,13 @@ import CoverTool from "./covertool";
 
 const DOMAINS = ["amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it", "amazon.es", "amazon.ca"];
 
-const SOON_TABS = [2, 3];
+const ORDER = [6, 1, 0, 5, 4];
 
-const ORDER = [6, 1, 0, 5, 4, 2, 3];
+const ICONS = ["🔑", "🎯", "📚", "📈", "✍️", "🧮"];
 
 function tabLabel(t, lang, i) {
   if (i === 6) return "📐 " + (lang === "en" ? "Cover Designer" : "مصمم الغلاف");
-  return t.tabs[i];
+  return ICONS[i] + " " + t.tabs[i];
 }
 
 function errText(t, d) {
@@ -25,6 +25,7 @@ function errText(t, d) {
   if (code === "SEARCH_FAILED") return t.errSearch;
   if (code === "MISSING_QUERY") return t.errMissing;
   if (code === "NETWORK") return t.errNetwork;
+  if (code === "NO_AI_KEY") return t.errAiKey;
   if (code === "NO_GEMINI_KEY") return t.errAiKey;
   if (code === "AI_FAILED") return t.errAiBusy;
   return t.errGeneric;
@@ -73,20 +74,9 @@ export default function Home() {
 
       <div className="tabs">
         {ORDER.map(i => (
-          SOON_TABS.includes(i) ? (
-            <button
-              key={i}
-              className="tab"
-              disabled
-              style={{ opacity: 0.4, cursor: "not-allowed", filter: "grayscale(1)" }}
-            >
-              🔒 {tabLabel(t, lang, i)} · {t.soon}
-            </button>
-          ) : (
-            <button key={i} className={"tab" + (i === tab ? " on" : "")} onClick={() => setTab(i)}>
-              {tabLabel(t, lang, i)}
-            </button>
-          )
+          <button key={i} className={"tab" + (i === tab ? " on" : "")} onClick={() => setTab(i)}>
+            {tabLabel(t, lang, i)}
+          </button>
         ))}
       </div>
 
@@ -143,6 +133,11 @@ function Keywords({ t, domain, seed }) {
     setAiBusy(false);
   }
 
+  function copyAi() {
+    const list = (ai && Array.isArray(ai.rows)) ? ai.rows : [];
+    navigator.clipboard.writeText(list.map(x => x.keyword).join("\n"));
+  }
+
   const conf = d && d.confidence ? d.confidence : null;
   const measured = conf ? (conf.bsrSampleSize ?? conf.measuredBooks ?? 0) : 0;
   const total = conf ? (conf.totalResults ?? conf.totalBooks ?? 0) : 0;
@@ -169,14 +164,22 @@ function Keywords({ t, domain, seed }) {
           {aiRows.length > 0 && (
             <>
               <h3>🤖 {t.aiTitle}</h3>
-              <p className="mut" style={{ fontSize: "12px" }}>{t.aiNote}</p>
-              <div>
+
+              <div style={{ padding: "10px 12px", border: "1px solid var(--line)", borderRadius: "10px", background: "rgba(245,158,11,0.08)" }}>
+                <p style={{ margin: 0, fontSize: "13px" }}>{t.aiNote}</p>
+                <p style={{ margin: "6px 0 0", fontSize: "13px" }}>{t.aiVerify}</p>
+                <p className="mut" style={{ margin: "6px 0 0", fontSize: "11px" }}>{t.aiProvider}</p>
+              </div>
+
+              <div style={{ marginTop: 10 }}>
                 {aiRows.map(x => (
                   <span key={x.keyword} className="chip" onClick={() => { setQ(x.keyword); run(x.keyword); }}>
                     🤖 {x.keyword}
                   </span>
                 ))}
               </div>
+
+              <button className="mini" style={{ marginTop: 8 }} onClick={copyAi}>{t.copy}</button>
             </>
           )}
         </div>
@@ -211,6 +214,8 @@ function Keywords({ t, domain, seed }) {
               <p className="mut" style={{ fontSize: "12px", marginTop: "10px" }}>
                 🟢 ⚪ 🤖 — {t.legend}
               </p>
+
+              <p className="mut" style={{ fontSize: "11px", marginTop: "6px" }}>⚖️ {t.notAdvice}</p>
             </>
           )}
 
@@ -364,6 +369,7 @@ function Calc({ t }) {
         <div className="kpi"><b>${roy.toFixed(2)}</b><span>{t.royaltyUnit}</span></div>
       </div>
       <p className="mut" style={{ fontSize: "12px", marginTop: "10px" }}>{t.calcNote}</p>
+      <p className="mut" style={{ fontSize: "11px", marginTop: "6px" }}>⚖️ {t.notAdvice}</p>
     </div>
   );
 }
