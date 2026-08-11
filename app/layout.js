@@ -1,18 +1,19 @@
 import "./globals.css";
 import Script from "next/script";
+import Feedback from "./feedback";
 
 // ═══ مفتاح تشغيل الإعلانات ═══
-// اتركه false حتى تحصل على نطاق خاص وتُقبل في Monetag.
-// عند التفعيل: غيّره إلى true وضع رقم الموقع (Zone ID) بالأسفل.
+// اتركه false حتى تحصل على نطاق خاص وتُقبل في شبكة إعلانية.
 const ADS_ON = false;
 const MONETAG_ZONE = "";
 
 export const metadata = {
   title: "AllWDbook™ — Amazon KDP Publisher Tools | All World Digital",
-  description: "Keyword research, micro-niche generation, competitor tracking and category discovery for Amazon KDP publishers. Designed by All World Digital.",
+  description:
+    "Free cover designer, keyword research, micro-niche generation and royalty calculator for Amazon KDP publishers. Designed by All World Digital.",
   authors: [{ name: "All World Digital" }],
   applicationName: "AllWDbook",
-  icons: { icon: "/logo.png", apple: "/logo.png" }
+  icons: { icon: "/logo-v2.png", apple: "/logo-v2.png" }
 };
 
 export default function RootLayout({ children }) {
@@ -20,6 +21,7 @@ export default function RootLayout({ children }) {
     <html lang="ar" dir="rtl">
       <body>
         {children}
+        <Feedback />
         {ADS_ON && MONETAG_ZONE ? (
           <Script
             id="monetag"
