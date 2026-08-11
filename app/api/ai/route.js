@@ -1,63 +1,56 @@
-/* app/api/ai/route.js — v1.0.1 */
+import { hasGroq, seedKeywords } from "../../../lib/groq";
 
 export const dynamic = "force-dynamic";
+
+const VERSION = "2.0.0";
+
+function out(obj, code) {
+  return new Response(JSON.stringify(obj), {
+    status: code || 200,
+    headers: { "Content-Type": "application/json; charset=utf-8" }
+  });
+}
 
 export async function GET(req) {
   let q = "";
   let limit = 15;
 
   try {
-    const { searchParams } = new URL(req.url);
-    q = (searchParams.get("q") || "").trim();
-    limit = Math.min(30, Math.max(5, Number(searchParams.get("limit") || 15)));
+    const u = new URL(req.url);
+    q = u.searchParams.get("q") || "";
+    limit = Number(u.searchParams.get("limit") || 15);
   } catch (e) {
-    return Response.json({ stage: "url", error: "BAD_URL", detail: String(e), rows: [] });
+    return out({ version: VERSION, stage: "url", error: "BAD_URL", rows: [] });
   }
 
-  if (!q) {
-    return Response.json({
-      stage: "ok",
-      version: "1.0.1",
-      error: "MISSING_QUERY",
-      message: "اكتب موضوعا اولا.",
-      rows: []
-    });
+  if (!q || q.length < 2) {
+    return out({ version: VERSION, stage: "query", error: "MISSING_QUERY", rows: [] });
   }
 
-  let mod;
-  try {
-    mod = await import("../../../lib/gemini");
-  } catch (e) {
-    return Response.json({ stage: "import", error: "IMPORT_FAILED", detail: String(e), rows: [] });
-  }
-
-  if (!mod.hasGemini()) {
-    return Response.json({
-      stage: "key",
-      version: "1.0.1",
-      error: "NO_GEMINI_KEY",
-      message: "مفتاح Gemini غير مضبوط على الخادم.",
-      rows: []
-    });
+  if (!hasGroq()) {
+    return out({ version: VERSION, stage: "key", provider: "groq", error: "NO_AI_KEY", rows: [] });
   }
 
   try {
-    const rows = await mod.seedKeywords(q, limit);
-    return Response.json({
+    const rows = await seedKeywords(q, limit);
+    return out({
+      version: VERSION,
       stage: "ok",
-      version: "1.0.1",
-      topic: q,
-      source: "gemini",
-      status: "suggested",
-      note: "اقتراحات مولدة اليا - غير مؤكدة من امازون.",
+      provider: "groq",
+      model: "llama-3.3-70b-versatile",
+      trust: "suggested",
+      measured: false,
       count: rows.length,
-      rows
+      rows: rows
     });
   } catch (e) {
-    return Response.json({
+    const detail = e && e.message ? String(e.message) : "UNKNOWN";
+    return out({
+      version: VERSION,
       stage: "generate",
+      provider: "groq",
       error: "AI_FAILED",
-      detail: String((e && e.message) || e),
+      detail: detail,
       rows: []
     });
   }
