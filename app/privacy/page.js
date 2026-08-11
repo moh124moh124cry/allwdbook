@@ -45,7 +45,7 @@ export default function Privacy() {
     <main className="wrap" style={{ paddingBottom: "120px" }}>
 
       <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px 0" }}>
-        <img src="/logo-v2.png" alt="AllWDbook" style={{ width: "42px", height: "42px", borderRadius: "50%" }} />
+        <img src="/logov3.png" alt="AllWDbook" style={{ width: "42px", height: "42px", borderRadius: "50%" }} />
         <div>
           <div style={{ fontWeight: "bold", fontSize: "17px", color: "#e8eefc" }}>AllWDbook</div>
           <div style={mut}>All World Digital</div>
