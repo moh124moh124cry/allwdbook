@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { T } from "../lib/i18n";
 import { NICHE_CATEGORIES } from "../lib/niches";
 import { printCost } from "../lib/estimate";
+import CoverTool from "./CoverTool";
 
 const DOMAINS = ["amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it", "amazon.es", "amazon.ca"];
 
@@ -78,12 +79,16 @@ export default function Home() {
             <button key={i} className={"tab" + (i === tab ? " on" : "")} onClick={() => setTab(i)}>{x}</button>
           )
         ))}
+        <button className={"tab" + (tab === 6 ? " on" : "")} onClick={() => setTab(6)}>
+          📐 {lang === "en" ? "Cover Designer" : "مصمم الغلاف"}
+        </button>
       </div>
 
       {tab === 0 && <Keywords t={t} domain={domain} seed={seedKw} />}
       {tab === 1 && <Niches t={t} lang={lang} domain={domain} onAnalyze={sendToKeywords} />}
       {tab === 4 && <Formatter t={t} />}
       {tab === 5 && <Calc t={t} />}
+      {tab === 6 && <CoverTool lang={lang} />}
 
       <footer className="foot">
         <img src="/logo-v2.png" alt="" />
@@ -314,7 +319,7 @@ function Formatter({ t }) {
     .split("\n\n")
     .map(p => p.trim())
     .filter(Boolean)
-    .map(p => p.startsWith("- ") ? "<ul>" + p.split("\n").map(l => "<li>" + l.replace(/^- /, "") + "</li>").join("") + "</ul>" : p.startsWith("# ") ? "<h4>" + p.slice(2) + "</h4>" : "<p>" + p + "</p>")
+    .map(p => p.startsWith("- ") ? "<ul>" + p.split("\n").map(l => "<li>" + l.slice(2) + "</li>").join("") + "</ul>" : p.startsWith("# ") ? "<h4>" + p.slice(2) + "</h4>" : "<p>" + p + "</p>")
     .join("");
 
   return (
