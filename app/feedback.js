@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-
-const WHATSAPP = "213660439585";
+const WHATSAPP = "447576046023";
 const EMAIL = "anesscherfaoui@gmail.com";
 const VERSION = "1.0.0";
 
