@@ -120,7 +120,7 @@ export default function Feedback() {
 
   const fab = {
     position: "fixed",
-    bottom: "18px",
+    bottom: "86px",
     right: "18px",
     zIndex: 60,
     width: "54px",
