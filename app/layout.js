@@ -1,5 +1,6 @@
 import "./globals.css";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/react";
 import Feedback from "./feedback";
 import AdSlot from "./adslot";
 
@@ -22,14 +23,9 @@ export default function RootLayout({ children }) {
         {children}
         <Feedback />
         <AdSlot />
+        <Analytics />
         {ADS_ON && MONETAG_ZONE ? (
-          <Script
-            id="monetag"
-            strategy="lazyOnload"
-            src={"https://fpyf8.com/88/tag.min.js"}
-            data-zone={MONETAG_ZONE}
-            data-cfasync="false"
-          />
+          <Script id="monetag" strategy="lazyOnload" src={"https://fpyf8.com/88/tag.min.js"} data-zone={MONETAG_ZONE} data-cfasync="false" />
         ) : null}
       </body>
     </html>
