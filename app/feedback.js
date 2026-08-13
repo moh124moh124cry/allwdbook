@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
+
 const WHATSAPP = "447576046023";
 const EMAIL = "anesscherfaoui@gmail.com";
-const VERSION = "1.0.0";
 
 const L = {
   ar: {
@@ -21,7 +21,7 @@ const L = {
     errMail: "تحقق من صيغة البريد الإلكتروني.",
     ok: "شكراً لك. أكمل الإرسال في التطبيق الذي فُتح.",
     subject: "اقتراح أو شكوى",
-    priv: "لا نحتفظ برسالتك على أي خادم."
+    priv: "لا نحتفظ برسالتك في قاعدة بيانات AllWDbook."
   },
   en: {
     dir: "ltr",
@@ -39,7 +39,7 @@ const L = {
     errMail: "Please check the email format.",
     ok: "Thank you. Finish sending in the app that opened.",
     subject: "Feedback",
-    priv: "We store nothing on any server."
+    priv: "We do not store your message in an AllWDbook database."
   }
 };
 
@@ -61,24 +61,16 @@ export default function Feedback() {
   const t = L[lang];
 
   function goodEmail(v) {
-    const s = v.trim();
-    if (s.length < 5) return false;
-    const at = s.indexOf("@");
-    if (at < 1) return false;
-    const dot = s.lastIndexOf(".");
-    if (dot < at + 2) return false;
-    if (dot === s.length - 1) return false;
-    if (s.indexOf(" ") > -1) return false;
-    return true;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
   }
 
   function body() {
-    const lines = [];
-    lines.push("AllWDbook — " + t.subject);
-    lines.push(t.fEmail + ": " + (email.trim() || "-"));
-    lines.push(t.fMsg + ":");
-    lines.push(msg.trim());
-    return lines.join("\n");
+    return [
+      "AllWDbook — " + t.subject,
+      t.fEmail + ": " + (email.trim() || "-"),
+      t.fMsg + ":",
+      msg.trim()
+    ].join("\n");
   }
 
   function check() {
@@ -86,7 +78,7 @@ export default function Feedback() {
       setErr(t.errMsg);
       return false;
     }
-    if (email.trim().length > 0 && !goodEmail(email)) {
+    if (email.trim() && !goodEmail(email)) {
       setErr(t.errMail);
       return false;
     }
@@ -97,7 +89,7 @@ export default function Feedback() {
   function sendWa() {
     if (!check()) return;
     const url = "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(body());
-    window.open(url, "_blank");
+    window.open(url, "_blank", "noopener,noreferrer");
     setDone(true);
   }
 
@@ -120,31 +112,35 @@ export default function Feedback() {
 
   const fab = {
     position: "fixed",
-    bottom: "86px",
-    right: "18px",
+    bottom: "calc(14px + env(safe-area-inset-bottom))",
+    insetInlineEnd: "14px",
     zIndex: 60,
-    width: "54px",
-    height: "54px",
+    width: "46px",
+    height: "46px",
     borderRadius: "50%",
     border: "1px solid #22304f",
     background: "#22c55e",
     color: "#062012",
-    fontSize: "24px",
+    fontSize: "20px",
     cursor: "pointer",
     boxShadow: "0 6px 18px rgba(0,0,0,0.35)"
   };
 
   const panel = {
     position: "fixed",
-    bottom: "82px",
-    right: "18px",
+    bottom: "calc(68px + env(safe-area-inset-bottom))",
+    insetInlineEnd: "14px",
     zIndex: 61,
     width: "320px",
-    maxWidth: "calc(100vw - 36px)",
+    maxWidth: "calc(100vw - 28px)",
+    maxHeight: "calc(100vh - 96px)",
+    overflowY: "auto",
+    overscrollBehavior: "contain",
     background: "#131d33",
     border: "1px solid #22304f",
     borderRadius: "14px",
     padding: "14px",
+    boxSizing: "border-box",
     direction: t.dir,
     textAlign: t.dir === "rtl" ? "right" : "left",
     boxShadow: "0 10px 30px rgba(0,0,0,0.45)"
@@ -193,14 +189,14 @@ export default function Feedback() {
 
           <div style={{ fontSize: "12px", color: "#93a4c4", marginTop: "10px" }}>{t.fMsg}</div>
           <textarea
-            style={{ ...field, height: "96px", resize: "vertical" }}
+            style={{ ...field, height: "90px", resize: "vertical" }}
             value={msg}
             placeholder={t.phMsg}
             onChange={function (e) { setMsg(e.target.value); }}
           />
 
           {err ? (
-            <div style={{ fontSize: "12px", color: "#f59e0b", marginTop: "8px" }}>⏳ {err}</div>
+            <div style={{ fontSize: "12px", color: "#f59e0b", marginTop: "8px" }}>⚠️ {err}</div>
           ) : null}
 
           {done ? (
@@ -210,12 +206,14 @@ export default function Feedback() {
           <button style={{ ...btn, background: "#22c55e", color: "#062012" }} onClick={sendWa}>
             🟢 {t.wa}
           </button>
+
           <button
             style={{ ...btn, background: "#0b1220", color: "#e8eefc", border: "1px solid #22304f" }}
             onClick={sendMail}
           >
             ✉️ {t.mail}
           </button>
+
           <button
             style={{ ...btn, background: "transparent", color: "#93a4c4", marginTop: "4px" }}
             onClick={reset}
