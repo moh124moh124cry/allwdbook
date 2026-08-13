@@ -1,20 +1,18 @@
 const ADS_ON = false;
-const VERSION = "1.0.0";
 
 const bar = {
-  position: "fixed",
-  left: 0,
-  right: 0,
-  bottom: 0,
-  height: "60px",
+  position: "static",
+  width: "100%",
+  minHeight: "52px",
   background: "#0f1830",
   borderTop: "1px solid #22304f",
-  zIndex: 50,
   display: "flex",
   alignItems: "center",
-  justifyContent: "space-between",
-  padding: "0 14px",
-  boxSizing: "border-box"
+  justifyContent: "center",
+  gap: "8px",
+  padding: "10px 14px",
+  boxSizing: "border-box",
+  flexWrap: "wrap"
 };
 
 const link = {
@@ -30,9 +28,9 @@ const sep = {
 };
 
 const slot = {
-  flex: 1,
-  height: "44px",
-  marginInlineStart: "10px",
+  minWidth: "150px",
+  height: "36px",
+  padding: "0 12px",
   border: "1px dashed #22304f",
   borderRadius: "8px",
   display: "flex",
@@ -46,8 +44,7 @@ const slot = {
 export default function AdSlot() {
   return (
     <div style={bar}>
-
-      <div style={{ display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap" }}>
         <a href="/privacy" style={link}>الخصوصية</a>
         <span style={sep}>·</span>
         <a href="/privacy" style={link}>Privacy</a>
@@ -56,11 +53,10 @@ export default function AdSlot() {
       </div>
 
       {ADS_ON ? (
-        <div id="awd-ad-bottom" style={{ flex: 1, height: "44px", marginInlineStart: "10px" }}></div>
+        <div id="awd-ad-bottom" style={slot}></div>
       ) : (
         <div style={slot}>AllWDbook™</div>
       )}
-
     </div>
   );
 }
