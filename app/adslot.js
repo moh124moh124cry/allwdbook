@@ -44,12 +44,40 @@ const slot = {
 export default function AdSlot() {
   return (
     <div style={bar}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap" }}>
-        <a href="/privacy" style={link}>الخصوصية</a>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexWrap: "wrap"
+        }}
+      >
+        <a href="/about" style={link}>
+          عن الأداة
+        </a>
         <span style={sep}>·</span>
-        <a href="/privacy" style={link}>Privacy</a>
+
+        <a href="/about" style={link}>
+          About
+        </a>
         <span style={sep}>·</span>
-        <a href="mailto:anesscherfaoui@gmail.com" style={link}>التواصل</a>
+
+        <a href="/privacy" style={link}>
+          الخصوصية
+        </a>
+        <span style={sep}>·</span>
+
+        <a href="/privacy" style={link}>
+          Privacy
+        </a>
+        <span style={sep}>·</span>
+
+        <a
+          href="mailto:anesscherfaoui@gmail.com"
+          style={link}
+        >
+          التواصل
+        </a>
       </div>
 
       {ADS_ON ? (
