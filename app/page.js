@@ -4,6 +4,7 @@ import { T } from "../lib/i18n";
 import { NICHE_CATEGORIES } from "../lib/niches";
 import { printCost, royaltyPerUnit, royaltyRate, marketInfo } from "../lib/estimate";
 import CoverTool from "./covertool";
+import KeywordsPanel from "./keywordspanel";
 
 const DOMAINS = ["amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it", "amazon.es", "amazon.ca"];
 const ORDER = [6, 1, 0, 5, 4];
@@ -81,7 +82,7 @@ export default function Home() {
 
       {tab === 6 && <CoverTool lang={lang} />}
       {tab === 1 && <Niches t={t} lang={lang} domain={domain} onAnalyze={sendToKeywords} />}
-      {tab === 0 && <Keywords t={t} domain={domain} seed={seedKw} />}
+      {tab === 0 && <KeywordsPanel t={t} domain={domain} seed={seedKw} />}
       {tab === 5 && <Calc t={t} domain={domain} />}
       {tab === 4 && <Formatter t={t} />}
 
