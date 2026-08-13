@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { hasKey, searchBooks, enrichWithBsr } from "../../../lib/provider";
 import { bsrToDailySales, royaltyPerUnit, opportunityScore, confidenceLevel, marketInfo } from "../../../lib/estimate";
+import { checkRateLimit, rateLimitResponse } from "../../../lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -65,17 +66,33 @@ async function keywordSuggestions(prefix, domain) {
 }
 
 export async function GET(req) {
+  const rate = checkRateLimit(req, {
+    name: "keyword-research",
+    limit: 10,
+    windowMs: 60_000
+  });
+
+  if (!rate.ok) {
+    return rateLimitResponse(rate);
+  }
+
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get("q") || "").trim().slice(0, 120);
   const requestedDomain = searchParams.get("domain") || "amazon.com";
   const domain = ALLOWED_DOMAINS.has(requestedDomain) ? requestedDomain : "amazon.com";
 
   if (!q) {
-    return NextResponse.json({ error: "MISSING_QUERY" }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json(
+      { error: "MISSING_QUERY" },
+      { status: 400, headers: { "Cache-Control": "no-store" } }
+    );
   }
 
   if (!hasKey()) {
-    return NextResponse.json({ error: "NO_API_KEY" }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json(
+      { error: "NO_API_KEY" },
+      { status: 503, headers: { "Cache-Control": "no-store" } }
+    );
   }
 
   let books = [];
@@ -84,17 +101,31 @@ export async function GET(req) {
     books = await searchBooks(q, domain);
   } catch (e) {
     return NextResponse.json(
-      { error: "SEARCH_FAILED", detail: String(e && e.message ? e.message : e) },
-      { headers: { "Cache-Control": "no-store" } }
+      {
+        error: "SEARCH_FAILED",
+        detail: String(e && e.message ? e.message : e).slice(0, 300)
+      },
+      {
+        status: 502,
+        headers: { "Cache-Control": "no-store" }
+      }
     );
   }
 
-  const suggestions = await withTimeout(keywordSuggestions(q, domain), 5000, []);
+  const suggestions = await withTimeout(
+    keywordSuggestions(q, domain),
+    5000,
+    []
+  );
 
   try {
-    await withTimeout(enrichWithBsr(books, domain, 5), 35000, null);
+    await withTimeout(
+      enrichWithBsr(books, domain, 5),
+      35000,
+      null
+    );
   } catch (e) {
-    // keep partial results
+    // Keep partial live results when BSR enrichment times out.
   }
 
   for (const book of books) {
@@ -125,16 +156,32 @@ export async function GET(req) {
     return list.reduce((sum, item) => sum + getter(item), 0) / list.length;
   }
 
-  const avgBsr = measured.length ? Math.round(average(measured, b => b.bsr)) : null;
-  const avgPrice = priced.length ? Math.round(average(priced, b => b.price) * 100) / 100 : null;
-  const avgReviews = reviewed.length ? Math.round(average(reviewed, b => b.reviews)) : null;
-
-  const measuredWithSales = measured.filter(b => safeNumber(b.dailySales) !== null);
-  const avgDailySales = measuredWithSales.length
-    ? Math.round(average(measuredWithSales, b => b.dailySales) * 10) / 10
+  const avgBsr = measured.length
+    ? Math.round(average(measured, b => b.bsr))
     : null;
 
-  const royaltySample = measured.map(b => b.monthlyRoyalty).filter(v => safeNumber(v) !== null);
+  const avgPrice = priced.length
+    ? Math.round(average(priced, b => b.price) * 100) / 100
+    : null;
+
+  const avgReviews = reviewed.length
+    ? Math.round(average(reviewed, b => b.reviews))
+    : null;
+
+  const measuredWithSales = measured.filter(
+    b => safeNumber(b.dailySales) !== null
+  );
+
+  const avgDailySales = measuredWithSales.length
+    ? Math.round(
+        average(measuredWithSales, b => b.dailySales) * 10
+      ) / 10
+    : null;
+
+  const royaltySample = measured
+    .map(b => b.monthlyRoyalty)
+    .filter(v => safeNumber(v) !== null);
+
   const measuredMonthlyRoyalty = royaltySample.length
     ? royaltySample.reduce((sum, value) => sum + value, 0)
     : null;
@@ -145,7 +192,7 @@ export async function GET(req) {
     {
       keyword: q,
       domain,
-      version: "3.0.1-keywords",
+      version: "3.1.0-keywords",
       generatedAt: new Date().toISOString(),
 
       market: {
@@ -159,7 +206,11 @@ export async function GET(req) {
         avgReviews,
         avgDailySales,
         measuredMonthlyRoyalty,
-        score: opportunityScore({ avgBsr, avgReviews, avgPrice })
+        score: opportunityScore({
+          avgBsr,
+          avgReviews,
+          avgPrice
+        })
       },
 
       confidence: {
@@ -172,6 +223,10 @@ export async function GET(req) {
       suggestions,
       books
     },
-    { headers: { "Cache-Control": "no-store" } }
+    {
+      headers: {
+        "Cache-Control": "no-store"
+      }
+    }
   );
 }
