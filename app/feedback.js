@@ -78,27 +78,40 @@ export default function Feedback() {
       setErr(t.errMsg);
       return false;
     }
+
     if (email.trim() && !goodEmail(email)) {
       setErr(t.errMail);
       return false;
     }
+
     setErr("");
     return true;
   }
 
   function sendWa() {
     if (!check()) return;
-    const url = "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(body());
+
+    const url =
+      "https://wa.me/" +
+      WHATSAPP +
+      "?text=" +
+      encodeURIComponent(body());
+
     window.open(url, "_blank", "noopener,noreferrer");
     setDone(true);
   }
 
   function sendMail() {
     if (!check()) return;
+
     const url =
-      "mailto:" + EMAIL +
-      "?subject=" + encodeURIComponent("AllWDbook — " + t.subject) +
-      "&body=" + encodeURIComponent(body());
+      "mailto:" +
+      EMAIL +
+      "?subject=" +
+      encodeURIComponent("AllWDbook — " + t.subject) +
+      "&body=" +
+      encodeURIComponent(body());
+
     window.location.href = url;
     setDone(true);
   }
@@ -110,30 +123,42 @@ export default function Feedback() {
     setMsg("");
   }
 
+  /*
+   * Compact mobile-safe launcher:
+   * - smaller footprint than the old 46px FAB
+   * - slightly transparent while closed
+   * - stays close to the screen edge
+   * - preserves the same feedback functionality
+   */
   const fab = {
     position: "fixed",
-    bottom: "calc(14px + env(safe-area-inset-bottom))",
-    insetInlineEnd: "14px",
+    bottom: "calc(8px + env(safe-area-inset-bottom))",
+    insetInlineEnd: "6px",
     zIndex: 60,
-    width: "46px",
-    height: "46px",
+    width: open ? "40px" : "36px",
+    height: open ? "40px" : "36px",
     borderRadius: "50%",
     border: "1px solid #22304f",
     background: "#22c55e",
     color: "#062012",
-    fontSize: "20px",
+    fontSize: open ? "20px" : "15px",
     cursor: "pointer",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.35)"
+    boxShadow: "0 4px 12px rgba(0,0,0,0.30)",
+    opacity: open ? 1 : 0.78,
+    padding: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
   };
 
   const panel = {
     position: "fixed",
-    bottom: "calc(68px + env(safe-area-inset-bottom))",
-    insetInlineEnd: "14px",
+    bottom: "calc(54px + env(safe-area-inset-bottom))",
+    insetInlineEnd: "8px",
     zIndex: 61,
     width: "320px",
-    maxWidth: "calc(100vw - 28px)",
-    maxHeight: "calc(100vh - 96px)",
+    maxWidth: "calc(100vw - 16px)",
+    maxHeight: "calc(100vh - 78px)",
     overflowY: "auto",
     overscrollBehavior: "contain",
     background: "#131d33",
@@ -175,53 +200,137 @@ export default function Feedback() {
     <div>
       {open ? (
         <div style={panel}>
-          <div style={{ fontWeight: 700, fontSize: "15px", color: "#e8eefc" }}>{t.title}</div>
-          <div style={{ fontSize: "12px", color: "#93a4c4", marginTop: "4px" }}>{t.sub}</div>
+          <div
+            style={{
+              fontWeight: 700,
+              fontSize: "15px",
+              color: "#e8eefc"
+            }}
+          >
+            {t.title}
+          </div>
 
-          <div style={{ fontSize: "12px", color: "#93a4c4", marginTop: "10px" }}>{t.fEmail}</div>
+          <div
+            style={{
+              fontSize: "12px",
+              color: "#93a4c4",
+              marginTop: "4px"
+            }}
+          >
+            {t.sub}
+          </div>
+
+          <div
+            style={{
+              fontSize: "12px",
+              color: "#93a4c4",
+              marginTop: "10px"
+            }}
+          >
+            {t.fEmail}
+          </div>
+
           <input
             style={field}
             type="email"
             value={email}
             placeholder={t.phEmail}
-            onChange={function (e) { setEmail(e.target.value); }}
+            onChange={function (e) {
+              setEmail(e.target.value);
+            }}
           />
 
-          <div style={{ fontSize: "12px", color: "#93a4c4", marginTop: "10px" }}>{t.fMsg}</div>
+          <div
+            style={{
+              fontSize: "12px",
+              color: "#93a4c4",
+              marginTop: "10px"
+            }}
+          >
+            {t.fMsg}
+          </div>
+
           <textarea
-            style={{ ...field, height: "90px", resize: "vertical" }}
+            style={{
+              ...field,
+              height: "90px",
+              resize: "vertical"
+            }}
             value={msg}
             placeholder={t.phMsg}
-            onChange={function (e) { setMsg(e.target.value); }}
+            onChange={function (e) {
+              setMsg(e.target.value);
+            }}
           />
 
           {err ? (
-            <div style={{ fontSize: "12px", color: "#f59e0b", marginTop: "8px" }}>⚠️ {err}</div>
+            <div
+              style={{
+                fontSize: "12px",
+                color: "#f59e0b",
+                marginTop: "8px"
+              }}
+            >
+              ⚠️ {err}
+            </div>
           ) : null}
 
           {done ? (
-            <div style={{ fontSize: "12px", color: "#22c55e", marginTop: "8px" }}>✅ {t.ok}</div>
+            <div
+              style={{
+                fontSize: "12px",
+                color: "#22c55e",
+                marginTop: "8px"
+              }}
+            >
+              ✅ {t.ok}
+            </div>
           ) : null}
 
-          <button style={{ ...btn, background: "#22c55e", color: "#062012" }} onClick={sendWa}>
+          <button
+            style={{
+              ...btn,
+              background: "#22c55e",
+              color: "#062012"
+            }}
+            onClick={sendWa}
+          >
             🟢 {t.wa}
           </button>
 
           <button
-            style={{ ...btn, background: "#0b1220", color: "#e8eefc", border: "1px solid #22304f" }}
+            style={{
+              ...btn,
+              background: "#0b1220",
+              color: "#e8eefc",
+              border: "1px solid #22304f"
+            }}
             onClick={sendMail}
           >
             ✉️ {t.mail}
           </button>
 
           <button
-            style={{ ...btn, background: "transparent", color: "#93a4c4", marginTop: "4px" }}
+            style={{
+              ...btn,
+              background: "transparent",
+              color: "#93a4c4",
+              marginTop: "4px"
+            }}
             onClick={reset}
           >
             {t.close}
           </button>
 
-          <div style={{ fontSize: "10px", color: "#93a4c4", marginTop: "8px" }}>🔒 {t.priv}</div>
+          <div
+            style={{
+              fontSize: "10px",
+              color: "#93a4c4",
+              marginTop: "8px"
+            }}
+          >
+            🔒 {t.priv}
+          </div>
         </div>
       ) : null}
 
@@ -229,7 +338,9 @@ export default function Feedback() {
         style={fab}
         title={t.open}
         aria-label={t.open}
-        onClick={function () { setOpen(!open); }}
+        onClick={function () {
+          setOpen(!open);
+        }}
       >
         {open ? "×" : "✏️"}
       </button>
