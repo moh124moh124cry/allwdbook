@@ -10,6 +10,11 @@ export default function sitemap() {
       priority: 1
     },
     {
+      url: `${SITE_URL}/about`,
+      changeFrequency: "monthly",
+      priority: 0.6
+    },
+    {
       url: `${SITE_URL}/privacy`,
       changeFrequency: "monthly",
       priority: 0.4
