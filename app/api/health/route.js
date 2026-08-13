@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
 import { hasKey } from "../../../lib/provider";
 import { hasGroq } from "../../../lib/groq";
-import {
-  NICHE_CATEGORIES,
-  generateNiches
-} from "../../../lib/niches";
-import {
-  printCost,
-  royaltyPerUnit
-} from "../../../lib/estimate";
+import { NICHE_CATEGORIES, generateNiches } from "../../../lib/niches";
+import { printCost, royaltyPerUnit } from "../../../lib/estimate";
 
 export const dynamic = "force-dynamic";
 
-const VERSION = "3.1.0";
+const VERSION = "3.2.0";
 
 export async function GET() {
   let nicheOk = true;
@@ -24,75 +18,68 @@ export async function GET() {
   let calculatorError = null;
 
   try {
-    nicheSample = generateNiches(
-      "coloring",
-      3,
-      "health-check"
-    ).map(item => item.keyword);
+    nicheSample = generateNiches("coloring", 3, "health-check").map(item => item.keyword);
   } catch (e) {
     nicheOk = false;
-    nicheError = String(
-      e && e.message ? e.message : e
-    ).slice(0, 200);
+    nicheError = String(e && e.message ? e.message : e).slice(0, 200);
   }
 
   try {
-    const mono120 = printCost(120, {
-      domain: "amazon.com",
-      ink: "black",
-      large: false
-    });
-
-    const royalty = royaltyPerUnit(
-      12.99,
-      120,
-      {
-        domain: "amazon.com",
-        ink: "black",
-        large: false
-      }
-    );
+    const options = { domain: "amazon.com", ink: "black", large: false };
+    const cost = printCost(120, options);
+    const royalty = royaltyPerUnit(12.99, 120, options);
 
     calculator = {
       marketplace: "amazon.com",
       pages: 120,
       listPrice: 12.99,
-      printCost:
-        typeof mono120 === "number"
-          ? Math.round(mono120 * 100) / 100
-          : null,
-      royalty:
-        typeof royalty === "number"
-          ? Math.round(royalty * 100) / 100
-          : null
+      printCost: typeof cost === "number" ? Math.round(cost * 100) / 100 : null,
+      royalty: typeof royalty === "number" ? Math.round(royalty * 100) / 100 : null
     };
+
+    if (calculator.printCost === null || calculator.royalty === null) {
+      calculatorOk = false;
+      calculatorError = "calculator returned null";
+    }
   } catch (e) {
     calculatorOk = false;
-    calculatorError = String(
-      e && e.message ? e.message : e
-    ).slice(0, 200);
+    calculatorError = String(e && e.message ? e.message : e).slice(0, 200);
   }
 
-  const healthy =
-    nicheOk &&
-    calculatorOk &&
-    hasKey() &&
-    hasGroq();
+  const coreOk = nicheOk && calculatorOk;
+  const aiOk = hasGroq();
+  const marketDataOk = hasKey();
+
+  let status = "ok";
+  if (!coreOk) {
+    status = "down";
+  } else if (!aiOk) {
+    status = "degraded";
+  } else if (!marketDataOk) {
+    status = "limited";
+  }
 
   return NextResponse.json(
     {
       app: "AllWDbook",
       version: VERSION,
-      status: healthy ? "ok" : "degraded",
+      status,
+
+      summary: {
+        coverDesigner: "ok",
+        calculator: calculatorOk ? "ok" : "down",
+        formatter: "ok",
+        microNiche: nicheOk ? "ok" : "down",
+        aiKeywords: aiOk ? "ok" : "disabled",
+        marketData: marketDataOk ? "ok" : "not_configured"
+      },
 
       services: {
-        rainforestConfigured: hasKey(),
-        groqConfigured: hasGroq(),
+        rainforestConfigured: marketDataOk,
+        groqConfigured: aiOk,
         nicheEngine: {
           ok: nicheOk,
-          categories: Object.keys(
-            NICHE_CATEGORIES || {}
-          ).length,
+          categories: Object.keys(NICHE_CATEGORIES || {}).length,
           sample: nicheSample,
           error: nicheError
         },
@@ -103,13 +90,12 @@ export async function GET() {
         }
       },
 
+      note: "Market data is optional. The tool stays fully usable without it.",
       checkedAt: new Date().toISOString()
     },
     {
-      status: healthy ? 200 : 503,
-      headers: {
-        "Cache-Control": "no-store"
-      }
+      status: coreOk ? 200 : 503,
+      headers: { "Cache-Control": "no-store" }
     }
   );
 }
