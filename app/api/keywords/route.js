@@ -1,20 +1,31 @@
 import { NextResponse } from "next/server";
-import { hasKey, searchBooks, enrichWithBsr } from "../../../lib/provider";
-import { bsrToDailySales, royaltyPerUnit, opportunityScore, confidenceLevel, marketInfo } from "../../../lib/estimate";
-import { checkRateLimit, rateLimitResponse } from "../../../lib/rateLimit";
-import { normalizeDomain, measureKeyword, expandKeyword, VERSION as SIGNALS_VERSION } from "../../../lib/free-signals";
+import {
+  hasKey,
+  searchBooks,
+  enrichWithBsr
+} from "../../../lib/provider";
+import {
+  bsrToDailySales,
+  royaltyPerUnit,
+  opportunityScore,
+  confidenceLevel,
+  marketInfo
+} from "../../../lib/estimate";
+import {
+  normalizeDomain,
+  measureKeyword,
+  expandKeyword,
+  VERSION as SIGNALS_VERSION
+} from "../../../lib/free-signals";
+import {
+  checkRateLimit,
+  rateLimitResponse
+} from "../../../lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const ROUTE_VERSION = "4.0.0-layered";
-
-function withTimeout(promise, ms, fallback) {
-  return Promise.race([
-    promise,
-    new Promise(resolve => setTimeout(() => resolve(fallback), ms))
-  ]);
-}
+const ROUTE_VERSION = "4.0.1-layered";
 
 function safeNumber(v) {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
@@ -25,11 +36,277 @@ function average(list, getter) {
   return list.reduce((sum, item) => sum + getter(item), 0) / list.length;
 }
 
+function withTimeout(promise, ms, fallback) {
+  return Promise.race([
+    Promise.resolve(promise).catch(() => fallback),
+    new Promise(resolve =>
+      setTimeout(() => resolve(fallback), ms)
+    )
+  ]);
+}
+
+function buildSuggestions(signal, expansion, query) {
+  const seen = new Set();
+  const out = [];
+  const normalizedQuery = String(query || "").toLowerCase().trim();
+
+  const add = value => {
+    const clean = String(value || "").trim();
+    if (!clean) return;
+    if (clean.toLowerCase() === normalizedQuery) return;
+    if (seen.has(clean)) return;
+
+    seen.add(clean);
+    out.push(clean);
+  };
+
+  if (
+    signal &&
+    signal.ok &&
+    signal.measured &&
+    Array.isArray(signal.measured.relatedKeywords)
+  ) {
+    signal.measured.relatedKeywords.forEach(add);
+  }
+
+  if (
+    expansion &&
+    expansion.ok &&
+    Array.isArray(expansion.keywords)
+  ) {
+    expansion.keywords.forEach(row =>
+      add(row && row.keyword)
+    );
+  }
+
+  return out.slice(0, 40);
+}
+
+async function loadFreeLayer(q, domain, wantExpand) {
+  const signalPromise = withTimeout(
+    measureKeyword(q, domain),
+    8000,
+    {
+      keyword: q.toLowerCase(),
+      domain,
+      ok: false,
+      error: "UPSTREAM_TIMEOUT",
+      measured: null,
+      calculated: null
+    }
+  );
+
+  const expansionPromise = wantExpand
+    ? withTimeout(
+        expandKeyword(q, domain, 40),
+        24000,
+        {
+          ok: false,
+          keywords: [],
+          error: "UPSTREAM_TIMEOUT",
+          requested: 0,
+          succeeded: 0,
+          partial: false
+        }
+      )
+    : Promise.resolve({
+        ok: false,
+        keywords: [],
+        error: null,
+        requested: 0,
+        succeeded: 0,
+        partial: false,
+        skipped: true
+      });
+
+  const [signal, expansion] = await Promise.all([
+    signalPromise,
+    expansionPromise
+  ]);
+
+  return {
+    signal,
+    expansion,
+    available:
+      Boolean(signal && signal.ok) ||
+      Boolean(expansion && expansion.ok)
+  };
+}
+
+function calculatePaidMetrics(books, domain) {
+  for (const book of books) {
+    book.dailySales = bsrToDailySales(book.bsr, domain);
+
+    const pages = safeNumber(book.pages) || 120;
+
+    book.royalty = royaltyPerUnit(book.price, pages, {
+      domain,
+      ink: "black",
+      large: false
+    });
+
+    book.monthlyRoyalty =
+      safeNumber(book.dailySales) === null ||
+      safeNumber(book.royalty) === null
+        ? null
+        : Math.round(
+            book.dailySales * 30 * book.royalty
+          );
+  }
+
+  const measured = books.filter(
+    book => safeNumber(book.bsr) !== null
+  );
+
+  const priced = books.filter(
+    book => safeNumber(book.price) !== null
+  );
+
+  const reviewed = books.filter(
+    book => safeNumber(book.reviews) !== null
+  );
+
+  const avgBsr = measured.length
+    ? Math.round(
+        average(measured, book => book.bsr)
+      )
+    : null;
+
+  const avgPrice = priced.length
+    ? Math.round(
+        average(priced, book => book.price) * 100
+      ) / 100
+    : null;
+
+  const avgReviews = reviewed.length
+    ? Math.round(
+        average(reviewed, book => book.reviews)
+      )
+    : null;
+
+  const measuredWithSales = measured.filter(
+    book => safeNumber(book.dailySales) !== null
+  );
+
+  const avgDailySales = measuredWithSales.length
+    ? Math.round(
+        average(
+          measuredWithSales,
+          book => book.dailySales
+        ) * 10
+      ) / 10
+    : null;
+
+  const royaltySample = measured
+    .map(book => book.monthlyRoyalty)
+    .filter(value => safeNumber(value) !== null);
+
+  const measuredMonthlyRoyalty = royaltySample.length
+    ? royaltySample.reduce(
+        (sum, value) => sum + value,
+        0
+      )
+    : null;
+
+  return {
+    metrics: {
+      avgBsr,
+      avgPrice,
+      avgReviews,
+      avgDailySales,
+      measuredMonthlyRoyalty,
+      score: measured.length
+        ? opportunityScore({
+            avgBsr,
+            avgReviews,
+            avgPrice
+          })
+        : null
+    },
+
+    confidence: {
+      totalResults: books.length,
+      uniqueAsins: new Set(
+        books.map(book => book.asin).filter(Boolean)
+      ).size,
+      bsrSampleSize: measured.length,
+      level: measured.length
+        ? confidenceLevel(measured.length)
+        : "none",
+      basis: "bsr_sample"
+    }
+  };
+}
+
+async function loadPaidLayer(q, domain) {
+  const keyPresent = hasKey();
+
+  if (!keyPresent) {
+    return {
+      configured: false,
+      available: false,
+      status: "not_configured",
+      error: null,
+      books: [],
+      metrics: null,
+      confidence: null
+    };
+  }
+
+  const searchResult = await withTimeout(
+    searchBooks(q, domain),
+    18000,
+    null
+  );
+
+  if (!Array.isArray(searchResult)) {
+    return {
+      configured: true,
+      available: false,
+      status: "failed",
+      error: "MARKET_SEARCH_UNAVAILABLE",
+      books: [],
+      metrics: null,
+      confidence: null
+    };
+  }
+
+  const books = searchResult;
+
+  let enrichmentComplete = true;
+
+  if (books.length) {
+    const enrichment = await withTimeout(
+      enrichWithBsr(books, domain, 5)
+        .then(() => true)
+        .catch(() => false),
+      24000,
+      false
+    );
+
+    enrichmentComplete = enrichment === true;
+  }
+
+  const paid = calculatePaidMetrics(books, domain);
+
+  return {
+    configured: true,
+    available: true,
+    status: enrichmentComplete ? "ok" : "partial",
+    error: enrichmentComplete
+      ? null
+      : "BSR_ENRICH_PARTIAL",
+    books,
+    metrics: paid.metrics,
+    confidence: paid.confidence
+  };
+}
+
 export async function GET(req) {
   const rate = checkRateLimit(req, {
     name: "keyword-research",
     limit: 10,
-    windowMs: 60000
+    windowMs: 60_000
   });
 
   if (!rate.ok) {
@@ -37,159 +314,118 @@ export async function GET(req) {
   }
 
   const { searchParams } = new URL(req.url);
-  const q = (searchParams.get("q") || "").trim().slice(0, 120);
-  const domain = normalizeDomain(searchParams.get("domain") || "amazon.com");
-  const wantExpand = searchParams.get("expand") !== "0";
+
+  const q = (searchParams.get("q") || "")
+    .trim()
+    .slice(0, 120);
+
+  const domain = normalizeDomain(
+    searchParams.get("domain") || "amazon.com"
+  );
+
+  const wantExpand =
+    searchParams.get("expand") !== "0";
 
   if (!q) {
     return NextResponse.json(
       { error: "MISSING_QUERY" },
-      { status: 400, headers: { "Cache-Control": "no-store" } }
+      {
+        status: 400,
+        headers: {
+          "Cache-Control": "no-store"
+        }
+      }
     );
   }
 
-  // ---------- LAYER 1 : FREE (always attempted, never requires a key) ----------
+  // Run the free and optional paid layers in parallel.
+  // This keeps the route comfortably inside the 60s serverless budget.
+  const [free, paid] = await Promise.all([
+    loadFreeLayer(q, domain, wantExpand),
+    loadPaidLayer(q, domain)
+  ]);
 
-  const signal = await withTimeout(measureKeyword(q, domain), 9000, {
-    ok: false,
-    error: "UPSTREAM_TIMEOUT",
-    measured: null,
-    calculated: null
-  });
+  const signal = free.signal;
+  const expansion = free.expansion;
 
-  let expansion = { ok: false, keywords: [], error: null, partial: false };
+  const freeAvailable = free.available;
+  const paidAvailable = paid.available;
 
-  if (wantExpand) {
-    expansion = await withTimeout(expandKeyword(q, domain, 40), 26000, {
-      ok: false,
-      keywords: [],
-      error: "UPSTREAM_TIMEOUT",
-      partial: false
-    });
-  }
-
-  const freeOk = signal.ok === true || expansion.ok === true;
-
-  const relatedFromSignal =
-    signal.ok && signal.measured ? signal.measured.relatedKeywords : [];
-
-  const relatedFromExpansion = expansion.ok
-    ? expansion.keywords.map(row => row.keyword)
-    : [];
-
-  const suggestionSet = new Map();
-
-  for (let i = 0; i < relatedFromSignal.length; i++) {
-    suggestionSet.set(relatedFromSignal[i], true);
-  }
-
-  for (let i = 0; i < relatedFromExpansion.length; i++) {
-    if (relatedFromExpansion[i] !== q.toLowerCase()) {
-      suggestionSet.set(relatedFromExpansion[i], true);
-    }
-  }
-
-  const suggestions = Array.from(suggestionSet.keys()).slice(0, 40);
-
-  const longTail = expansion.ok
-    ? expansion.keywords.filter(row => row.longTail).slice(0, 20)
-    : [];
-
-  // ---------- LAYER 2 : PAID (optional enrichment only) ----------
-
-  const keyPresent = hasKey();
-
-  let books = [];
-  let paidOk = false;
-  let paidError = null;
-
-  if (keyPresent) {
-    try {
-      books = await withTimeout(searchBooks(q, domain), 20000, null);
-
-      if (!Array.isArray(books)) {
-        books = [];
-        paidError = "SEARCH_TIMEOUT";
-      } else {
-        paidOk = true;
-      }
-    } catch (e) {
-      books = [];
-      paidError = String(e && e.message ? e.message : e).slice(0, 200);
-    }
-
-    if (paidOk && books.length) {
-      try {
-        await withTimeout(enrichWithBsr(books, domain, 5), 25000, null);
-      } catch (e) {
-        // Keep partial results when BSR enrichment fails.
-      }
-
-      for (const book of books) {
-        book.dailySales = bsrToDailySales(book.bsr, domain);
-        const pages = safeNumber(book.pages) || 120;
-
-        book.royalty = royaltyPerUnit(book.price, pages, {
-          domain,
-          ink: "black",
-          large: false
-        });
-
-        book.monthlyRoyalty =
-          safeNumber(book.dailySales) === null || safeNumber(book.royalty) === null
-            ? null
-            : Math.round(book.dailySales * 30 * book.royalty);
-      }
-    }
-  } else {
-    paidError = "NOT_CONFIGURED";
-  }
-
-  // ---------- If BOTH layers failed, say so honestly ----------
-
-  if (!freeOk && !paidOk) {
+  if (!freeAvailable && !paidAvailable) {
     return NextResponse.json(
       {
         error: "SIGNALS_UNAVAILABLE",
-        detail: signal.error || expansion.error || paidError,
         keyword: q,
-        domain
+        domain,
+        version: ROUTE_VERSION,
+        signalsVersion: SIGNALS_VERSION,
+        generatedAt: new Date().toISOString(),
+
+        demand: {
+          available: false,
+          error:
+            signal && signal.error
+              ? signal.error
+              : "UPSTREAM_UNAVAILABLE",
+          source: "amazon_autocomplete",
+          measured: null,
+          calculated: null
+        },
+
+        expansion: {
+          available: false,
+          error:
+            expansion && expansion.error
+              ? expansion.error
+              : "UPSTREAM_UNAVAILABLE",
+          partial: false,
+          total: 0,
+          longTail: []
+        },
+
+        marketData: {
+          configured: paid.configured,
+          available: false,
+          status: paid.status,
+          error: paid.error
+        }
       },
-      { status: 502, headers: { "Cache-Control": "no-store" } }
+      {
+        status: 502,
+        headers: {
+          "Cache-Control": "no-store"
+        }
+      }
     );
   }
 
-  // ---------- MERGE ----------
+  let mode = "free";
 
-  const mode = paidOk ? "full" : keyPresent ? "free_fallback" : "free";
+  if (freeAvailable && paidAvailable) {
+    mode = "full";
+  } else if (paidAvailable) {
+    mode = "market_only";
+  } else if (
+    paid.configured &&
+    paid.status === "failed"
+  ) {
+    mode = "free_fallback";
+  }
 
-  const measured = books.filter(b => safeNumber(b.bsr) !== null);
-  const priced = books.filter(b => safeNumber(b.price) !== null);
-  const reviewed = books.filter(b => safeNumber(b.reviews) !== null);
+  const suggestions = buildSuggestions(
+    signal,
+    expansion,
+    q
+  );
 
-  const avgBsr = measured.length ? Math.round(average(measured, b => b.bsr)) : null;
-
-  const avgPrice = priced.length
-    ? Math.round(average(priced, b => b.price) * 100) / 100
-    : null;
-
-  const avgReviews = reviewed.length
-    ? Math.round(average(reviewed, b => b.reviews))
-    : null;
-
-  const withSales = measured.filter(b => safeNumber(b.dailySales) !== null);
-
-  const avgDailySales = withSales.length
-    ? Math.round(average(withSales, b => b.dailySales) * 10) / 10
-    : null;
-
-  const royaltySample = measured
-    .map(b => b.monthlyRoyalty)
-    .filter(v => safeNumber(v) !== null);
-
-  const measuredMonthlyRoyalty = royaltySample.length
-    ? royaltySample.reduce((sum, value) => sum + value, 0)
-    : null;
+  const longTail =
+    expansion &&
+    expansion.ok &&
+    Array.isArray(expansion.keywords)
+      ? expansion.keywords
+          .filter(row => row && row.longTail)
+          .slice(0, 20)
+      : [];
 
   const market = marketInfo(domain);
 
@@ -207,56 +443,64 @@ export async function GET(req) {
         currency: market.currency
       },
 
-      // FREE LAYER — real observations from Amazon autocomplete
       demand: {
-        available: signal.ok === true,
-        error: signal.ok ? null : signal.error,
+        available: Boolean(signal && signal.ok),
+        error:
+          signal && signal.ok
+            ? null
+            : signal && signal.error
+              ? signal.error
+              : "UPSTREAM_UNAVAILABLE",
         source: "amazon_autocomplete",
-        measured: signal.ok ? signal.measured : null,
-        calculated: signal.ok ? signal.calculated : null
-      },
-
-      expansion: {
-        available: expansion.ok === true,
-        error: expansion.ok ? null : expansion.error,
-        partial: expansion.partial === true,
-        total: expansion.ok ? expansion.keywords.length : 0,
-        longTail
-      },
-
-      // PAID LAYER — present only when market data is configured and healthy
-      marketData: {
-        configured: keyPresent,
-        available: paidOk,
-        error: paidOk ? null : paidError
-      },
-
-      metrics: {
-        avgBsr,
-        avgPrice,
-        avgReviews,
-        avgDailySales,
-        measuredMonthlyRoyalty,
-        score: measured.length
-          ? opportunityScore({ avgBsr, avgReviews, avgPrice })
-          : null,
-        demandSignalScore:
-          signal.ok && signal.calculated
-            ? signal.calculated.demandSignalScore
+        measured:
+          signal && signal.ok
+            ? signal.measured
+            : null,
+        calculated:
+          signal && signal.ok
+            ? signal.calculated
             : null
       },
 
-      confidence: {
-        totalResults: books.length,
-        uniqueAsins: new Set(books.map(b => b.asin)).size,
-        bsrSampleSize: measured.length,
-        level: measured.length ? confidenceLevel(measured.length) : "signal_only",
-        basis: paidOk ? "bsr_sample" : "autocomplete_only"
+      expansion: {
+        available: Boolean(
+          expansion && expansion.ok
+        ),
+        error:
+          expansion && expansion.ok
+            ? null
+            : expansion
+              ? expansion.error
+              : "UPSTREAM_UNAVAILABLE",
+        partial: Boolean(
+          expansion && expansion.partial
+        ),
+        total:
+          expansion &&
+          expansion.ok &&
+          Array.isArray(expansion.keywords)
+            ? expansion.keywords.length
+            : 0,
+        longTail
       },
 
+      marketData: {
+        configured: paid.configured,
+        available: paid.available,
+        status: paid.status,
+        error: paid.error
+      },
+
+      metrics: paid.metrics,
+      confidence: paid.confidence,
       suggestions,
-      books
+      books: paid.books
     },
-    { headers: { "Cache-Control": "no-store" } }
+    {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store"
+      }
+    }
   );
 }
