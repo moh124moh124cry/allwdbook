@@ -68,3 +68,36 @@ export async function POST(request) {
             result.reason ||
             "USAGE_CHECK_FAILED",
         },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    return NextResponse.json({
+      ok: true,
+      allowed: true,
+      unlimited: result.unlimited,
+      plan: result.plan,
+      used: result.used,
+      remaining: result.remaining,
+      dailyLimit:
+        result.dailyLimit ?? null,
+    });
+  } catch (error) {
+    console.error(
+      "Usage consume API error:",
+      error
+    );
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "USAGE_CHECK_FAILED",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
