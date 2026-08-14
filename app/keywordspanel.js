@@ -1,29 +1,78 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { marketInfo } from "../lib/estimate";
-import { getSupabase } from "../lib/supabase";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  marketInfo,
+} from "../lib/estimate";
+
+import {
+  getSupabase,
+} from "../lib/supabase";
+
+import UpgradePrompt from "./upgradeprompt";
 
 function errText(t, d) {
-  if (!d) return t.errGeneric;
+  if (!d) {
+    return t.errGeneric;
+  }
 
-  const code = String(d.error || "");
-  const detail = String(d.detail || "");
+  const code = String(
+    d.error || ""
+  );
 
-  if (code === "RATE_LIMITED") return t.errRate;
-  if (code === "NO_API_KEY") return t.errNoKey;
+  const detail = String(
+    d.detail || ""
+  );
 
   if (
-    code === "SEARCH_FAILED" &&
-    detail.indexOf("402") >= 0
+    code === "RATE_LIMITED"
+  ) {
+    return t.errRate;
+  }
+
+  if (
+    code === "NO_API_KEY"
+  ) {
+    return t.errNoKey;
+  }
+
+  if (
+    code ===
+      "SEARCH_FAILED" &&
+    detail.indexOf("402") >=
+      0
   ) {
     return t.errNoCredit;
   }
 
-  if (code === "SEARCH_FAILED") return t.errSearch;
-  if (code === "MISSING_QUERY") return t.errMissing;
-  if (code === "NETWORK") return t.errNetwork;
-  if (code === "SIGNALS_UNAVAILABLE") return t.errSignals;
+  if (
+    code ===
+    "SEARCH_FAILED"
+  ) {
+    return t.errSearch;
+  }
+
+  if (
+    code ===
+    "MISSING_QUERY"
+  ) {
+    return t.errMissing;
+  }
+
+  if (code === "NETWORK") {
+    return t.errNetwork;
+  }
+
+  if (
+    code ===
+    "SIGNALS_UNAVAILABLE"
+  ) {
+    return t.errSignals;
+  }
 
   if (
     code === "NO_AI_KEY" ||
@@ -32,16 +81,26 @@ function errText(t, d) {
     return t.errAiKey;
   }
 
-  if (code === "AI_FAILED") return t.errAiBusy;
+  if (
+    code === "AI_FAILED"
+  ) {
+    return t.errAiBusy;
+  }
 
-  if (code === "DAILY_LIMIT_REACHED") {
+  if (
+    code ===
+    "DAILY_LIMIT_REACHED"
+  ) {
     return (
       detail ||
       "You have used your 5 free Keyword Research searches for today."
     );
   }
 
-  if (code === "USAGE_CHECK_FAILED") {
+  if (
+    code ===
+    "USAGE_CHECK_FAILED"
+  ) {
     return "Unable to verify your daily usage. Please try again.";
   }
 
@@ -49,13 +108,19 @@ function errText(t, d) {
 }
 
 function modeText(t, mode) {
-  if (mode === "full") return t.modeFull;
+  if (mode === "full") {
+    return t.modeFull;
+  }
 
-  if (mode === "free_fallback") {
+  if (
+    mode === "free_fallback"
+  ) {
     return t.modeFallback;
   }
 
-  if (mode === "market_only") {
+  if (
+    mode === "market_only"
+  ) {
     return t.modeMarketOnly;
   }
 
@@ -67,12 +132,25 @@ export default function KeywordsPanel({
   domain,
   seed,
 }) {
-  const [q, setQ] = useState("");
-  const [d, setD] = useState(null);
-  const [busy, setBusy] = useState(false);
+  const [q, setQ] =
+    useState("");
 
-  const [ai, setAi] = useState(null);
-  const [aiBusy, setAiBusy] = useState(false);
+  const [d, setD] =
+    useState(null);
+
+  const [busy, setBusy] =
+    useState(false);
+
+  const [
+    upgradeOpen,
+    setUpgradeOpen,
+  ] = useState(false);
+
+  const [ai, setAi] =
+    useState(null);
+
+  const [aiBusy, setAiBusy] =
+    useState(false);
 
   useEffect(() => {
     if (seed) {
@@ -84,20 +162,27 @@ export default function KeywordsPanel({
   }, [seed]);
 
   async function getAccessToken() {
-    const supabase = getSupabase();
+    const supabase =
+      getSupabase();
 
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } =
+      await supabase.auth
+        .getSession();
 
-    if (session?.access_token) {
+    if (
+      session?.access_token
+    ) {
       return session.access_token;
     }
 
     const {
       data,
       error,
-    } = await supabase.auth.signInAnonymously();
+    } =
+      await supabase.auth
+        .signInAnonymously();
 
     if (error) {
       console.error(
@@ -108,81 +193,110 @@ export default function KeywordsPanel({
       return null;
     }
 
-    return data?.session?.access_token || null;
+    return (
+      data?.session
+        ?.access_token || null
+    );
   }
 
   async function run(term) {
-    const k = (term || q).trim();
+    const k = (
+      term || q
+    ).trim();
 
-    if (!k) return;
+    if (!k) {
+      return;
+    }
 
     setBusy(true);
 
     try {
-      const token = await getAccessToken();
+      const token =
+        await getAccessToken();
 
       if (!token) {
         setD({
-          error: "USAGE_CHECK_FAILED",
+          error:
+            "USAGE_CHECK_FAILED",
         });
 
         return;
       }
 
-      const usageResponse = await fetch(
-        "/api/usage/consume",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            toolId: "keywords",
-          }),
-        }
-      );
+      const usageResponse =
+        await fetch(
+          "/api/usage/consume",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${token}`,
+            },
+
+            body: JSON.stringify({
+              toolId: "keywords",
+            }),
+          }
+        );
 
       const usageData =
         await usageResponse
           .json()
           .catch(() => ({}));
 
-      if (!usageResponse.ok) {
+      if (
+        !usageResponse.ok
+      ) {
         if (
           usageData?.error ===
           "DAILY_LIMIT_REACHED"
         ) {
           setD({
-            error: "DAILY_LIMIT_REACHED",
+            error:
+              "DAILY_LIMIT_REACHED",
+
             detail:
               "You have used your 5 free Keyword Research searches for today.",
           });
 
+          setUpgradeOpen(true);
           return;
         }
 
         setD({
-          error: "USAGE_CHECK_FAILED",
+          error:
+            "USAGE_CHECK_FAILED",
         });
 
         return;
       }
 
-      const r = await fetch(
-        "/api/keywords?q=" +
-          encodeURIComponent(k) +
-          "&domain=" +
-          encodeURIComponent(domain),
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response =
+        await fetch(
+          "/api/keywords?q=" +
+            encodeURIComponent(
+              k
+            ) +
+            "&domain=" +
+            encodeURIComponent(
+              domain
+            ),
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
 
-      setD(await r.json());
-    } catch (e) {
+      setD(
+        await response.json()
+      );
+    } catch {
       setD({
         error: "NETWORK",
       });
@@ -192,19 +306,26 @@ export default function KeywordsPanel({
   }
 
   async function askAi() {
-    if (!q.trim()) return;
+    if (!q.trim()) {
+      return;
+    }
 
     setAiBusy(true);
 
     try {
-      const r = await fetch(
-        "/api/ai?q=" +
-          encodeURIComponent(q.trim()) +
-          "&limit=15"
-      );
+      const response =
+        await fetch(
+          "/api/ai?q=" +
+            encodeURIComponent(
+              q.trim()
+            ) +
+            "&limit=15"
+        );
 
-      setAi(await r.json());
-    } catch (e) {
+      setAi(
+        await response.json()
+      );
+    } catch {
       setAi({
         error: "NETWORK",
         rows: [],
@@ -216,18 +337,23 @@ export default function KeywordsPanel({
 
   function copyAi() {
     const list =
-      ai && Array.isArray(ai.rows)
+      ai &&
+      Array.isArray(ai.rows)
         ? ai.rows
         : [];
 
     navigator.clipboard.writeText(
       list
-        .map(x => x.keyword)
+        .map(
+          (item) =>
+            item.keyword
+        )
         .join("\n")
     );
   }
 
-  const demand = d?.demand || null;
+  const demand =
+    d?.demand || null;
 
   const measuredDemand =
     demand?.measured || null;
@@ -239,28 +365,34 @@ export default function KeywordsPanel({
     d?.expansion || null;
 
   const longTail =
-    Array.isArray(expansion?.longTail)
+    Array.isArray(
+      expansion?.longTail
+    )
       ? expansion.longTail
       : [];
 
-  const conf =
+  const confidence =
     d?.confidence || null;
 
   const measured =
-    conf
-      ? conf.bsrSampleSize ?? 0
+    confidence
+      ? confidence.bsrSampleSize ??
+        0
       : 0;
 
   const total =
-    conf
-      ? conf.totalResults ?? 0
+    confidence
+      ? confidence.totalResults ??
+        0
       : 0;
 
-  const m =
+  const metrics =
     d?.metrics || null;
 
   const suggestions =
-    Array.isArray(d?.suggestions)
+    Array.isArray(
+      d?.suggestions
+    )
       ? d.suggestions
       : [];
 
@@ -278,44 +410,55 @@ export default function KeywordsPanel({
     d?.market?.symbol ||
     marketInfo(domain).symbol;
 
-  const num = value =>
+  const numberText = (
+    value
+  ) =>
     typeof value === "number"
       ? value.toLocaleString()
       : "—";
 
   const demandLevel =
-    calculatedDemand?.demandLevel ||
-    "none";
+    calculatedDemand
+      ?.demandLevel || "none";
 
   const demandScore =
     typeof calculatedDemand
-      ?.demandSignalScore === "number"
+      ?.demandSignalScore ===
+    "number"
       ? calculatedDemand
           .demandSignalScore
       : null;
 
   const hasPaidMetrics =
-    m &&
-    (
-      typeof m.avgBsr === "number" ||
-      typeof m.avgPrice === "number" ||
-      typeof m.avgReviews === "number" ||
-      typeof m.avgDailySales === "number" ||
-      typeof m.measuredMonthlyRoyalty ===
+    metrics &&
+    (typeof metrics.avgBsr ===
+      "number" ||
+      typeof metrics.avgPrice ===
         "number" ||
-      typeof m.score === "number"
-    );
+      typeof metrics.avgReviews ===
+        "number" ||
+      typeof metrics.avgDailySales ===
+        "number" ||
+      typeof metrics
+        .measuredMonthlyRoyalty ===
+        "number" ||
+      typeof metrics.score ===
+        "number");
 
   return (
     <div className="card">
       <input
-        placeholder={t.kwPlaceholder}
-        value={q}
-        onChange={e =>
-          setQ(e.target.value)
+        placeholder={
+          t.kwPlaceholder
         }
-        onKeyDown={e =>
-          e.key === "Enter" &&
+        value={q}
+        onChange={(event) =>
+          setQ(
+            event.target.value
+          )
+        }
+        onKeyDown={(event) =>
+          event.key === "Enter" &&
           run()
         }
       />
@@ -345,38 +488,58 @@ export default function KeywordsPanel({
         <div className="resultSection">
           {ai.error && (
             <p className="mut">
-              ⏳ {errText(t, ai)}
+              ⏳{" "}
+              {errText(t, ai)}
             </p>
           )}
 
-          {aiRows.length > 0 && (
+          {aiRows.length >
+            0 && (
             <>
               <h3>
                 🤖 {t.aiTitle}
               </h3>
 
               <div className="trustNote">
-                <p>{t.aiNote}</p>
-                <p>{t.aiVerify}</p>
+                <p>
+                  {t.aiNote}
+                </p>
+
+                <p>
+                  {t.aiVerify}
+                </p>
+
                 <small>
                   {t.aiProvider}
                 </small>
               </div>
 
               <div className="chips">
-                {aiRows.map(x => (
-                  <button
-                    type="button"
-                    key={x.keyword}
-                    className="chip"
-                    onClick={() => {
-                      setQ(x.keyword);
-                      run(x.keyword);
-                    }}
-                  >
-                    🤖 {x.keyword}
-                  </button>
-                ))}
+                {aiRows.map(
+                  (item) => (
+                    <button
+                      type="button"
+                      key={
+                        item.keyword
+                      }
+                      className="chip"
+                      onClick={() => {
+                        setQ(
+                          item.keyword
+                        );
+
+                        run(
+                          item.keyword
+                        );
+                      }}
+                    >
+                      🤖{" "}
+                      {
+                        item.keyword
+                      }
+                    </button>
+                  )
+                )}
               </div>
 
               <button
@@ -395,7 +558,8 @@ export default function KeywordsPanel({
           {d.error && (
             <div className="trustNote resultSection">
               <p>
-                ⏳ {errText(t, d)}
+                ⏳{" "}
+                {errText(t, d)}
               </p>
 
               {d.error !==
@@ -437,7 +601,8 @@ export default function KeywordsPanel({
             calculatedDemand && (
               <div className="resultSection">
                 <h3>
-                  🔎 {t.demandTitle}
+                  🔎{" "}
+                  {t.demandTitle}
                 </h3>
 
                 <div className="grid">
@@ -451,7 +616,9 @@ export default function KeywordsPanel({
                     </b>
 
                     <span>
-                      {t.demandScore}
+                      {
+                        t.demandScore
+                      }
                     </span>
                   </div>
 
@@ -473,14 +640,16 @@ export default function KeywordsPanel({
 
                   <div className="kpi">
                     <b>
-                      {num(
+                      {numberText(
                         measuredDemand
                           .suggestionDepth
                       )}
                     </b>
 
                     <span>
-                      {t.depthLabel}
+                      {
+                        t.depthLabel
+                      }
                     </span>
                   </div>
 
@@ -508,14 +677,18 @@ export default function KeywordsPanel({
                     </b>
 
                     <span>
-                      {t.positionLabel}
+                      {
+                        t.positionLabel
+                      }
                     </span>
                   </div>
                 </div>
 
                 <div className="trustNote">
                   <p>
-                    {t.demandBasis}
+                    {
+                      t.demandBasis
+                    }
                   </p>
 
                   <small>
@@ -533,7 +706,8 @@ export default function KeywordsPanel({
               false && (
               <div className="trustNote resultSection">
                 <p>
-                  ⚠️ {t.errSignals}
+                  ⚠️{" "}
+                  {t.errSignals}
                 </p>
               </div>
             )}
@@ -548,16 +722,20 @@ export default function KeywordsPanel({
                 </h3>
 
                 <p className="mut">
-                  {num(
+                  {numberText(
                     expansion.total
                   )}{" "}
-                  {t.expansionTotal}
+                  {
+                    t.expansionTotal
+                  }
                 </p>
 
                 {expansion.partial && (
                   <div className="trustNote">
                     <p>
-                      {t.partialNote}
+                      {
+                        t.partialNote
+                      }
                     </p>
                   </div>
                 )}
@@ -574,7 +752,7 @@ export default function KeywordsPanel({
 
                     <div className="chips">
                       {longTail.map(
-                        row => (
+                        (row) => (
                           <button
                             type="button"
                             key={
@@ -585,6 +763,7 @@ export default function KeywordsPanel({
                               setQ(
                                 row.keyword
                               );
+
                               run(
                                 row.keyword
                               );
@@ -602,25 +781,29 @@ export default function KeywordsPanel({
               </div>
             )}
 
-          {conf &&
-            conf.basis ===
+          {confidence &&
+            confidence.basis ===
               "bsr_sample" && (
               <div
                 className={
                   "badge confidence b-" +
                   (
-                    conf.level ||
+                    confidence.level ||
                     "none"
                   )
                 }
               >
                 {t.confidence}:{" "}
-                {t[conf.level] ||
-                  conf.level ||
-                  "—"}{" "}
-                · {t.measuredOf}{" "}
+                {t[
+                  confidence.level
+                ] ||
+                  confidence.level ||
+                  "—"}
+                {" · "}
+                {t.measuredOf}{" "}
                 {measured}{" "}
-                {t.ofBooks} {total}{" "}
+                {t.ofBooks}{" "}
+                {total}{" "}
                 {t.booksWord}
               </div>
             )}
@@ -630,9 +813,10 @@ export default function KeywordsPanel({
               <div className="grid resultSection">
                 <div className="kpi">
                   <b>
-                    {typeof m.score ===
+                    {typeof metrics
+                      .score ===
                     "number"
-                      ? m.score +
+                      ? metrics.score +
                         "/100"
                       : "—"}
                   </b>
@@ -644,8 +828,8 @@ export default function KeywordsPanel({
 
                 <div className="kpi">
                   <b>
-                    {num(
-                      m.avgBsr
+                    {numberText(
+                      metrics.avgBsr
                     )}
                   </b>
 
@@ -658,10 +842,11 @@ export default function KeywordsPanel({
 
                 <div className="kpi">
                   <b>
-                    {typeof m
+                    {typeof metrics
                       .avgDailySales ===
                     "number"
-                      ? m.avgDailySales
+                      ? metrics
+                          .avgDailySales
                       : "—"}
                   </b>
 
@@ -672,11 +857,12 @@ export default function KeywordsPanel({
 
                 <div className="kpi">
                   <b>
-                    {typeof m
+                    {typeof metrics
                       .avgPrice ===
                     "number"
                       ? symbol +
-                        m.avgPrice
+                        metrics
+                          .avgPrice
                       : "—"}
                   </b>
 
@@ -687,12 +873,13 @@ export default function KeywordsPanel({
 
                 <div className="kpi">
                   <b>
-                    {typeof m
+                    {typeof metrics
                       .measuredMonthlyRoyalty ===
                     "number"
                       ? symbol +
-                        num(
-                          m.measuredMonthlyRoyalty
+                        numberText(
+                          metrics
+                            .measuredMonthlyRoyalty
                         )
                       : "—"}
                   </b>
@@ -704,10 +891,11 @@ export default function KeywordsPanel({
 
                 <div className="kpi">
                   <b>
-                    {typeof m
+                    {typeof metrics
                       .avgReviews ===
                     "number"
-                      ? m.avgReviews
+                      ? metrics
+                          .avgReviews
                       : "—"}
                   </b>
 
@@ -736,17 +924,26 @@ export default function KeywordsPanel({
 
               <div className="chips">
                 {suggestions.map(
-                  s => (
+                  (
+                    suggestion
+                  ) => (
                     <button
                       type="button"
-                      key={s}
+                      key={
+                        suggestion
+                      }
                       className="chip"
                       onClick={() => {
-                        setQ(s);
-                        run(s);
+                        setQ(
+                          suggestion
+                        );
+
+                        run(
+                          suggestion
+                        );
                       }}
                     >
-                      {s}
+                      {suggestion}
                     </button>
                   )
                 )}
@@ -760,41 +957,58 @@ export default function KeywordsPanel({
                 {t.topResults}
               </h3>
 
-              {books.map(b => (
-                <div
-                  key={b.asin}
-                  className="bookRow"
-                >
-                  <b>
-                    {b.title ||
-                      b.asin}
-                  </b>
+              {books.map(
+                (book) => (
+                  <div
+                    key={
+                      book.asin
+                    }
+                    className="bookRow"
+                  >
+                    <b>
+                      {book.title ||
+                        book.asin}
+                    </b>
 
-                  <span className="mut">
-                    {b.price != null
-                      ? symbol +
-                        b.price
-                      : "—"}{" "}
-                    · BSR{" "}
-                    {num(b.bsr)}
-                    {b.source ===
-                    "live"
-                      ? " 🟢"
-                      : " ⚪"}{" "}
-                    · ⭐
-                    {b.rating ??
-                      "—"}{" "}
-                    (
-                    {b.reviews ??
-                      "—"}
-                    )
-                  </span>
-                </div>
-              ))}
+                    <span className="mut">
+                      {book.price !=
+                      null
+                        ? symbol +
+                          book.price
+                        : "—"}
+                      {" · BSR "}
+                      {numberText(
+                        book.bsr
+                      )}
+
+                      {book.source ===
+                      "live"
+                        ? " 🟢"
+                        : " ⚪"}
+
+                      {" · ⭐"}
+                      {book.rating ??
+                        "—"}
+                      {" ("}
+                      {book.reviews ??
+                        "—"}
+                      {")"}
+                    </span>
+                  </div>
+                )
+              )}
             </>
           )}
         </>
       )}
+
+      <UpgradePrompt
+        open={upgradeOpen}
+        toolId="keywords"
+        onClose={() =>
+          setUpgradeOpen(false)
+        }
+      />
     </div>
   );
 }
