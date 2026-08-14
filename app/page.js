@@ -22,7 +22,10 @@ import {
 import CoverTool from "./covertool";
 import KeywordsPanel from "./keywordspanel";
 import AccountMenu from "./accountmenu";
-import UpgradePrompt from "./upgradeprompt";
+
+import UpgradePrompt, {
+  shouldBlockRememberedLimit,
+} from "./upgradeprompt";
 
 const DOMAINS = [
   "amazon.com",
@@ -358,6 +361,17 @@ function Niches({
     if (
       !session?.access_token
     ) {
+      return false;
+    }
+
+    const rememberedLimit =
+      await shouldBlockRememberedLimit(
+        "microNiche",
+        session.access_token
+      );
+
+    if (rememberedLimit) {
+      setUpgradeOpen(true);
       return false;
     }
 
