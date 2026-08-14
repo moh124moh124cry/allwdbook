@@ -15,18 +15,24 @@ const PACKAGES = [
     name: "مصمم الغلاف",
     price: "$2.49",
     period: "/ شهر",
+    checkoutUrl:
+      "https://allworldfactures.lemonsqueezy.com/checkout/buy/a40b815f-2b2c-4086-b8b8-3afcd0bf7a4d",
   },
   {
     id: "micro_niche",
     name: "الميكرو نيتش",
     price: "$2.49",
     period: "/ شهر",
+    checkoutUrl:
+      "https://allworldfactures.lemonsqueezy.com/checkout/buy/c205aef7-1c77-4711-9fba-ee2b9a81153b",
   },
   {
     id: "keywords",
     name: "الكلمات المفتاحية",
     price: "$2.49",
     period: "/ شهر",
+    checkoutUrl:
+      "https://allworldfactures.lemonsqueezy.com/checkout/buy/9a058282-b97a-4f49-bd27-c31aefab98d9",
   },
   {
     id: "pro_monthly",
@@ -34,12 +40,16 @@ const PACKAGES = [
     price: "$5.99",
     period: "/ شهر",
     featured: true,
+    checkoutUrl:
+      "https://allworldfactures.lemonsqueezy.com/checkout/buy/00e64ca6-4e8c-42c2-aa44-e9667d745524",
   },
   {
     id: "pro_yearly",
     name: "Pro سنوي",
     price: "$55",
     period: "/ سنة",
+    checkoutUrl:
+      "https://allworldfactures.lemonsqueezy.com/checkout/buy/14a4b6b5-553f-4070-bd39-932ba2270aa5",
   },
 ];
 
@@ -53,6 +63,9 @@ export default function AccountMenu() {
   const [session, setSession] =
     useState(null);
 
+  const [sessionLoaded, setSessionLoaded] =
+    useState(false);
+
   const [busy, setBusy] =
     useState(false);
 
@@ -63,6 +76,7 @@ export default function AccountMenu() {
 
   useEffect(() => {
     let active = true;
+
     const supabase = getSupabase();
 
     async function loadSession() {
@@ -78,12 +92,18 @@ export default function AccountMenu() {
           setSession(
             currentSession || null
           );
+
+          setSessionLoaded(true);
         }
       } catch (error) {
         console.error(
           "Session loading error:",
           error
         );
+
+        if (active) {
+          setSessionLoaded(true);
+        }
       }
     }
 
@@ -98,6 +118,8 @@ export default function AccountMenu() {
             setSession(
               nextSession || null
             );
+
+            setSessionLoaded(true);
           }
         }
       );
@@ -107,6 +129,62 @@ export default function AccountMenu() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (
+      !sessionLoaded ||
+      !session?.user?.email
+    ) {
+      return;
+    }
+
+    const parameters =
+      new URLSearchParams(
+        window.location.search
+      );
+
+    const selectedPlan =
+      parameters.get(
+        "selectedPlan"
+      );
+
+    if (!selectedPlan) {
+      return;
+    }
+
+    const plan =
+      PACKAGES.find(
+        (item) =>
+          item.id === selectedPlan
+      );
+
+    parameters.delete(
+      "selectedPlan"
+    );
+
+    const remainingQuery =
+      parameters.toString();
+
+    const cleanAddress =
+      window.location.pathname +
+      (remainingQuery
+        ? `?${remainingQuery}`
+        : "") +
+      window.location.hash;
+
+    window.history.replaceState(
+      {},
+      "",
+      cleanAddress
+    );
+
+    if (plan) {
+      openCheckout(
+        plan,
+        session
+      );
+    }
+  }, [session, sessionLoaded]);
 
   useEffect(() => {
     function closeOutside(event) {
@@ -149,14 +227,65 @@ export default function AccountMenu() {
     };
   }, []);
 
-  function choosePlan(planId) {
+  function openCheckout(
+    plan,
+    currentSession = session
+  ) {
+    const customerEmail =
+      currentSession?.user?.email;
+
+    const userId =
+      currentSession?.user?.id;
+
+    if (!customerEmail) {
+      router.push(
+        `/login?plan=${encodeURIComponent(
+          plan.id
+        )}`
+      );
+
+      return;
+    }
+
+    const checkout =
+      new URL(plan.checkoutUrl);
+
+    checkout.searchParams.set(
+      "checkout[email]",
+      customerEmail
+    );
+
+    if (userId) {
+      checkout.searchParams.set(
+        "checkout[custom][user_id]",
+        userId
+      );
+    }
+
+    checkout.searchParams.set(
+      "checkout[custom][plan_id]",
+      plan.id
+    );
+
+    window.location.assign(
+      checkout.toString()
+    );
+  }
+
+  function choosePlan(plan) {
     setOpen(false);
 
-    router.push(
-      `/login?plan=${encodeURIComponent(
-        planId
-      )}`
-    );
+    if (!session?.user?.email) {
+      router.push(
+        `/login?plan=${encodeURIComponent(
+          plan.id
+        )}`
+      );
+
+      return;
+    }
+
+    openCheckout(plan);
   }
 
   async function signOut() {
@@ -165,7 +294,8 @@ export default function AccountMenu() {
     setBusy(true);
 
     try {
-      const supabase = getSupabase();
+      const supabase =
+        getSupabase();
 
       await supabase.auth.signOut();
 
@@ -315,7 +445,7 @@ export default function AccountMenu() {
                   type="button"
                   role="menuitem"
                   onClick={() =>
-                    choosePlan(plan.id)
+                    choosePlan(plan)
                   }
                   style={{
                     minHeight: 54,
