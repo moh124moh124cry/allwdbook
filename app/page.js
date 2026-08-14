@@ -1,17 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import { T } from "../lib/i18n";
 import { NICHE_CATEGORIES } from "../lib/niches";
+
 import {
   printCost,
   royaltyPerUnit,
   royaltyRate,
-  marketInfo
+  marketInfo,
 } from "../lib/estimate";
+
+import {
+  getSupabase,
+} from "../lib/supabase";
+
 import CoverTool from "./covertool";
 import KeywordsPanel from "./keywordspanel";
 import AccountMenu from "./accountmenu";
+import UpgradePrompt from "./upgradeprompt";
 
 const DOMAINS = [
   "amazon.com",
@@ -20,10 +31,16 @@ const DOMAINS = [
   "amazon.fr",
   "amazon.it",
   "amazon.es",
-  "amazon.ca"
+  "amazon.ca",
 ];
 
-const ORDER = [6, 1, 0, 5, 4];
+const ORDER = [
+  6,
+  1,
+  0,
+  5,
+  4,
+];
 
 const ICONS = [
   "🔑",
@@ -31,11 +48,15 @@ const ICONS = [
   "📚",
   "📈",
   "✍️",
-  "🧮"
+  "🧮",
 ];
 
-function tabLabel(t, lang, i) {
-  if (i === 6) {
+function tabLabel(
+  t,
+  lang,
+  index
+) {
+  if (index === 6) {
     return (
       "📐 " +
       (
@@ -46,61 +67,11 @@ function tabLabel(t, lang, i) {
     );
   }
 
-  return ICONS[i] + " " + t.tabs[i];
-}
-
-function errText(t, d) {
-  if (!d) {
-    return t.errGeneric;
-  }
-
-  const code = String(
-    d.error || ""
+  return (
+    ICONS[index] +
+    " " +
+    t.tabs[index]
   );
-
-  const detail = String(
-    d.detail || ""
-  );
-
-  if (code === "RATE_LIMITED") {
-    return t.errRate;
-  }
-
-  if (code === "NO_API_KEY") {
-    return t.errNoKey;
-  }
-
-  if (
-    code === "SEARCH_FAILED" &&
-    detail.indexOf("402") >= 0
-  ) {
-    return t.errNoCredit;
-  }
-
-  if (code === "SEARCH_FAILED") {
-    return t.errSearch;
-  }
-
-  if (code === "MISSING_QUERY") {
-    return t.errMissing;
-  }
-
-  if (code === "NETWORK") {
-    return t.errNetwork;
-  }
-
-  if (
-    code === "NO_AI_KEY" ||
-    code === "NO_GEMINI_KEY"
-  ) {
-    return t.errAiKey;
-  }
-
-  if (code === "AI_FAILED") {
-    return t.errAiBusy;
-  }
-
-  return t.errGeneric;
 }
 
 export default function Home() {
@@ -110,11 +81,15 @@ export default function Home() {
   const [tab, setTab] =
     useState(6);
 
-  const [domain, setDomain] =
-    useState("amazon.com");
+  const [
+    domain,
+    setDomain,
+  ] = useState("amazon.com");
 
-  const [seedKw, setSeedKw] =
-    useState("");
+  const [
+    seedKw,
+    setSeedKw,
+  ] = useState("");
 
   const t = T[lang];
 
@@ -145,13 +120,15 @@ export default function Home() {
       t.dir;
   }, [lang, t.dir]);
 
-  function sendToKeywords(keyword) {
+  function sendToKeywords(
+    keyword
+  ) {
     setSeedKw(keyword);
     setTab(0);
 
     window.scrollTo({
       top: 0,
-      behavior: "smooth"
+      behavior: "smooth",
     });
   }
 
@@ -200,7 +177,7 @@ export default function Home() {
             display: "grid",
             placeItems: "center",
             fontSize: 24,
-            lineHeight: 1
+            lineHeight: 1,
           }}
         >
           {lang === "ar"
@@ -234,32 +211,36 @@ export default function Home() {
       </select>
 
       <div className="tabs">
-        {ORDER.map((index) => (
-          <button
-            key={index}
-            className={
-              "tab" +
-              (
-                index === tab
-                  ? " on"
-                  : ""
-              )
-            }
-            onClick={() =>
-              setTab(index)
-            }
-          >
-            {tabLabel(
-              t,
-              lang,
-              index
-            )}
-          </button>
-        ))}
+        {ORDER.map(
+          (index) => (
+            <button
+              key={index}
+              className={
+                "tab" +
+                (
+                  index === tab
+                    ? " on"
+                    : ""
+                )
+              }
+              onClick={() =>
+                setTab(index)
+              }
+            >
+              {tabLabel(
+                t,
+                lang,
+                index
+              )}
+            </button>
+          )
+        )}
       </div>
 
       {tab === 6 && (
-        <CoverTool lang={lang} />
+        <CoverTool
+          lang={lang}
+        />
       )}
 
       {tab === 1 && (
@@ -313,505 +294,11 @@ export default function Home() {
   );
 }
 
-function Keywords({
-  t,
-  domain,
-  seed
-}) {
-  const [q, setQ] =
-    useState("");
-
-  const [d, setD] =
-    useState(null);
-
-  const [busy, setBusy] =
-    useState(false);
-
-  const [ai, setAi] =
-    useState(null);
-
-  const [aiBusy, setAiBusy] =
-    useState(false);
-
-  useEffect(() => {
-    if (seed) {
-      setQ(seed);
-      run(seed);
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seed]);
-
-  async function run(term) {
-    const keyword =
-      (term || q).trim();
-
-    if (!keyword) {
-      return;
-    }
-
-    setBusy(true);
-
-    try {
-      const response =
-        await fetch(
-          "/api/keywords?q=" +
-            encodeURIComponent(
-              keyword
-            ) +
-            "&domain=" +
-            encodeURIComponent(
-              domain
-            )
-        );
-
-      setD(
-        await response.json()
-      );
-    } catch {
-      setD({
-        error: "NETWORK"
-      });
-    }
-
-    setBusy(false);
-  }
-
-  async function askAi() {
-    if (!q.trim()) {
-      return;
-    }
-
-    setAiBusy(true);
-
-    try {
-      const response =
-        await fetch(
-          "/api/ai?q=" +
-            encodeURIComponent(
-              q.trim()
-            ) +
-            "&limit=15"
-        );
-
-      setAi(
-        await response.json()
-      );
-    } catch {
-      setAi({
-        error: "NETWORK",
-        rows: []
-      });
-    }
-
-    setAiBusy(false);
-  }
-
-  function copyAi() {
-    const list =
-      ai &&
-      Array.isArray(ai.rows)
-        ? ai.rows
-        : [];
-
-    navigator.clipboard.writeText(
-      list
-        .map(
-          (item) =>
-            item.keyword
-        )
-        .join("\n")
-    );
-  }
-
-  const confidence =
-    d?.confidence || null;
-
-  const measured =
-    confidence
-      ? (
-          confidence
-            .bsrSampleSize ?? 0
-        )
-      : 0;
-
-  const total =
-    confidence
-      ? (
-          confidence
-            .totalResults ?? 0
-        )
-      : 0;
-
-  const metrics =
-    d?.metrics || null;
-
-  const suggestions =
-    Array.isArray(
-      d?.suggestions
-    )
-      ? d.suggestions
-      : [];
-
-  const books =
-    Array.isArray(d?.books)
-      ? d.books
-      : [];
-
-  const aiRows =
-    Array.isArray(ai?.rows)
-      ? ai.rows
-      : [];
-
-  const symbol =
-    d?.market?.symbol ||
-    marketInfo(domain).symbol;
-
-  const numberText = (value) =>
-    typeof value === "number"
-      ? value.toLocaleString()
-      : "—";
-
-  return (
-    <div className="card">
-      <input
-        placeholder={
-          t.kwPlaceholder
-        }
-        value={q}
-        onChange={(event) =>
-          setQ(
-            event.target.value
-          )
-        }
-        onKeyDown={(event) =>
-          event.key === "Enter" &&
-          run()
-        }
-      />
-
-      <button
-        className="go"
-        onClick={() => run()}
-        disabled={busy}
-      >
-        {busy
-          ? t.analyzing
-          : t.analyze}
-      </button>
-
-      <button
-        className="mini wide"
-        onClick={askAi}
-        disabled={aiBusy}
-      >
-        🤖{" "}
-        {aiBusy
-          ? t.aiWorking
-          : t.aiBtn}
-      </button>
-
-      {ai && (
-        <div className="resultSection">
-          {ai.error && (
-            <p className="mut">
-              ⏳{" "}
-              {errText(t, ai)}
-            </p>
-          )}
-
-          {aiRows.length > 0 && (
-            <>
-              <h3>
-                🤖 {t.aiTitle}
-              </h3>
-
-              <div className="trustNote">
-                <p>
-                  {t.aiNote}
-                </p>
-
-                <p>
-                  {t.aiVerify}
-                </p>
-
-                <small>
-                  {t.aiProvider}
-                </small>
-              </div>
-
-              <div className="chips">
-                {aiRows.map(
-                  (item) => (
-                    <button
-                      type="button"
-                      key={
-                        item.keyword
-                      }
-                      className="chip"
-                      onClick={() => {
-                        setQ(
-                          item.keyword
-                        );
-
-                        run(
-                          item.keyword
-                        );
-                      }}
-                    >
-                      🤖{" "}
-                      {
-                        item.keyword
-                      }
-                    </button>
-                  )
-                )}
-              </div>
-
-              <button
-                className="mini"
-                onClick={copyAi}
-              >
-                {t.copy}
-              </button>
-            </>
-          )}
-        </div>
-      )}
-
-      {d && (
-        <>
-          {d.error && (
-            <div className="trustNote resultSection">
-              <p>
-                ⏳{" "}
-                {errText(t, d)}
-              </p>
-
-              <small>
-                {t.tryNiches}
-              </small>
-            </div>
-          )}
-
-          {confidence && (
-            <div
-              className={
-                "badge confidence b-" +
-                (
-                  confidence.level ||
-                  "none"
-                )
-              }
-            >
-              {t.confidence}:{" "}
-              {t[
-                confidence.level
-              ] ||
-                confidence.level ||
-                "—"}
-              {" · "}
-              {t.measuredOf}{" "}
-              {measured}{" "}
-              {t.ofBooks}{" "}
-              {total}{" "}
-              {t.booksWord}
-            </div>
-          )}
-
-          {metrics && (
-            <>
-              <div className="grid resultSection">
-                <div className="kpi">
-                  <b>
-                    {metrics.score ??
-                      "—"}
-                    /100
-                  </b>
-
-                  <span>
-                    {t.score}
-                  </span>
-                </div>
-
-                <div className="kpi">
-                  <b>
-                    {numberText(
-                      metrics.avgBsr
-                    )}
-                  </b>
-
-                  <span>
-                    {t.avgBsr} (
-                    {t.sample}{" "}
-                    {measured})
-                  </span>
-                </div>
-
-                <div className="kpi">
-                  <b>
-                    {metrics
-                      .avgDailySales ??
-                      "—"}
-                  </b>
-
-                  <span>
-                    {t.dailySales}
-                  </span>
-                </div>
-
-                <div className="kpi">
-                  <b>
-                    {typeof metrics
-                      .avgPrice ===
-                    "number"
-                      ? symbol +
-                        metrics
-                          .avgPrice
-                      : "—"}
-                  </b>
-
-                  <span>
-                    {t.avgPrice}
-                  </span>
-                </div>
-
-                <div className="kpi">
-                  <b>
-                    {typeof metrics
-                      .measuredMonthlyRoyalty ===
-                    "number"
-                      ? symbol +
-                        numberText(
-                          metrics
-                            .measuredMonthlyRoyalty
-                        )
-                      : "—"}
-                  </b>
-
-                  <span>
-                    {t.nicheMonthly}
-                  </span>
-                </div>
-
-                <div className="kpi">
-                  <b>
-                    {metrics
-                      .avgReviews ??
-                      "—"}
-                  </b>
-
-                  <span>
-                    {t.avgReviews}
-                  </span>
-                </div>
-              </div>
-
-              <p className="mut legend">
-                {t.legend}
-              </p>
-
-              <p className="mut disclaimer">
-                ⚖️ {t.notAdvice}
-              </p>
-            </>
-          )}
-
-          {suggestions.length >
-            0 && (
-            <>
-              <h3>
-                ✅ {t.suggested}
-              </h3>
-
-              <div className="chips">
-                {suggestions.map(
-                  (
-                    suggestion
-                  ) => (
-                    <button
-                      type="button"
-                      key={
-                        suggestion
-                      }
-                      className="chip"
-                      onClick={() => {
-                        setQ(
-                          suggestion
-                        );
-
-                        run(
-                          suggestion
-                        );
-                      }}
-                    >
-                      {suggestion}
-                    </button>
-                  )
-                )}
-              </div>
-            </>
-          )}
-
-          {books.length > 0 && (
-            <>
-              <h3>
-                {t.topResults}
-              </h3>
-
-              {books.map(
-                (book) => (
-                  <div
-                    key={
-                      book.asin
-                    }
-                    className="bookRow"
-                  >
-                    <b>
-                      {book.title ||
-                        book.asin}
-                    </b>
-
-                    <span className="mut">
-                      {book.price !=
-                      null
-                        ? symbol +
-                          book.price
-                        : "—"}
-                      {" · BSR "}
-                      {numberText(
-                        book.bsr
-                      )}
-
-                      {book.source ===
-                      "live"
-                        ? " 🟢"
-                        : " ⚪"}
-
-                      {" · ⭐"}
-                      {book.rating ??
-                        "—"}
-                      {" ("}
-                      {book.reviews ??
-                        "—"}
-                      {")"}
-                    </span>
-                  </div>
-                )
-              )}
-            </>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
 function Niches({
   t,
   lang,
   domain,
-  onAnalyze
+  onAnalyze,
 }) {
   const [cat, setCat] =
     useState("coloring");
@@ -825,8 +312,92 @@ function Niches({
   const [busy, setBusy] =
     useState(false);
 
-  const [copied, setCopied] =
-    useState(false);
+  const [
+    copied,
+    setCopied,
+  ] = useState(false);
+
+  const [
+    upgradeOpen,
+    setUpgradeOpen,
+  ] = useState(false);
+
+  async function canUseMicroNiche() {
+    const supabase =
+      getSupabase();
+
+    let {
+      data: { session },
+    } =
+      await supabase.auth
+        .getSession();
+
+    if (
+      !session?.access_token
+    ) {
+      const {
+        data,
+        error,
+      } =
+        await supabase.auth
+          .signInAnonymously();
+
+      if (error) {
+        console.error(
+          "Anonymous sign-in failed:",
+          error
+        );
+
+        return false;
+      }
+
+      session =
+        data?.session || null;
+    }
+
+    if (
+      !session?.access_token
+    ) {
+      return false;
+    }
+
+    const response =
+      await fetch(
+        "/api/usage/consume",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${session.access_token}`,
+          },
+
+          body: JSON.stringify({
+            toolId:
+              "microNiche",
+          }),
+        }
+      );
+
+    const data =
+      await response
+        .json()
+        .catch(() => ({}));
+
+    if (
+      !response.ok &&
+      data?.error ===
+        "DAILY_LIMIT_REACHED"
+    ) {
+      setUpgradeOpen(true);
+      return false;
+    }
+
+    return response.ok;
+  }
 
   async function load() {
     setBusy(true);
@@ -835,6 +406,13 @@ function Niches({
       String(Date.now());
 
     try {
+      const allowed =
+        await canUseMicroNiche();
+
+      if (!allowed) {
+        return;
+      }
+
       const response =
         await fetch(
           "/api/niches?cat=" +
@@ -855,15 +433,22 @@ function Niches({
       );
     } catch {
       setRows([]);
+    } finally {
+      setBusy(false);
     }
-
-    setBusy(false);
   }
 
   async function validateCurrent() {
     setBusy(true);
 
     try {
+      const allowed =
+        await canUseMicroNiche();
+
+      if (!allowed) {
+        return;
+      }
+
       const response =
         await fetch(
           "/api/niches?cat=" +
@@ -881,9 +466,10 @@ function Niches({
       setRows(
         data.rows || []
       );
-    } catch {}
-
-    setBusy(false);
+    } catch {
+    } finally {
+      setBusy(false);
+    }
   }
 
   function copyAll() {
@@ -903,15 +489,16 @@ function Niches({
     }, 1800);
   }
 
-  const categoryLabel =
-    (key) =>
-      lang === "ar"
-        ? NICHE_CATEGORIES[
-            key
-          ].ar
-        : NICHE_CATEGORIES[
-            key
-          ].en;
+  const categoryLabel = (
+    key
+  ) =>
+    lang === "ar"
+      ? NICHE_CATEGORIES[
+          key
+        ].ar
+      : NICHE_CATEGORIES[
+          key
+        ].en;
 
   return (
     <div className="card">
@@ -1063,6 +650,14 @@ function Niches({
           )}
         </>
       )}
+
+      <UpgradePrompt
+        open={upgradeOpen}
+        toolId="microNiche"
+        onClose={() =>
+          setUpgradeOpen(false)
+        }
+      />
     </div>
   );
 }
@@ -1091,7 +686,9 @@ function escapeHtml(value) {
     );
 }
 
-function formatDescription(value) {
+function formatDescription(
+  value
+) {
   return value
     .slice(0, 4000)
     .split("\n\n")
@@ -1106,7 +703,7 @@ function formatDescription(value) {
           "- "
         )
       ) {
-        const listItems =
+        const items =
           paragraph
             .split("\n")
             .filter(Boolean)
@@ -1125,7 +722,7 @@ function formatDescription(value) {
 
         return (
           "<ul>" +
-          listItems +
+          items +
           "</ul>"
         );
       }
@@ -1162,8 +759,10 @@ function Formatter({ t }) {
   const [value, setValue] =
     useState("");
 
-  const [copied, setCopied] =
-    useState(false);
+  const [
+    copied,
+    setCopied,
+  ] = useState(false);
 
   const html =
     formatDescription(value);
@@ -1203,7 +802,7 @@ function Formatter({ t }) {
       <div
         className="prev"
         dangerouslySetInnerHTML={{
-          __html: html
+          __html: html,
         }}
       />
 
@@ -1238,7 +837,7 @@ function Formatter({ t }) {
 
 function Calc({
   t,
-  domain
+  domain,
 }) {
   const [price, setPrice] =
     useState(12.99);
@@ -1258,7 +857,7 @@ function Calc({
   const options = {
     domain,
     ink,
-    large
+    large,
   };
 
   const cost =
