@@ -9,7 +9,6 @@ export default function AdminPage() {
 
   const [session, setSession] = useState(null);
   const [items, setItems] = useState([]);
-
   const [email, setEmail] = useState("");
   const [note, setNote] = useState("");
 
@@ -17,11 +16,6 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  function resetMessages() {
-    setMessage("");
-    setError("");
-  }
 
   async function apiRequest(path, options = {}) {
     if (!session?.access_token) {
@@ -50,35 +44,19 @@ export default function AdminPage() {
   }
 
   const loadItems = useCallback(async () => {
-    if (!session?.access_token) {
-      return;
-    }
+    if (!session?.access_token) return;
 
-    resetMessages();
     setLoading(true);
+    setError("");
 
     try {
-      const data = await apiRequest(
-        "/api/admin/lifetime"
-      );
-
-      setItems(
-        Array.isArray(data?.items)
-          ? data.items
-          : []
-      );
+      const data = await apiRequest("/api/admin/lifetime");
+      setItems(Array.isArray(data?.items) ? data.items : []);
     } catch (err) {
-      if (
-        err?.status === 401 ||
-        err?.status === 403
-      ) {
-        setError(
-          "ليس لديك صلاحية الدخول إلى لوحة الإدارة."
-        );
+      if (err?.status === 401 || err?.status === 403) {
+        setError("ليس لديك صلاحية الدخول إلى لوحة الإدارة.");
       } else {
-        setError(
-          "تعذر تحميل قائمة Lifetime."
-        );
+        setError("تعذر تحميل حسابات Lifetime.");
       }
     } finally {
       setLoading(false);
@@ -96,9 +74,7 @@ export default function AdminPage() {
           data: { session: currentSession },
         } = await supabase.auth.getSession();
 
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
 
         if (!currentSession) {
           router.replace("/login");
@@ -108,9 +84,7 @@ export default function AdminPage() {
         setSession(currentSession);
       } catch {
         if (mounted) {
-          setError(
-            "تعذر التحقق من تسجيل الدخول."
-          );
+          setError("تعذر التحقق من تسجيل الدخول.");
           setLoading(false);
         }
       }
@@ -132,13 +106,12 @@ export default function AdminPage() {
   async function addLifetime(event) {
     event.preventDefault();
 
-    resetMessages();
+    setMessage("");
+    setError("");
 
-    const normalizedEmail = String(email || "")
-      .trim()
-      .toLowerCase();
+    const cleanEmail = String(email || "").trim().toLowerCase();
 
-    if (!normalizedEmail) {
+    if (!cleanEmail) {
       setError("أدخل البريد الإلكتروني.");
       return;
     }
@@ -146,41 +119,23 @@ export default function AdminPage() {
     setSaving(true);
 
     try {
-      await apiRequest(
-        "/api/admin/lifetime",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            email: normalizedEmail,
-            note: String(note || "").trim(),
-          }),
-        }
-      );
+      await apiRequest("/api/admin/lifetime", {
+        method: "POST",
+        body: JSON.stringify({
+          email: cleanEmail,
+          note: String(note || "").trim(),
+        }),
+      });
 
       setEmail("");
       setNote("");
-
-      setMessage(
-        "✅ تم تفعيل Lifetime Pro لهذا البريد."
-      );
-
+      setMessage("✅ تم تفعيل Lifetime Pro بنجاح.");
       await loadItems();
     } catch (err) {
       if (err?.message === "INVALID_EMAIL") {
-        setError(
-          "البريد الإلكتروني غير صحيح."
-        );
-      } else if (
-        err?.status === 401 ||
-        err?.status === 403
-      ) {
-        setError(
-          "ليس لديك صلاحية تنفيذ هذه العملية."
-        );
+        setError("البريد الإلكتروني غير صحيح.");
       } else {
-        setError(
-          "تعذر تفعيل Lifetime. حاول مرة أخرى."
-        );
+        setError("تعذر تفعيل Lifetime Pro.");
       }
     } finally {
       setSaving(false);
@@ -192,42 +147,24 @@ export default function AdminPage() {
       `هل تريد حذف Lifetime من:\n${targetEmail} ؟`
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
-    resetMessages();
+    setMessage("");
+    setError("");
     setSaving(true);
 
     try {
-      await apiRequest(
-        "/api/admin/lifetime",
-        {
-          method: "DELETE",
-          body: JSON.stringify({
-            email: targetEmail,
-          }),
-        }
-      );
+      await apiRequest("/api/admin/lifetime", {
+        method: "DELETE",
+        body: JSON.stringify({
+          email: targetEmail,
+        }),
+      });
 
-      setMessage(
-        "تم حذف Lifetime من الحساب."
-      );
-
+      setMessage("تم حذف Lifetime من الحساب.");
       await loadItems();
-    } catch (err) {
-      if (
-        err?.status === 401 ||
-        err?.status === 403
-      ) {
-        setError(
-          "ليس لديك صلاحية تنفيذ هذه العملية."
-        );
-      } else {
-        setError(
-          "تعذر حذف البريد."
-        );
-      }
+    } catch {
+      setError("تعذر حذف الحساب.");
     } finally {
       setSaving(false);
     }
@@ -250,34 +187,54 @@ export default function AdminPage() {
         minHeight: "100vh",
         background: "#081426",
         color: "#ffffff",
-        padding: "20px 14px 60px",
+        padding: "28px 14px 60px",
       }}
     >
       <div
         style={{
           width: "100%",
-          maxWidth: 720,
+          maxWidth: 680,
           margin: "0 auto",
         }}
       >
         <header
           style={{
+            textAlign: "center",
             marginBottom: 24,
           }}
         >
+          <div
+            style={{
+              width: 58,
+              height: 58,
+              borderRadius: 18,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 12px",
+              fontSize: 30,
+              background: "#13233e",
+              border: "1px solid #2c4265",
+            }}
+          >
+            👑
+          </div>
+
           <h1
             style={{
               margin: 0,
-              fontSize: 30,
+              fontSize: 28,
+              lineHeight: 1.2,
             }}
           >
-            👑 AllWDbook Admin
+            AllWDbook Admin
           </h1>
 
           <p
             style={{
-              color: "#9fb0c9",
-              lineHeight: 1.7,
+              margin: "8px 0 0",
+              color: "#91a4c0",
+              fontSize: 15,
             }}
           >
             إدارة حسابات Lifetime Pro
@@ -286,29 +243,37 @@ export default function AdminPage() {
           {session?.user?.email && (
             <div
               style={{
-                fontSize: 14,
-                color: "#8ca0bd",
-                marginTop: 8,
+                marginTop: 12,
+                display: "inline-block",
+                maxWidth: "100%",
+                padding: "8px 12px",
+                borderRadius: 12,
+                background: "#0d1b30",
+                border: "1px solid #223957",
+                color: "#a7b8cf",
+                fontSize: 13,
+                direction: "ltr",
+                overflowWrap: "anywhere",
               }}
             >
-              المدير: {session.user.email}
+              {session.user.email}
             </div>
           )}
         </header>
 
         <section
           style={{
-            background: "#101f38",
-            border: "1px solid #243653",
-            borderRadius: 18,
+            background: "#10203a",
+            border: "1px solid #283c5b",
+            borderRadius: 20,
             padding: 18,
-            marginBottom: 20,
+            marginBottom: 18,
           }}
         >
           <h2
             style={{
-              marginTop: 0,
-              fontSize: 21,
+              margin: "0 0 18px",
+              fontSize: 20,
             }}
           >
             ➕ إضافة Lifetime Pro
@@ -316,7 +281,6 @@ export default function AdminPage() {
 
           <form onSubmit={addLifetime}>
             <label
-              htmlFor="lifetime-email"
               style={{
                 display: "block",
                 marginBottom: 8,
@@ -327,24 +291,20 @@ export default function AdminPage() {
             </label>
 
             <input
-              id="lifetime-email"
               type="email"
               inputMode="email"
-              autoComplete="email"
               placeholder="user@example.com"
               value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
-              }
+              onChange={(e) => setEmail(e.target.value)}
               disabled={saving}
               style={{
                 width: "100%",
                 boxSizing: "border-box",
+                padding: "14px 15px",
+                borderRadius: 13,
+                border: "1px solid #324a70",
                 background: "#081426",
                 color: "#ffffff",
-                border: "1px solid #314667",
-                borderRadius: 12,
-                padding: "14px",
                 fontSize: 16,
                 outline: "none",
                 direction: "ltr",
@@ -352,7 +312,6 @@ export default function AdminPage() {
             />
 
             <label
-              htmlFor="lifetime-note"
               style={{
                 display: "block",
                 marginTop: 16,
@@ -364,23 +323,20 @@ export default function AdminPage() {
             </label>
 
             <input
-              id="lifetime-note"
               type="text"
               maxLength={300}
-              placeholder="مثلاً: Owner / Partner / Gift"
+              placeholder="Owner / Partner / Gift"
               value={note}
-              onChange={(e) =>
-                setNote(e.target.value)
-              }
+              onChange={(e) => setNote(e.target.value)}
               disabled={saving}
               style={{
                 width: "100%",
                 boxSizing: "border-box",
+                padding: "14px 15px",
+                borderRadius: 13,
+                border: "1px solid #324a70",
                 background: "#081426",
                 color: "#ffffff",
-                border: "1px solid #314667",
-                borderRadius: 12,
-                padding: "14px",
                 fontSize: 16,
                 outline: "none",
               }}
@@ -391,17 +347,15 @@ export default function AdminPage() {
               disabled={saving}
               style={{
                 width: "100%",
-                border: 0,
-                borderRadius: 12,
+                marginTop: 18,
                 padding: "15px",
-                marginTop: 16,
-                fontSize: 17,
-                fontWeight: 800,
-                cursor: saving
-                  ? "wait"
-                  : "pointer",
+                border: 0,
+                borderRadius: 13,
                 background: "#20c967",
                 color: "#06150c",
+                fontWeight: 900,
+                fontSize: 16,
+                cursor: saving ? "wait" : "pointer",
                 opacity: saving ? 0.7 : 1,
               }}
             >
@@ -415,12 +369,13 @@ export default function AdminPage() {
         {message && (
           <div
             style={{
-              padding: 14,
-              borderRadius: 12,
+              marginBottom: 18,
+              padding: 13,
+              borderRadius: 13,
               background: "#103522",
               border: "1px solid #1e7144",
-              marginBottom: 18,
               color: "#8ff0b6",
+              textAlign: "center",
             }}
           >
             {message}
@@ -430,12 +385,13 @@ export default function AdminPage() {
         {error && (
           <div
             style={{
-              padding: 14,
-              borderRadius: 12,
+              marginBottom: 18,
+              padding: 13,
+              borderRadius: 13,
               background: "#3b171b",
               border: "1px solid #81313a",
-              marginBottom: 18,
               color: "#ffb4bb",
+              textAlign: "center",
             }}
           >
             {error}
@@ -444,9 +400,9 @@ export default function AdminPage() {
 
         <section
           style={{
-            background: "#101f38",
-            border: "1px solid #243653",
-            borderRadius: 18,
+            background: "#10203a",
+            border: "1px solid #283c5b",
+            borderRadius: 20,
             padding: 18,
           }}
         >
@@ -456,14 +412,14 @@ export default function AdminPage() {
               alignItems: "center",
               justifyContent: "space-between",
               gap: 12,
-              marginBottom: 16,
+              marginBottom: 18,
             }}
           >
             <div>
               <h2
                 style={{
                   margin: 0,
-                  fontSize: 21,
+                  fontSize: 20,
                 }}
               >
                 ♾️ حسابات Lifetime
@@ -472,7 +428,8 @@ export default function AdminPage() {
               <div
                 style={{
                   marginTop: 6,
-                  color: "#91a3bd",
+                  color: "#91a4c0",
+                  fontSize: 14,
                 }}
               >
                 العدد: {items.length}
@@ -484,11 +441,12 @@ export default function AdminPage() {
               onClick={loadItems}
               disabled={loading || saving}
               style={{
-                background: "#172a49",
+                border: "1px solid #324a70",
+                borderRadius: 11,
+                background: "#172b4a",
                 color: "#ffffff",
-                border: "1px solid #314667",
-                borderRadius: 10,
                 padding: "10px 13px",
+                fontWeight: 700,
                 cursor: "pointer",
               }}
             >
@@ -499,9 +457,9 @@ export default function AdminPage() {
           {loading ? (
             <div
               style={{
+                padding: 28,
                 textAlign: "center",
-                padding: 30,
-                color: "#91a3bd",
+                color: "#91a4c0",
               }}
             >
               جارٍ التحميل...
@@ -509,9 +467,9 @@ export default function AdminPage() {
           ) : items.length === 0 ? (
             <div
               style={{
+                padding: "30px 10px",
                 textAlign: "center",
-                padding: 30,
-                color: "#91a3bd",
+                color: "#91a4c0",
               }}
             >
               لا توجد حسابات Lifetime بعد.
@@ -528,16 +486,16 @@ export default function AdminPage() {
                   key={item.id}
                   style={{
                     background: "#081426",
-                    border: "1px solid #243653",
-                    borderRadius: 13,
+                    border: "1px solid #263b5c",
+                    borderRadius: 14,
                     padding: 14,
                   }}
                 >
                   <div
                     style={{
+                      fontWeight: 800,
                       direction: "ltr",
                       textAlign: "left",
-                      fontWeight: 800,
                       overflowWrap: "anywhere",
                     }}
                   >
@@ -547,8 +505,8 @@ export default function AdminPage() {
                   {item.note && (
                     <div
                       style={{
-                        marginTop: 7,
-                        color: "#9fb0c9",
+                        marginTop: 8,
+                        color: "#91a4c0",
                         fontSize: 14,
                       }}
                     >
@@ -559,31 +517,25 @@ export default function AdminPage() {
                   <div
                     style={{
                       marginTop: 8,
-                      color: item.active
-                        ? "#75e7a0"
-                        : "#ffbd66",
+                      color: "#75e7a0",
                       fontSize: 14,
                     }}
                   >
-                    {item.active
-                      ? "✅ Lifetime Pro مفعل"
-                      : "غير مفعل"}
+                    ✅ Lifetime Pro مفعل
                   </div>
 
                   <button
                     type="button"
-                    onClick={() =>
-                      removeLifetime(item.email)
-                    }
+                    onClick={() => removeLifetime(item.email)}
                     disabled={saving}
                     style={{
                       width: "100%",
                       marginTop: 12,
-                      border: "1px solid #833842",
-                      borderRadius: 10,
-                      background: "#35171c",
-                      color: "#ffb8bf",
                       padding: 11,
+                      borderRadius: 10,
+                      border: "1px solid #793640",
+                      background: "#34171c",
+                      color: "#ffb6bd",
                       fontWeight: 700,
                       cursor: "pointer",
                     }}
@@ -601,12 +553,13 @@ export default function AdminPage() {
           onClick={signOut}
           style={{
             width: "100%",
-            marginTop: 22,
-            border: "1px solid #314667",
-            borderRadius: 12,
-            background: "transparent",
+            marginTop: 18,
+            padding: 14,
+            borderRadius: 13,
+            border: "1px solid #2b4264",
+            background: "#0c192d",
             color: "#aebed4",
-            padding: 13,
+            fontWeight: 700,
             cursor: "pointer",
           }}
         >
