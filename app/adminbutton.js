@@ -1,58 +1,64 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getSupabase } from "../lib/supabase";
 
 export default function AdminButton() {
   const router = useRouter();
+  const pathname = usePathname();
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [checking, setChecking] = useState(true);
 
-  async function checkAdmin(session) {
-    const token = session?.access_token;
-
-    if (!token) {
-      setIsAdmin(false);
-      setChecking(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        "/api/admin/lifetime",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          cache: "no-store",
-        }
-      );
-
-      setIsAdmin(response.ok);
-    } catch {
-      setIsAdmin(false);
-    } finally {
-      setChecking(false);
-    }
-  }
-
   useEffect(() => {
     let mounted = true;
 
-    const supabase = getSupabase();
+    async function checkAdmin(session) {
+      const token = session?.access_token;
+
+      if (!token) {
+        if (mounted) {
+          setIsAdmin(false);
+          setChecking(false);
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          "/api/admin/lifetime",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            cache: "no-store",
+          }
+        );
+
+        if (mounted) {
+          setIsAdmin(response.ok);
+        }
+      } catch {
+        if (mounted) {
+          setIsAdmin(false);
+        }
+      } finally {
+        if (mounted) {
+          setChecking(false);
+        }
+      }
+    }
 
     async function initialize() {
       try {
+        const supabase = getSupabase();
+
         const {
           data: { session },
         } = await supabase.auth.getSession();
 
-        if (mounted) {
-          await checkAdmin(session);
-        }
+        await checkAdmin(session);
       } catch {
         if (mounted) {
           setIsAdmin(false);
@@ -62,6 +68,8 @@ export default function AdminButton() {
     }
 
     initialize();
+
+    const supabase = getSupabase();
 
     const {
       data: { subscription },
@@ -80,7 +88,12 @@ export default function AdminButton() {
     };
   }, []);
 
-  if (checking || !isAdmin) {
+  if (
+    checking ||
+    !isAdmin ||
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/login")
+  ) {
     return null;
   }
 
@@ -89,20 +102,28 @@ export default function AdminButton() {
       type="button"
       onClick={() => router.push("/admin")}
       style={{
-        border: "1px solid rgba(255, 215, 0, 0.45)",
-        borderRadius: 10,
-        padding: "8px 12px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 7,
+        minWidth: 92,
+        height: 42,
+        padding: "0 15px",
+        borderRadius: 14,
+        border: "1px solid rgba(255, 204, 51, 0.55)",
         background:
-          "linear-gradient(135deg, #2a2105, #17130a)",
-        color: "#ffd95a",
-        fontWeight: 800,
+          "linear-gradient(135deg, #3a2b00, #17130a)",
+        color: "#ffd85a",
         fontSize: 14,
+        fontWeight: 800,
+        boxShadow:
+          "0 8px 24px rgba(0, 0, 0, 0.28)",
         cursor: "pointer",
         whiteSpace: "nowrap",
       }}
-      title="AllWDbook Admin"
     >
-      👑 Admin
+      <span style={{ fontSize: 18 }}>👑</span>
+      <span>Admin</span>
     </button>
   );
 }
