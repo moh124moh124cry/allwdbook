@@ -197,4 +197,65 @@ export default function LoginPage() {
               textAlign: "center",
               padding: "12px 0",
             }}
-         
+          >
+            <div
+              style={{
+                fontSize: 44,
+                marginBottom: 12,
+              }}
+            >
+              📧
+            </div>
+
+            <h2>Check your email</h2>
+
+            <p
+              style={{
+                color: "#aebed4",
+                lineHeight: 1.7,
+              }}
+            >
+              لقد أرسلنا لك رابط تسجيل الدخول.
+              افتح بريدك واضغط على
+              <strong> Sign in </strong>
+              للدخول إلى AllWDbook.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSent(false);
+                setError("");
+              }}
+              style={{
+                marginTop: 10,
+                background: "transparent",
+                color: "#8fbfff",
+                border: 0,
+                cursor: "pointer",
+                fontSize: 15,
+              }}
+            >
+              استخدام بريد آخر
+            </button>
+          </div>
+        )}
+
+        {error && (
+          <div
+            style={{
+              marginTop: 16,
+              padding: 12,
+              borderRadius: 10,
+              background: "#3b171b",
+              color: "#ffb4bb",
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
