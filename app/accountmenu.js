@@ -8,6 +8,7 @@ import {
 
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../lib/supabase";
+import { useAccess } from "../lib/access";
 
 const PACKAGES = [
   {
@@ -69,14 +70,23 @@ const TEXT = {
       "فتح قائمة الحساب والاشتراكات",
     guest:
       "أنت تستخدم الموقع كزائر",
-    account:
-      "حسابك",
+    account: "حسابك",
     freeNote:
       "لا تحتاج إلى بريد لاستخدام الخطة المجانية",
+    currentPlan:
+      "خطتك الحالية",
+    freePlan:
+      "الخطة المجانية",
+    lifetime:
+      "Lifetime Pro",
     plans:
       "باقات الاشتراك",
     featured:
       "الأفضل لجميع الأدوات",
+    current: "مفعّلة",
+    included: "مشمولة",
+    manage:
+      "إدارة الاشتراك والفواتير",
     existing:
       "لدي اشتراك — تسجيل الدخول",
     signingOut:
@@ -94,10 +104,22 @@ const TEXT = {
       "Your account",
     freeNote:
       "No email is required for the free plan",
+    currentPlan:
+      "Current plan",
+    freePlan:
+      "Free plan",
+    lifetime:
+      "Lifetime Pro",
     plans:
       "Subscription plans",
     featured:
       "Best value for all tools",
+    current:
+      "Active",
+    included:
+      "Included",
+    manage:
+      "Manage subscription and billing",
     existing:
       "I have a subscription — Sign in",
     signingOut:
@@ -110,6 +132,7 @@ const TEXT = {
 export default function AccountMenu() {
   const router = useRouter();
   const menuRef = useRef(null);
+  const access = useAccess();
 
   const [open, setOpen] =
     useState(false);
@@ -125,8 +148,10 @@ export default function AccountMenu() {
   const [busy, setBusy] =
     useState(false);
 
-  const [language, setLanguage] =
-    useState("ar");
+  const [
+    language,
+    setLanguage,
+  ] = useState("ar");
 
   const isEnglish =
     language === "en";
@@ -141,18 +166,24 @@ export default function AccountMenu() {
 
   const isGuest = !email;
 
+  const activePlans =
+    Array.isArray(
+      access.plans
+    )
+      ? access.plans
+      : [];
+
   useEffect(() => {
     function detectLanguage() {
       const html =
         document.documentElement;
 
-      const nextLanguage =
+      setLanguage(
         html.dir === "ltr" ||
-        html.lang === "en"
+          html.lang === "en"
           ? "en"
-          : "ar";
-
-      setLanguage(nextLanguage);
+          : "ar"
+      );
     }
 
     detectLanguage();
@@ -200,7 +231,9 @@ export default function AccountMenu() {
             currentSession || null
           );
 
-          setSessionLoaded(true);
+          setSessionLoaded(
+            true
+          );
         }
       } catch (error) {
         console.error(
@@ -209,7 +242,9 @@ export default function AccountMenu() {
         );
 
         if (active) {
-          setSessionLoaded(true);
+          setSessionLoaded(
+            true
+          );
         }
       }
     }
@@ -227,7 +262,8 @@ export default function AccountMenu() {
           ) => {
             if (active) {
               setSession(
-                nextSession || null
+                nextSession ||
+                  null
               );
 
               setSessionLoaded(
@@ -268,7 +304,8 @@ export default function AccountMenu() {
     const plan =
       PACKAGES.find(
         (item) =>
-          item.id === selectedPlan
+          item.id ===
+          selectedPlan
       );
 
     parameters.delete(
@@ -300,7 +337,9 @@ export default function AccountMenu() {
   }, [session, sessionLoaded]);
 
   useEffect(() => {
-    function closeOutside(event) {
+    function closeOutside(
+      event
+    ) {
       if (
         menuRef.current &&
         !menuRef.current.contains(
@@ -311,7 +350,9 @@ export default function AccountMenu() {
       }
     }
 
-    function closeWithEscape(event) {
+    function closeWithEscape(
+      event
+    ) {
       if (
         event.key === "Escape"
       ) {
@@ -347,7 +388,8 @@ export default function AccountMenu() {
     currentSession = session
   ) {
     const customerEmail =
-      currentSession?.user?.email;
+      currentSession?.user
+        ?.email;
 
     const userId =
       currentSession?.user?.id;
@@ -363,7 +405,9 @@ export default function AccountMenu() {
     }
 
     const checkout =
-      new URL(plan.checkoutUrl);
+      new URL(
+        plan.checkoutUrl
+      );
 
     checkout.searchParams.set(
       "checkout[email]",
@@ -390,7 +434,9 @@ export default function AccountMenu() {
   function choosePlan(plan) {
     setOpen(false);
 
-    if (!session?.user?.email) {
+    if (
+      !session?.user?.email
+    ) {
       router.push(
         `/login?plan=${encodeURIComponent(
           plan.id
@@ -404,7 +450,9 @@ export default function AccountMenu() {
   }
 
   async function signOut() {
-    if (busy) return;
+    if (busy) {
+      return;
+    }
 
     setBusy(true);
 
@@ -429,6 +477,20 @@ export default function AccountMenu() {
     } finally {
       setBusy(false);
     }
+  }
+
+  function planName(planId) {
+    const plan =
+      PACKAGES.find(
+        (item) =>
+          item.id === planId
+      );
+
+    return plan
+      ? isEnglish
+        ? plan.en
+        : plan.ar
+      : planId;
   }
 
   return (
@@ -460,11 +522,14 @@ export default function AccountMenu() {
           display: "grid",
           placeItems: "center",
           borderRadius: "50%",
+
           border: open
             ? "2px solid #f59e0b"
             : "2px solid transparent",
+
           background:
             "transparent",
+
           boxShadow: open
             ? "0 0 0 4px rgba(245,158,11,.18)"
             : "none",
@@ -500,10 +565,10 @@ export default function AccountMenu() {
               : "auto",
 
             width:
-              "min(340px, calc(100vw - 24px))",
+              "min(350px, calc(100vw - 24px))",
 
             maxHeight:
-              "min(620px, calc(100vh - 92px))",
+              "min(650px, calc(100vh - 92px))",
 
             overflowY: "auto",
             padding: 14,
@@ -570,6 +635,153 @@ export default function AccountMenu() {
               {email ||
                 text.freeNote}
             </div>
+
+            {!isGuest &&
+              !access.loading && (
+                <div
+                  style={{
+                    marginTop: 12,
+                  }}
+                >
+                  <div
+                    style={{
+                      color:
+                        "#65738a",
+                      fontSize: 12,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {
+                      text.currentPlan
+                    }
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 6,
+                      marginTop: 7,
+                    }}
+                  >
+                    {access.lifetime ? (
+                      <span
+                        style={{
+                          padding:
+                            "6px 9px",
+                          borderRadius:
+                            999,
+                          background:
+                            "#eafaf1",
+                          border:
+                            "1px solid #54bd7a",
+                          color:
+                            "#15733d",
+                          fontSize: 12,
+                          fontWeight:
+                            900,
+                        }}
+                      >
+                        ♾️{" "}
+                        {
+                          text.lifetime
+                        }
+                      </span>
+                    ) : activePlans.length >
+                      0 ? (
+                      activePlans.map(
+                        (
+                          planId
+                        ) => (
+                          <span
+                            key={
+                              planId
+                            }
+                            style={{
+                              padding:
+                                "6px 9px",
+                              borderRadius:
+                                999,
+                              background:
+                                "#eaf3ff",
+                              border:
+                                "1px solid #6ca8eb",
+                              color:
+                                "#1459a6",
+                              fontSize:
+                                12,
+                              fontWeight:
+                                900,
+                            }}
+                          >
+                            ✓{" "}
+                            {planName(
+                              planId
+                            )}
+                          </span>
+                        )
+                      )
+                    ) : (
+                      <span
+                        style={{
+                          padding:
+                            "6px 9px",
+                          borderRadius:
+                            999,
+                          background:
+                            "#f2f4f7",
+                          border:
+                            "1px solid #ccd4df",
+                          color:
+                            "#4e5c70",
+                          fontSize: 12,
+                          fontWeight:
+                            800,
+                        }}
+                      >
+                        {
+                          text.freePlan
+                        }
+                      </span>
+                    )}
+                  </div>
+
+                  {access.billingUrl && (
+                    <a
+                      href={
+                        access.billingUrl
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display:
+                          "block",
+                        marginTop: 10,
+                        padding:
+                          "9px 10px",
+                        borderRadius:
+                          9,
+                        background:
+                          "#fff8e8",
+                        border:
+                          "1px solid #e4b34f",
+                        color:
+                          "#8a5700",
+                        textAlign:
+                          "center",
+                        textDecoration:
+                          "none",
+                        fontSize: 13,
+                        fontWeight:
+                          900,
+                      }}
+                    >
+                      ⚙️{" "}
+                      {text.manage}
+                    </a>
+                  )}
+                </div>
+              )}
           </div>
 
           <div
@@ -591,109 +803,163 @@ export default function AccountMenu() {
             }}
           >
             {PACKAGES.map(
-              (plan) => (
-                <button
-                  key={plan.id}
-                  type="button"
-                  role="menuitem"
-                  onClick={() =>
-                    choosePlan(plan)
-                  }
-                  style={{
-                    minHeight: 56,
-                    display: "flex",
-                    alignItems:
-                      "center",
-                    justifyContent:
-                      "space-between",
-                    gap: 12,
-                    width: "100%",
-                    padding:
-                      "10px 12px",
-                    borderRadius: 11,
+              (plan) => {
+                const current =
+                  access.lifetime ||
+                  activePlans.includes(
+                    plan.id
+                  );
 
-                    border:
-                      plan.featured
-                        ? "2px solid #22a95f"
-                        : "1px solid #d9e2ef",
+                return (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    role="menuitem"
+                    onClick={() =>
+                      choosePlan(
+                        plan
+                      )
+                    }
+                    disabled={
+                      current
+                    }
+                    style={{
+                      minHeight: 56,
+                      display: "flex",
+                      alignItems:
+                        "center",
+                      justifyContent:
+                        "space-between",
+                      gap: 12,
+                      width: "100%",
+                      padding:
+                        "10px 12px",
+                      borderRadius:
+                        11,
 
-                    background:
-                      plan.featured
-                        ? "#effbf3"
-                        : "#f7f9fc",
+                      border: current
+                        ? "2px solid #3ea968"
+                        : plan.featured
+                          ? "2px solid #22a95f"
+                          : "1px solid #d9e2ef",
 
-                    color:
-                      "#172033",
+                      background:
+                        current
+                          ? "#eafaf1"
+                          : plan.featured
+                            ? "#effbf3"
+                            : "#f7f9fc",
 
-                    direction: isEnglish
-                      ? "ltr"
-                      : "rtl",
+                      color:
+                        "#172033",
 
-                    textAlign: isEnglish
-                      ? "left"
-                      : "right",
-                  }}
-                >
-                  <span>
-                    <strong
-                      style={{
-                        display:
-                          "block",
-                        color:
-                          "#172033",
-                        fontSize: 14,
-                      }}
-                    >
-                      {isEnglish
-                        ? plan.en
-                        : plan.ar}
-                    </strong>
+                      direction:
+                        isEnglish
+                          ? "ltr"
+                          : "rtl",
 
-                    {plan.featured && (
-                      <small
+                      textAlign:
+                        isEnglish
+                          ? "left"
+                          : "right",
+
+                      cursor: current
+                        ? "default"
+                        : "pointer",
+
+                      opacity: current
+                        ? 0.88
+                        : 1,
+                    }}
+                  >
+                    <span>
+                      <strong
                         style={{
                           display:
                             "block",
-                          marginTop: 3,
                           color:
-                            "#16864a",
-                          fontSize: 12,
-                          fontWeight: 700,
+                            "#172033",
+                          fontSize:
+                            14,
                         }}
                       >
-                        {
-                          text.featured
-                        }
-                      </small>
-                    )}
-                  </span>
+                        {isEnglish
+                          ? plan.en
+                          : plan.ar}
+                      </strong>
 
-                  <span
-                    style={{
-                      flex:
-                        "0 0 auto",
-                      direction: "ltr",
-                      color: "#c96b08",
-                    }}
-                  >
-                    <strong>
-                      {plan.price}
-                    </strong>
+                      {current ? (
+                        <small
+                          style={{
+                            display:
+                              "block",
+                            marginTop:
+                              3,
+                            color:
+                              "#16864a",
+                            fontSize:
+                              12,
+                            fontWeight:
+                              800,
+                          }}
+                        >
+                          ✓{" "}
+                          {access.lifetime
+                            ? text.included
+                            : text.current}
+                        </small>
+                      ) : plan.featured ? (
+                        <small
+                          style={{
+                            display:
+                              "block",
+                            marginTop:
+                              3,
+                            color:
+                              "#16864a",
+                            fontSize:
+                              12,
+                            fontWeight:
+                              700,
+                          }}
+                        >
+                          {
+                            text.featured
+                          }
+                        </small>
+                      ) : null}
+                    </span>
 
-                    <small
+                    <span
                       style={{
+                        flex:
+                          "0 0 auto",
+                        direction:
+                          "ltr",
                         color:
-                          "#65738a",
-                        marginLeft: 3,
+                          "#c96b08",
                       }}
                     >
-                      {isEnglish
-                        ? plan.periodEn
-                        : plan.periodAr}
-                    </small>
-                  </span>
-                </button>
-              )
+                      <strong>
+                        {plan.price}
+                      </strong>
+
+                      <small
+                        style={{
+                          color:
+                            "#65738a",
+                          marginLeft:
+                            3,
+                        }}
+                      >
+                        {isEnglish
+                          ? plan.periodEn
+                          : plan.periodAr}
+                      </small>
+                    </span>
+                  </button>
+                );
+              }
             )}
           </div>
 
@@ -701,6 +967,7 @@ export default function AccountMenu() {
             style={{
               marginTop: 14,
               paddingTop: 14,
+
               borderTop:
                 "1px solid #d9e2ef",
             }}
@@ -719,13 +986,18 @@ export default function AccountMenu() {
                 style={{
                   width: "100%",
                   minHeight: 48,
+
                   border:
                     "1px solid #2776d2",
+
                   borderRadius: 10,
+
                   background:
                     "#eaf3ff",
+
                   color:
                     "#1459a6",
+
                   fontWeight: 900,
                 }}
               >
@@ -740,13 +1012,18 @@ export default function AccountMenu() {
                 style={{
                   width: "100%",
                   minHeight: 48,
+
                   border:
                     "1px solid #d9574f",
+
                   borderRadius: 10,
+
                   background:
                     "#fff0ef",
+
                   color:
                     "#b6322c",
+
                   fontWeight: 900,
                 }}
               >
