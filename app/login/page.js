@@ -1,8 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getSupabase } from "../../lib/supabase";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useRouter,
+} from "next/navigation";
+
+import {
+  getSupabase,
+} from "../../lib/supabase";
+
 import {
   normalizeEmail,
   isValidEmail,
@@ -11,24 +21,45 @@ import {
 export default function LoginPage() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
+  const [email, setEmail] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [sent, setSent] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
 
   useEffect(() => {
     async function checkLogin() {
       try {
-        const supabase = getSupabase();
+        const supabase =
+          getSupabase();
 
         const {
           data: { session },
-        } = await supabase.auth.getSession();
+        } =
+          await supabase.auth
+            .getSession();
 
-        if (session) {
+        /*
+         * حساب الزائر المجهول لديه جلسة،
+         * لكنه ليس حسابًا دائمًا.
+         * نعيد المستخدم للرئيسية فقط
+         * عندما يكون حسابه مرتبطًا ببريد.
+         */
+        if (session?.user?.email) {
           router.replace("/");
         }
-      } catch {}
+      } catch (error) {
+        console.error(
+          "Login check error:",
+          error
+        );
+      }
     }
 
     checkLogin();
@@ -39,38 +70,71 @@ export default function LoginPage() {
 
     setError("");
 
-    const cleanEmail = normalizeEmail(email);
+    const cleanEmail =
+      normalizeEmail(email);
 
-    if (!isValidEmail(cleanEmail)) {
-      setError("أدخل بريدًا إلكترونيًا صحيحًا.");
+    if (
+      !isValidEmail(cleanEmail)
+    ) {
+      setError(
+        "أدخل بريدًا إلكترونيًا صحيحًا."
+      );
+
       return;
     }
 
     setLoading(true);
 
     try {
-      const supabase = getSupabase();
+      const supabase =
+        getSupabase();
 
-      const { error: loginError } =
-        await supabase.auth.signInWithOtp({
-          email: cleanEmail,
-          options: {
-            shouldCreateUser: true,
-            emailRedirectTo:
-              `${window.location.origin}/`,
-          },
-        });
+      const plan =
+        new URLSearchParams(
+          window.location.search
+        ).get("plan");
+
+      const destination =
+        new URL(
+          "/",
+          window.location.origin
+        );
+
+      if (plan) {
+        destination.searchParams.set(
+          "selectedPlan",
+          plan
+        );
+      }
+
+      const {
+        error: loginError,
+      } =
+        await supabase.auth
+          .signInWithOtp({
+            email: cleanEmail,
+
+            options: {
+              shouldCreateUser: true,
+
+              emailRedirectTo:
+                destination.toString(),
+            },
+          });
 
       if (loginError) {
         throw loginError;
       }
 
       setSent(true);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(
+        "Email login error:",
+        error
+      );
 
       setError(
-        "تعذر إرسال رابط تسجيل الدخول."
+        "تعذر إرسال رابط تسجيل الدخول. حاول مرة أخرى."
       );
     } finally {
       setLoading(false);
@@ -96,7 +160,8 @@ export default function LoginPage() {
           padding: 24,
           borderRadius: 18,
           background: "#101f38",
-          border: "1px solid #263a59",
+          border:
+            "1px solid #263a59",
         }}
       >
         <h1
@@ -114,29 +179,38 @@ export default function LoginPage() {
               style={{
                 textAlign: "center",
                 color: "#aebed4",
+                lineHeight: 1.7,
               }}
             >
-              Sign in with your email
+              أدخل بريدك للترقية
+              أو استعادة اشتراكك
             </p>
 
             <input
               type="email"
+              inputMode="email"
+              autoComplete="email"
               placeholder="you@example.com"
               value={email}
               onChange={(event) =>
-                setEmail(event.target.value)
+                setEmail(
+                  event.target.value
+                )
               }
               disabled={loading}
               style={{
                 width: "100%",
-                boxSizing: "border-box",
+                boxSizing:
+                  "border-box",
                 padding: 14,
                 marginTop: 10,
                 borderRadius: 10,
-                border: "1px solid #314667",
+                border:
+                  "1px solid #314667",
                 background: "#081426",
                 color: "white",
                 fontSize: 16,
+                direction: "ltr",
               }}
             />
 
@@ -156,8 +230,29 @@ export default function LoginPage() {
               }}
             >
               {loading
-                ? "Sending..."
-                : "Send sign-in link"}
+                ? "جارٍ الإرسال..."
+                : "إرسال رابط الدخول"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                router.replace("/")
+              }
+              style={{
+                width: "100%",
+                marginTop: 10,
+                padding: 12,
+                borderRadius: 10,
+                border:
+                  "1px solid #314667",
+                background:
+                  "transparent",
+                color: "#aebed4",
+                fontWeight: 700,
+              }}
+            >
+              المتابعة كزائر
             </button>
           </form>
         ) : (
@@ -167,11 +262,17 @@ export default function LoginPage() {
               padding: 20,
             }}
           >
-            <div style={{ fontSize: 45 }}>
+            <div
+              style={{
+                fontSize: 45,
+              }}
+            >
               📧
             </div>
 
-            <h2>Check your email</h2>
+            <h2>
+              تحقق من بريدك
+            </h2>
 
             <p
               style={{
@@ -179,20 +280,43 @@ export default function LoginPage() {
                 lineHeight: 1.7,
               }}
             >
-              افتح بريدك واضغط على
-              {" "}
-              <strong>Sign in</strong>
-              {" "}
-              للدخول إلى AllWDbook.
+              أرسلنا رابط الدخول إلى:
+            </p>
+
+            <p
+              style={{
+                color: "#ffffff",
+                direction: "ltr",
+                overflowWrap:
+                  "anywhere",
+                fontWeight: 800,
+              }}
+            >
+              {normalizeEmail(email)}
+            </p>
+
+            <p
+              style={{
+                color: "#aebed4",
+                lineHeight: 1.7,
+              }}
+            >
+              افتح الرسالة واضغط
+              على رابط تسجيل الدخول.
             </p>
 
             <button
               type="button"
-              onClick={() => setSent(false)}
+              onClick={() => {
+                setSent(false);
+                setError("");
+              }}
               style={{
-                background: "transparent",
+                background:
+                  "transparent",
                 border: 0,
                 color: "#8fbfff",
+                fontWeight: 700,
               }}
             >
               استخدام بريد آخر
