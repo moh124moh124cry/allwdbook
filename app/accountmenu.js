@@ -63,8 +63,10 @@ export default function AccountMenu() {
   const [session, setSession] =
     useState(null);
 
-  const [sessionLoaded, setSessionLoaded] =
-    useState(false);
+  const [
+    sessionLoaded,
+    setSessionLoaded,
+  ] = useState(false);
 
   const [busy, setBusy] =
     useState(false);
@@ -73,6 +75,11 @@ export default function AccountMenu() {
     session?.user?.email || "";
 
   const isGuest = !email;
+
+  const isEnglish =
+    typeof document !== "undefined" &&
+    document.documentElement.dir ===
+      "ltr";
 
   useEffect(() => {
     let active = true;
@@ -152,11 +159,10 @@ export default function AccountMenu() {
       return;
     }
 
-    const plan =
-      PACKAGES.find(
-        (item) =>
-          item.id === selectedPlan
-      );
+    const plan = PACKAGES.find(
+      (item) =>
+        item.id === selectedPlan
+    );
 
     parameters.delete(
       "selectedPlan"
@@ -370,11 +376,21 @@ export default function AccountMenu() {
           style={{
             position: "absolute",
             top: 58,
-            right: 0,
+
+            right: isEnglish
+              ? "auto"
+              : 0,
+
+            left: isEnglish
+              ? 0
+              : "auto",
+
             width:
               "min(340px, calc(100vw - 24px))",
+
             maxHeight:
               "min(620px, calc(100vh - 92px))",
+
             overflowY: "auto",
             padding: 12,
             borderRadius: 16,
