@@ -142,6 +142,9 @@ const TEXT = {
     close:
       "ليس الآن",
 
+    closeLabel:
+      "إغلاق نافذة الاشتراك",
+
     opening:
       "جارٍ فتح الدفع...",
 
@@ -174,6 +177,9 @@ const TEXT = {
     close:
       "Not now",
 
+    closeLabel:
+      "Close subscription window",
+
     opening:
       "Opening checkout...",
 
@@ -184,6 +190,184 @@ const TEXT = {
       "Free uses reset the following day.",
   },
 };
+
+const LIMIT_KEY_PREFIX =
+  "awd_daily_limit_";
+
+function utcUsageDate() {
+  return new Date()
+    .toISOString()
+    .slice(0, 10);
+}
+
+export function rememberDailyLimit(
+  toolId
+) {
+  if (
+    !toolId ||
+    typeof window ===
+      "undefined"
+  ) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      LIMIT_KEY_PREFIX +
+        toolId,
+
+      utcUsageDate()
+    );
+  } catch {}
+}
+
+export function isDailyLimitRemembered(
+  toolId
+) {
+  if (
+    !toolId ||
+    typeof window ===
+      "undefined"
+  ) {
+    return false;
+  }
+
+  try {
+    const key =
+      LIMIT_KEY_PREFIX +
+      toolId;
+
+    const savedDate =
+      localStorage.getItem(key);
+
+    if (
+      savedDate ===
+      utcUsageDate()
+    ) {
+      return true;
+    }
+
+    if (savedDate) {
+      localStorage.removeItem(
+        key
+      );
+    }
+  } catch {}
+
+  return false;
+}
+
+export function clearRememberedDailyLimit(
+  toolId
+) {
+  if (
+    !toolId ||
+    typeof window ===
+      "undefined"
+  ) {
+    return;
+  }
+
+  try {
+    localStorage.removeItem(
+      LIMIT_KEY_PREFIX +
+        toolId
+    );
+  } catch {}
+}
+
+const PAID_TOOL_PLANS = {
+  coverDesigner: [
+    "cover",
+    "pro_monthly",
+    "pro_yearly",
+  ],
+
+  microNiche: [
+    "micro_niche",
+    "pro_monthly",
+    "pro_yearly",
+  ],
+
+  keywords: [
+    "keywords",
+    "pro_monthly",
+    "pro_yearly",
+  ],
+};
+
+export async function shouldBlockRememberedLimit(
+  toolId,
+  accessToken
+) {
+  if (
+    !isDailyLimitRemembered(
+      toolId
+    )
+  ) {
+    return false;
+  }
+
+  try {
+    const response =
+      await fetch(
+        "/api/access",
+        {
+          cache: "no-store",
+
+          headers: accessToken
+            ? {
+                Authorization:
+                  `Bearer ${accessToken}`,
+              }
+            : {},
+        }
+      );
+
+    if (response.ok) {
+      const access =
+        await response.json();
+
+      const activePlans =
+        Array.isArray(
+          access?.plans
+        )
+          ? access.plans
+          : [];
+
+      const allowedPlans =
+        PAID_TOOL_PLANS[
+          toolId
+        ] || [];
+
+      const hasPaidTool =
+        allowedPlans.some(
+          (planId) =>
+            activePlans.includes(
+              planId
+            )
+        );
+
+      if (
+        access?.lifetime ||
+        hasPaidTool
+      ) {
+        clearRememberedDailyLimit(
+          toolId
+        );
+
+        return false;
+      }
+    }
+  } catch (error) {
+    console.error(
+      "Remembered limit check failed:",
+      error
+    );
+  }
+
+  return true;
+}
 
 export default function UpgradePrompt({
   open,
@@ -235,9 +419,32 @@ export default function UpgradePrompt({
 
     detectLanguage();
 
+    const languageObserver =
+      new MutationObserver(
+        detectLanguage
+      );
+
+    languageObserver.observe(
+      document.documentElement,
+      {
+        attributes: true,
+
+        attributeFilter: [
+          "dir",
+          "lang",
+        ],
+      }
+    );
+
     if (!open) {
-      return undefined;
+      return () => {
+        languageObserver.disconnect();
+      };
     }
+
+    rememberDailyLimit(
+      toolId
+    );
 
     const previousOverflow =
       document.body.style
@@ -262,6 +469,8 @@ export default function UpgradePrompt({
     );
 
     return () => {
+      languageObserver.disconnect();
+
       document.body.style.overflow =
         previousOverflow;
 
@@ -270,7 +479,11 @@ export default function UpgradePrompt({
         closeWithEscape
       );
     };
-  }, [open, onClose]);
+  }, [
+    open,
+    onClose,
+    toolId,
+  ]);
 
   if (!open) {
     return null;
@@ -397,6 +610,9 @@ export default function UpgradePrompt({
         aria-modal="true"
         aria-labelledby="upgrade-title"
         style={{
+          position:
+            "relative",
+
           width:
             "min(460px, 100%)",
 
@@ -408,7 +624,9 @@ export default function UpgradePrompt({
           boxSizing:
             "border-box",
 
-          padding: 20,
+          padding:
+            "54px 20px 20px",
+
           borderRadius: 18,
 
           background:
@@ -432,6 +650,62 @@ export default function UpgradePrompt({
             : "right",
         }}
       >
+        <button
+          type="button"
+          aria-label={
+            text.closeLabel
+          }
+          title={
+            text.closeLabel
+          }
+          onClick={() =>
+            onClose?.()
+          }
+          style={{
+            position:
+              "absolute",
+
+            top: 12,
+
+            right: isEnglish
+              ? 12
+              : "auto",
+
+            left: isEnglish
+              ? "auto"
+              : 12,
+
+            width: 36,
+            height: 36,
+
+            display: "grid",
+            placeItems: "center",
+
+            padding: 0,
+
+            borderRadius:
+              "50%",
+
+            border:
+              "1px solid #cbd5e1",
+
+            background:
+              "#f7f9fc",
+
+            color:
+              "#172033",
+
+            fontSize: 22,
+            fontWeight: 900,
+            lineHeight: 1,
+
+            cursor:
+              "pointer",
+          }}
+        >
+          ×
+        </button>
+
         <div
           style={{
             textAlign: "center",
@@ -734,6 +1008,9 @@ export default function UpgradePrompt({
               "#65738a",
 
             fontWeight: 800,
+
+            cursor:
+              "pointer",
           }}
         >
           {text.close}
