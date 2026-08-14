@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getSupabase } from "../../lib/supabase";
 import {
   normalizeEmail,
-  validateEmail,
+  isValidEmail,
 } from "../../lib/auth";
 
 export default function LoginPage() {
@@ -17,9 +17,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    let mounted = true;
-
-    async function checkSession() {
+    async function checkLogin() {
       try {
         const supabase = getSupabase();
 
@@ -27,32 +25,23 @@ export default function LoginPage() {
           data: { session },
         } = await supabase.auth.getSession();
 
-        if (mounted && session) {
+        if (session) {
           router.replace("/");
         }
-      } catch {
-        // Keep login page visible.
-      }
+      } catch {}
     }
 
-    checkSession();
-
-    return () => {
-      mounted = false;
-    };
+    checkLogin();
   }, [router]);
 
-  async function handleSubmit(event) {
+  async function login(event) {
     event.preventDefault();
 
     setError("");
-    setSent(false);
 
-    const normalizedEmail = normalizeEmail(email);
+    const cleanEmail = normalizeEmail(email);
 
-    const validation = validateEmail(normalizedEmail);
-
-    if (!validation?.valid) {
+    if (!isValidEmail(cleanEmail)) {
       setError("أدخل بريدًا إلكترونيًا صحيحًا.");
       return;
     }
@@ -62,25 +51,26 @@ export default function LoginPage() {
     try {
       const supabase = getSupabase();
 
-      const { error: signInError } =
+      const { error: loginError } =
         await supabase.auth.signInWithOtp({
-          email: normalizedEmail,
+          email: cleanEmail,
           options: {
             shouldCreateUser: true,
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo:
+              `${window.location.origin}/`,
           },
         });
 
-      if (signInError) {
-        throw signInError;
+      if (loginError) {
+        throw loginError;
       }
 
       setSent(true);
     } catch (err) {
-      console.error("Login error:", err);
+      console.error(err);
 
       setError(
-        "تعذر إرسال رابط تسجيل الدخول. حاول مرة أخرى."
+        "تعذر إرسال رابط تسجيل الدخول."
       );
     } finally {
       setLoading(false);
@@ -94,60 +84,43 @@ export default function LoginPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#081426",
         padding: 20,
-        color: "#ffffff",
+        background: "#081426",
+        color: "white",
       }}
     >
       <div
         style={{
           width: "100%",
           maxWidth: 420,
+          padding: 24,
+          borderRadius: 18,
           background: "#101f38",
           border: "1px solid #263a59",
-          borderRadius: 20,
-          padding: 24,
         }}
       >
         <h1
           style={{
             textAlign: "center",
             marginTop: 0,
-            marginBottom: 8,
           }}
         >
           AllWDbook
         </h1>
 
-        <p
-          style={{
-            textAlign: "center",
-            color: "#9fb0c9",
-            lineHeight: 1.6,
-            marginBottom: 24,
-          }}
-        >
-          Sign in with your email
-        </p>
-
         {!sent ? (
-          <form onSubmit={handleSubmit}>
-            <label
-              htmlFor="email"
+          <form onSubmit={login}>
+            <p
               style={{
-                display: "block",
-                marginBottom: 8,
-                fontWeight: 700,
+                textAlign: "center",
+                color: "#aebed4",
               }}
             >
-              Email
-            </label>
+              Sign in with your email
+            </p>
 
             <input
-              id="email"
               type="email"
-              inputMode="email"
-              autoComplete="email"
               placeholder="you@example.com"
               value={email}
               onChange={(event) =>
@@ -158,12 +131,12 @@ export default function LoginPage() {
                 width: "100%",
                 boxSizing: "border-box",
                 padding: 14,
-                borderRadius: 12,
+                marginTop: 10,
+                borderRadius: 10,
                 border: "1px solid #314667",
                 background: "#081426",
-                color: "#ffffff",
+                color: "white",
                 fontSize: 16,
-                outline: "none",
               }}
             />
 
@@ -172,18 +145,14 @@ export default function LoginPage() {
               disabled={loading}
               style={{
                 width: "100%",
-                marginTop: 16,
-                border: 0,
-                borderRadius: 12,
+                marginTop: 15,
                 padding: 14,
-                fontSize: 16,
-                fontWeight: 800,
+                border: 0,
+                borderRadius: 10,
                 background: "#20c967",
                 color: "#06150c",
-                cursor: loading
-                  ? "wait"
-                  : "pointer",
-                opacity: loading ? 0.7 : 1,
+                fontWeight: 800,
+                fontSize: 16,
               }}
             >
               {loading
@@ -195,15 +164,10 @@ export default function LoginPage() {
           <div
             style={{
               textAlign: "center",
-              padding: "12px 0",
+              padding: 20,
             }}
           >
-            <div
-              style={{
-                fontSize: 44,
-                marginBottom: 12,
-              }}
-            >
+            <div style={{ fontSize: 45 }}>
               📧
             </div>
 
@@ -215,25 +179,20 @@ export default function LoginPage() {
                 lineHeight: 1.7,
               }}
             >
-              لقد أرسلنا لك رابط تسجيل الدخول.
               افتح بريدك واضغط على
-              <strong> Sign in </strong>
+              {" "}
+              <strong>Sign in</strong>
+              {" "}
               للدخول إلى AllWDbook.
             </p>
 
             <button
               type="button"
-              onClick={() => {
-                setSent(false);
-                setError("");
-              }}
+              onClick={() => setSent(false)}
               style={{
-                marginTop: 10,
                 background: "transparent",
-                color: "#8fbfff",
                 border: 0,
-                cursor: "pointer",
-                fontSize: 15,
+                color: "#8fbfff",
               }}
             >
               استخدام بريد آخر
@@ -244,7 +203,7 @@ export default function LoginPage() {
         {error && (
           <div
             style={{
-              marginTop: 16,
+              marginTop: 15,
               padding: 12,
               borderRadius: 10,
               background: "#3b171b",
