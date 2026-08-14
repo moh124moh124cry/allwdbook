@@ -6,9 +6,25 @@ import {
   useState,
 } from "react";
 
-import { useRouter } from "next/navigation";
-import { getSupabase } from "../lib/supabase";
-import { useAccess } from "../lib/access";
+import {
+  useRouter,
+} from "next/navigation";
+
+import {
+  getSupabase,
+} from "../lib/supabase";
+
+import {
+  useAccess,
+} from "../lib/access";
+
+const VALID_PLANS = new Set([
+  "cover",
+  "micro_niche",
+  "keywords",
+  "pro_monthly",
+  "pro_yearly",
+]);
 
 const PACKAGES = [
   {
@@ -18,9 +34,11 @@ const PACKAGES = [
     price: "$2.49",
     periodAr: "/ شهر",
     periodEn: "/ month",
+
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/a40b815f-2b2c-4086-b8b8-3afcd0bf7a4d",
   },
+
   {
     id: "micro_niche",
     ar: "الميكرو نيتش",
@@ -28,9 +46,11 @@ const PACKAGES = [
     price: "$2.49",
     periodAr: "/ شهر",
     periodEn: "/ month",
+
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/c205aef7-1c77-4711-9fba-ee2b9a81153b",
   },
+
   {
     id: "keywords",
     ar: "الكلمات المفتاحية",
@@ -38,9 +58,11 @@ const PACKAGES = [
     price: "$2.49",
     periodAr: "/ شهر",
     periodEn: "/ month",
+
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/9a058282-b97a-4f49-bd27-c31aefab98d9",
   },
+
   {
     id: "pro_monthly",
     ar: "Pro شهري",
@@ -49,9 +71,11 @@ const PACKAGES = [
     periodAr: "/ شهر",
     periodEn: "/ month",
     featured: true,
+
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/00e64ca6-4e8c-42c2-aa44-e9667d745524",
   },
+
   {
     id: "pro_yearly",
     ar: "Pro سنوي",
@@ -59,6 +83,7 @@ const PACKAGES = [
     price: "$55",
     periodAr: "/ سنة",
     periodEn: "/ year",
+
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/14a4b6b5-553f-4070-bd39-932ba2270aa5",
   },
@@ -68,29 +93,46 @@ const TEXT = {
   ar: {
     menuLabel:
       "فتح قائمة الحساب والاشتراكات",
+
     guest:
       "أنت تستخدم الموقع كزائر",
-    account: "حسابك",
+
+    account:
+      "حسابك",
+
     freeNote:
       "لا تحتاج إلى بريد لاستخدام الخطة المجانية",
+
     currentPlan:
       "خطتك الحالية",
+
     freePlan:
       "الخطة المجانية",
+
     lifetime:
       "Lifetime Pro",
+
     plans:
       "باقات الاشتراك",
+
     featured:
       "الأفضل لجميع الأدوات",
-    current: "مفعّلة",
-    included: "مشمولة",
+
+    current:
+      "مفعّلة",
+
+    included:
+      "مشمولة",
+
     manage:
       "إدارة الاشتراك والفواتير",
+
     existing:
       "لدي اشتراك — تسجيل الدخول",
+
     signingOut:
       "جارٍ الخروج...",
+
     signOut:
       "تسجيل الخروج",
   },
@@ -98,32 +140,46 @@ const TEXT = {
   en: {
     menuLabel:
       "Open account and subscription menu",
+
     guest:
       "You are using the site as a guest",
+
     account:
       "Your account",
+
     freeNote:
       "No email is required for the free plan",
+
     currentPlan:
       "Current plan",
+
     freePlan:
       "Free plan",
+
     lifetime:
       "Lifetime Pro",
+
     plans:
       "Subscription plans",
+
     featured:
       "Best value for all tools",
+
     current:
       "Active",
+
     included:
       "Included",
+
     manage:
       "Manage subscription and billing",
+
     existing:
       "I have a subscription — Sign in",
+
     signingOut:
       "Signing out...",
+
     signOut:
       "Sign out",
   },
@@ -197,6 +253,7 @@ export default function AccountMenu() {
       document.documentElement,
       {
         attributes: true,
+
         attributeFilter: [
           "dir",
           "lang",
@@ -228,7 +285,8 @@ export default function AccountMenu() {
 
         if (active) {
           setSession(
-            currentSession || null
+            currentSession ||
+              null
           );
 
           setSessionLoaded(
@@ -275,6 +333,7 @@ export default function AccountMenu() {
 
     return () => {
       active = false;
+
       subscription.unsubscribe();
     };
   }, []);
@@ -292,10 +351,30 @@ export default function AccountMenu() {
         window.location.search
       );
 
-    const selectedPlan =
+    const addressPlan =
       parameters.get(
         "selectedPlan"
-      );
+      ) || "";
+
+    let rememberedPlan = "";
+
+    try {
+      rememberedPlan =
+        localStorage.getItem(
+          "awd_pending_plan"
+        ) || "";
+    } catch {}
+
+    const selectedPlan =
+      VALID_PLANS.has(
+        addressPlan
+      )
+        ? addressPlan
+        : VALID_PLANS.has(
+              rememberedPlan
+            )
+          ? rememberedPlan
+          : "";
 
     if (!selectedPlan) {
       return;
@@ -311,6 +390,12 @@ export default function AccountMenu() {
     parameters.delete(
       "selectedPlan"
     );
+
+    try {
+      localStorage.removeItem(
+        "awd_pending_plan"
+      );
+    } catch {}
 
     const remainingQuery =
       parameters.toString();
@@ -395,6 +480,13 @@ export default function AccountMenu() {
       currentSession?.user?.id;
 
     if (!customerEmail) {
+      try {
+        localStorage.setItem(
+          "awd_pending_plan",
+          plan.id
+        );
+      } catch {}
+
       router.push(
         `/login?plan=${encodeURIComponent(
           plan.id
@@ -426,6 +518,12 @@ export default function AccountMenu() {
       plan.id
     );
 
+    try {
+      localStorage.removeItem(
+        "awd_pending_plan"
+      );
+    } catch {}
+
     window.location.assign(
       checkout.toString()
     );
@@ -433,6 +531,13 @@ export default function AccountMenu() {
 
   function choosePlan(plan) {
     setOpen(false);
+
+    try {
+      localStorage.setItem(
+        "awd_pending_plan",
+        plan.id
+      );
+    } catch {}
 
     if (
       !session?.user?.email
@@ -519,8 +624,10 @@ export default function AccountMenu() {
           width: 50,
           height: 50,
           padding: 2,
+
           display: "grid",
           placeItems: "center",
+
           borderRadius: "50%",
 
           border: open
@@ -543,7 +650,10 @@ export default function AccountMenu() {
           style={{
             width: 44,
             height: 44,
-            borderRadius: "50%",
+
+            borderRadius:
+              "50%",
+
             display: "block",
           }}
         />
@@ -553,7 +663,9 @@ export default function AccountMenu() {
         <div
           role="menu"
           style={{
-            position: "absolute",
+            position:
+              "absolute",
+
             top: 58,
 
             right: isEnglish
@@ -606,7 +718,9 @@ export default function AccountMenu() {
           >
             <div
               style={{
-                color: "#172033",
+                color:
+                  "#172033",
+
                 fontWeight: 900,
                 fontSize: 15,
               }}
@@ -619,7 +733,9 @@ export default function AccountMenu() {
             <div
               style={{
                 marginTop: 5,
-                color: "#65738a",
+                color:
+                  "#65738a",
+
                 fontSize: 13,
 
                 direction: email
@@ -647,6 +763,7 @@ export default function AccountMenu() {
                     style={{
                       color:
                         "#65738a",
+
                       fontSize: 12,
                       fontWeight: 700,
                     }}
@@ -669,14 +786,19 @@ export default function AccountMenu() {
                         style={{
                           padding:
                             "6px 9px",
+
                           borderRadius:
                             999,
+
                           background:
                             "#eafaf1",
+
                           border:
                             "1px solid #54bd7a",
+
                           color:
                             "#15733d",
+
                           fontSize: 12,
                           fontWeight:
                             900,
@@ -700,16 +822,22 @@ export default function AccountMenu() {
                             style={{
                               padding:
                                 "6px 9px",
+
                               borderRadius:
                                 999,
+
                               background:
                                 "#eaf3ff",
+
                               border:
                                 "1px solid #6ca8eb",
+
                               color:
                                 "#1459a6",
+
                               fontSize:
                                 12,
+
                               fontWeight:
                                 900,
                             }}
@@ -726,14 +854,19 @@ export default function AccountMenu() {
                         style={{
                           padding:
                             "6px 9px",
+
                           borderRadius:
                             999,
+
                           background:
                             "#f2f4f7",
+
                           border:
                             "1px solid #ccd4df",
+
                           color:
                             "#4e5c70",
+
                           fontSize: 12,
                           fontWeight:
                             800,
@@ -756,22 +889,32 @@ export default function AccountMenu() {
                       style={{
                         display:
                           "block",
+
                         marginTop: 10,
+
                         padding:
                           "9px 10px",
+
                         borderRadius:
                           9,
+
                         background:
                           "#fff8e8",
+
                         border:
                           "1px solid #e4b34f",
+
                         color:
                           "#8a5700",
+
                         textAlign:
                           "center",
+
                         textDecoration:
                           "none",
+
                         fontSize: 13,
+
                         fontWeight:
                           900,
                       }}
@@ -788,7 +931,10 @@ export default function AccountMenu() {
             style={{
               padding:
                 "14px 4px 8px",
-              color: "#172033",
+
+              color:
+                "#172033",
+
               fontWeight: 900,
               fontSize: 14,
             }}
@@ -825,15 +971,20 @@ export default function AccountMenu() {
                     }
                     style={{
                       minHeight: 56,
+
                       display: "flex",
                       alignItems:
                         "center",
+
                       justifyContent:
                         "space-between",
+
                       gap: 12,
                       width: "100%",
+
                       padding:
                         "10px 12px",
+
                       borderRadius:
                         11,
 
@@ -877,8 +1028,10 @@ export default function AccountMenu() {
                         style={{
                           display:
                             "block",
+
                           color:
                             "#172033",
+
                           fontSize:
                             14,
                         }}
@@ -893,12 +1046,16 @@ export default function AccountMenu() {
                           style={{
                             display:
                               "block",
+
                             marginTop:
                               3,
+
                             color:
                               "#16864a",
+
                             fontSize:
                               12,
+
                             fontWeight:
                               800,
                           }}
@@ -913,12 +1070,16 @@ export default function AccountMenu() {
                           style={{
                             display:
                               "block",
+
                             marginTop:
                               3,
+
                             color:
                               "#16864a",
+
                             fontSize:
                               12,
+
                             fontWeight:
                               700,
                           }}
@@ -934,8 +1095,10 @@ export default function AccountMenu() {
                       style={{
                         flex:
                           "0 0 auto",
+
                         direction:
                           "ltr",
+
                         color:
                           "#c96b08",
                       }}
@@ -948,6 +1111,7 @@ export default function AccountMenu() {
                         style={{
                           color:
                             "#65738a",
+
                           marginLeft:
                             3,
                         }}
