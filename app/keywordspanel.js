@@ -83,6 +83,34 @@ export default function KeywordsPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seed]);
 
+  async function getAccessToken() {
+    const supabase = getSupabase();
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session?.access_token) {
+      return session.access_token;
+    }
+
+    const {
+      data,
+      error,
+    } = await supabase.auth.signInAnonymously();
+
+    if (error) {
+      console.error(
+        "Anonymous sign-in failed:",
+        error
+      );
+
+      return null;
+    }
+
+    return data?.session?.access_token || null;
+  }
+
   async function run(term) {
     const k = (term || q).trim();
 
@@ -91,16 +119,13 @@ export default function KeywordsPanel({
     setBusy(true);
 
     try {
-      const supabase = getSupabase();
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const token = session?.access_token;
+      const token = await getAccessToken();
 
       if (!token) {
-        window.location.href = "/login";
+        setD({
+          error: "USAGE_CHECK_FAILED",
+        });
+
         return;
       }
 
@@ -124,14 +149,6 @@ export default function KeywordsPanel({
           .catch(() => ({}));
 
       if (!usageResponse.ok) {
-        if (
-          usageResponse.status === 401 ||
-          usageData?.error === "LOGIN_REQUIRED"
-        ) {
-          window.location.href = "/login";
-          return;
-        }
-
         if (
           usageData?.error ===
           "DAILY_LIMIT_REACHED"
