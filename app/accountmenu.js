@@ -12,46 +12,100 @@ import { getSupabase } from "../lib/supabase";
 const PACKAGES = [
   {
     id: "cover",
-    name: "مصمم الغلاف",
+    ar: "مصمم الغلاف",
+    en: "Cover Designer",
     price: "$2.49",
-    period: "/ شهر",
+    periodAr: "/ شهر",
+    periodEn: "/ month",
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/a40b815f-2b2c-4086-b8b8-3afcd0bf7a4d",
   },
   {
     id: "micro_niche",
-    name: "الميكرو نيتش",
+    ar: "الميكرو نيتش",
+    en: "Micro-Niche",
     price: "$2.49",
-    period: "/ شهر",
+    periodAr: "/ شهر",
+    periodEn: "/ month",
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/c205aef7-1c77-4711-9fba-ee2b9a81153b",
   },
   {
     id: "keywords",
-    name: "الكلمات المفتاحية",
+    ar: "الكلمات المفتاحية",
+    en: "Keywords",
     price: "$2.49",
-    period: "/ شهر",
+    periodAr: "/ شهر",
+    periodEn: "/ month",
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/9a058282-b97a-4f49-bd27-c31aefab98d9",
   },
   {
     id: "pro_monthly",
-    name: "Pro شهري",
+    ar: "Pro شهري",
+    en: "Pro Monthly",
     price: "$5.99",
-    period: "/ شهر",
+    periodAr: "/ شهر",
+    periodEn: "/ month",
     featured: true,
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/00e64ca6-4e8c-42c2-aa44-e9667d745524",
   },
   {
     id: "pro_yearly",
-    name: "Pro سنوي",
+    ar: "Pro سنوي",
+    en: "Pro Yearly",
     price: "$55",
-    period: "/ سنة",
+    periodAr: "/ سنة",
+    periodEn: "/ year",
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/14a4b6b5-553f-4070-bd39-932ba2270aa5",
   },
 ];
+
+const TEXT = {
+  ar: {
+    menuLabel:
+      "فتح قائمة الحساب والاشتراكات",
+    guest:
+      "أنت تستخدم الموقع كزائر",
+    account:
+      "حسابك",
+    freeNote:
+      "لا تحتاج إلى بريد لاستخدام الخطة المجانية",
+    plans:
+      "باقات الاشتراك",
+    featured:
+      "الأفضل لجميع الأدوات",
+    existing:
+      "لدي اشتراك — تسجيل الدخول",
+    signingOut:
+      "جارٍ الخروج...",
+    signOut:
+      "تسجيل الخروج",
+  },
+
+  en: {
+    menuLabel:
+      "Open account and subscription menu",
+    guest:
+      "You are using the site as a guest",
+    account:
+      "Your account",
+    freeNote:
+      "No email is required for the free plan",
+    plans:
+      "Subscription plans",
+    featured:
+      "Best value for all tools",
+    existing:
+      "I have a subscription — Sign in",
+    signingOut:
+      "Signing out...",
+    signOut:
+      "Sign out",
+  },
+};
 
 export default function AccountMenu() {
   const router = useRouter();
@@ -71,29 +125,75 @@ export default function AccountMenu() {
   const [busy, setBusy] =
     useState(false);
 
+  const [language, setLanguage] =
+    useState("ar");
+
+  const isEnglish =
+    language === "en";
+
+  const text =
+    isEnglish
+      ? TEXT.en
+      : TEXT.ar;
+
   const email =
     session?.user?.email || "";
 
   const isGuest = !email;
 
-  const isEnglish =
-    typeof document !== "undefined" &&
-    document.documentElement.dir ===
-      "ltr";
+  useEffect(() => {
+    function detectLanguage() {
+      const html =
+        document.documentElement;
+
+      const nextLanguage =
+        html.dir === "ltr" ||
+        html.lang === "en"
+          ? "en"
+          : "ar";
+
+      setLanguage(nextLanguage);
+    }
+
+    detectLanguage();
+
+    const observer =
+      new MutationObserver(
+        detectLanguage
+      );
+
+    observer.observe(
+      document.documentElement,
+      {
+        attributes: true,
+        attributeFilter: [
+          "dir",
+          "lang",
+        ],
+      }
+    );
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
 
-    const supabase = getSupabase();
+    const supabase =
+      getSupabase();
 
     async function loadSession() {
       try {
         const {
           data: {
-            session: currentSession,
+            session:
+              currentSession,
           },
         } =
-          await supabase.auth.getSession();
+          await supabase.auth
+            .getSession();
 
         if (active) {
           setSession(
@@ -119,17 +219,23 @@ export default function AccountMenu() {
     const {
       data: { subscription },
     } =
-      supabase.auth.onAuthStateChange(
-        (_event, nextSession) => {
-          if (active) {
-            setSession(
-              nextSession || null
-            );
+      supabase.auth
+        .onAuthStateChange(
+          (
+            _event,
+            nextSession
+          ) => {
+            if (active) {
+              setSession(
+                nextSession || null
+              );
 
-            setSessionLoaded(true);
+              setSessionLoaded(
+                true
+              );
+            }
           }
-        }
-      );
+        );
 
     return () => {
       active = false;
@@ -159,10 +265,11 @@ export default function AccountMenu() {
       return;
     }
 
-    const plan = PACKAGES.find(
-      (item) =>
-        item.id === selectedPlan
-    );
+    const plan =
+      PACKAGES.find(
+        (item) =>
+          item.id === selectedPlan
+      );
 
     parameters.delete(
       "selectedPlan"
@@ -205,7 +312,9 @@ export default function AccountMenu() {
     }
 
     function closeWithEscape(event) {
-      if (event.key === "Escape") {
+      if (
+        event.key === "Escape"
+      ) {
         setOpen(false);
       }
     }
@@ -303,7 +412,8 @@ export default function AccountMenu() {
       const supabase =
         getSupabase();
 
-      await supabase.auth.signOut();
+      await supabase.auth
+        .signOut();
 
       await supabase.auth
         .signInAnonymously();
@@ -332,12 +442,15 @@ export default function AccountMenu() {
     >
       <button
         type="button"
-        aria-label="فتح قائمة الحساب والاشتراكات"
+        aria-label={
+          text.menuLabel
+        }
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() =>
           setOpen(
-            (current) => !current
+            (current) =>
+              !current
           )
         }
         style={{
@@ -350,9 +463,10 @@ export default function AccountMenu() {
           border: open
             ? "2px solid #f59e0b"
             : "2px solid transparent",
-          background: "transparent",
+          background:
+            "transparent",
           boxShadow: open
-            ? "0 0 0 4px rgba(245,158,11,.12)"
+            ? "0 0 0 4px rgba(245,158,11,.18)"
             : "none",
         }}
       >
@@ -392,60 +506,82 @@ export default function AccountMenu() {
               "min(620px, calc(100vh - 92px))",
 
             overflowY: "auto",
-            padding: 12,
+            padding: 14,
             borderRadius: 16,
+
+            background:
+              "#ffffff",
+
+            color:
+              "#172033",
+
             border:
-              "1px solid #344563",
-            background: "#101a2d",
-            color: "#e8eefc",
+              "2px solid #d9e2ef",
+
             boxShadow:
-              "0 18px 50px rgba(0,0,0,.48)",
-            direction: "rtl",
+              "0 22px 60px rgba(0,0,0,.42)",
+
+            direction: isEnglish
+              ? "ltr"
+              : "rtl",
+
+            textAlign: isEnglish
+              ? "left"
+              : "right",
           }}
         >
           <div
             style={{
-              padding: "4px 4px 12px",
+              padding:
+                "4px 4px 12px",
+
               borderBottom:
-                "1px solid #273650",
+                "1px solid #d9e2ef",
             }}
           >
             <div
               style={{
+                color: "#172033",
                 fontWeight: 900,
                 fontSize: 15,
               }}
             >
               {isGuest
-                ? "أنت تستخدم الموقع كزائر"
-                : "حسابك"}
+                ? text.guest
+                : text.account}
             </div>
 
             <div
               style={{
-                marginTop: 4,
-                color: "#9fb0ca",
+                marginTop: 5,
+                color: "#65738a",
                 fontSize: 13,
+
                 direction: email
                   ? "ltr"
-                  : "rtl",
+                  : isEnglish
+                    ? "ltr"
+                    : "rtl",
+
                 overflowWrap:
                   "anywhere",
               }}
             >
               {email ||
-                "لا تحتاج إلى بريد لاستخدام الخطة المجانية"}
+                text.freeNote}
             </div>
           </div>
 
           <div
             style={{
-              padding: "12px 4px 6px",
+              padding:
+                "14px 4px 8px",
+              color: "#172033",
               fontWeight: 900,
               fontSize: 14,
             }}
           >
-            باقات الاشتراك
+            {text.plans}
           </div>
 
           <div
@@ -464,7 +600,7 @@ export default function AccountMenu() {
                     choosePlan(plan)
                   }
                   style={{
-                    minHeight: 54,
+                    minHeight: 56,
                     display: "flex",
                     alignItems:
                       "center",
@@ -475,16 +611,27 @@ export default function AccountMenu() {
                     padding:
                       "10px 12px",
                     borderRadius: 11,
+
                     border:
                       plan.featured
-                        ? "1px solid #22c55e"
-                        : "1px solid #2c3c59",
+                        ? "2px solid #22a95f"
+                        : "1px solid #d9e2ef",
+
                     background:
                       plan.featured
-                        ? "rgba(34,197,94,.10)"
-                        : "#0b1425",
-                    color: "#e8eefc",
-                    textAlign: "right",
+                        ? "#effbf3"
+                        : "#f7f9fc",
+
+                    color:
+                      "#172033",
+
+                    direction: isEnglish
+                      ? "ltr"
+                      : "rtl",
+
+                    textAlign: isEnglish
+                      ? "left"
+                      : "right",
                   }}
                 >
                   <span>
@@ -492,10 +639,14 @@ export default function AccountMenu() {
                       style={{
                         display:
                           "block",
+                        color:
+                          "#172033",
                         fontSize: 14,
                       }}
                     >
-                      {plan.name}
+                      {isEnglish
+                        ? plan.en
+                        : plan.ar}
                     </strong>
 
                     {plan.featured && (
@@ -505,12 +656,14 @@ export default function AccountMenu() {
                             "block",
                           marginTop: 3,
                           color:
-                            "#72e49e",
+                            "#16864a",
                           fontSize: 12,
+                          fontWeight: 700,
                         }}
                       >
-                        الأفضل لجميع
-                        الأدوات
+                        {
+                          text.featured
+                        }
                       </small>
                     )}
                   </span>
@@ -520,7 +673,7 @@ export default function AccountMenu() {
                       flex:
                         "0 0 auto",
                       direction: "ltr",
-                      color: "#f7b955",
+                      color: "#c96b08",
                     }}
                   >
                     <strong>
@@ -530,11 +683,13 @@ export default function AccountMenu() {
                     <small
                       style={{
                         color:
-                          "#9fb0ca",
+                          "#65738a",
                         marginLeft: 3,
                       }}
                     >
-                      {plan.period}
+                      {isEnglish
+                        ? plan.periodEn
+                        : plan.periodAr}
                     </small>
                   </span>
                 </button>
@@ -544,10 +699,10 @@ export default function AccountMenu() {
 
           <div
             style={{
-              marginTop: 12,
-              paddingTop: 12,
+              marginTop: 14,
+              paddingTop: 14,
               borderTop:
-                "1px solid #273650",
+                "1px solid #d9e2ef",
             }}
           >
             {isGuest ? (
@@ -556,21 +711,25 @@ export default function AccountMenu() {
                 role="menuitem"
                 onClick={() => {
                   setOpen(false);
-                  router.push("/login");
+
+                  router.push(
+                    "/login"
+                  );
                 }}
                 style={{
                   width: "100%",
-                  minHeight: 46,
+                  minHeight: 48,
                   border:
-                    "1px solid #3b82f6",
+                    "1px solid #2776d2",
                   borderRadius: 10,
                   background:
-                    "rgba(59,130,246,.10)",
-                  color: "#9cc6ff",
-                  fontWeight: 800,
+                    "#eaf3ff",
+                  color:
+                    "#1459a6",
+                  fontWeight: 900,
                 }}
               >
-                لدي اشتراك — تسجيل الدخول
+                {text.existing}
               </button>
             ) : (
               <button
@@ -580,19 +739,20 @@ export default function AccountMenu() {
                 disabled={busy}
                 style={{
                   width: "100%",
-                  minHeight: 46,
+                  minHeight: 48,
                   border:
-                    "1px solid #7f3030",
+                    "1px solid #d9574f",
                   borderRadius: 10,
                   background:
-                    "rgba(229,100,88,.10)",
-                  color: "#ffaaa2",
-                  fontWeight: 800,
+                    "#fff0ef",
+                  color:
+                    "#b6322c",
+                  fontWeight: 900,
                 }}
               >
                 {busy
-                  ? "جارٍ الخروج..."
-                  : "تسجيل الخروج"}
+                  ? text.signingOut
+                  : text.signOut}
               </button>
             )}
           </div>
