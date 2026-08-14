@@ -13,7 +13,9 @@ import {
   getSupabase,
 } from "../lib/supabase";
 
-import UpgradePrompt from "./upgradeprompt";
+import UpgradePrompt, {
+  shouldBlockRememberedLimit,
+} from "./upgradeprompt";
 
 function errText(t, d) {
   if (!d) {
@@ -200,11 +202,11 @@ export default function KeywordsPanel({
   }
 
   async function run(term) {
-    const k = (
+    const keyword = (
       term || q
     ).trim();
 
-    if (!k) {
+    if (!keyword) {
       return;
     }
 
@@ -220,6 +222,25 @@ export default function KeywordsPanel({
             "USAGE_CHECK_FAILED",
         });
 
+        return;
+      }
+
+      const rememberedLimit =
+        await shouldBlockRememberedLimit(
+          "keywords",
+          token
+        );
+
+      if (rememberedLimit) {
+        setD({
+          error:
+            "DAILY_LIMIT_REACHED",
+
+          detail:
+            "You have used your 5 free Keyword Research searches for today.",
+        });
+
+        setUpgradeOpen(true);
         return;
       }
 
@@ -279,7 +300,7 @@ export default function KeywordsPanel({
         await fetch(
           "/api/keywords?q=" +
             encodeURIComponent(
-              k
+              keyword
             ) +
             "&domain=" +
             encodeURIComponent(
@@ -976,7 +997,9 @@ export default function KeywordsPanel({
                         ? symbol +
                           book.price
                         : "—"}
+
                       {" · BSR "}
+
                       {numberText(
                         book.bsr
                       )}
@@ -987,11 +1010,15 @@ export default function KeywordsPanel({
                         : " ⚪"}
 
                       {" · ⭐"}
+
                       {book.rating ??
                         "—"}
+
                       {" ("}
+
                       {book.reviews ??
                         "—"}
+
                       {")"}
                     </span>
                   </div>
