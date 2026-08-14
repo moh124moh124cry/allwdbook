@@ -1,9 +1,12 @@
 import AdminButton from "./adminbutton";
 import AccessBadge from "./accessbadge";
+import AnonymousAuth from "./anonymousauth";
 
 export default function Template({ children }) {
   return (
     <>
+      <AnonymousAuth />
+
       {children}
 
       <div
