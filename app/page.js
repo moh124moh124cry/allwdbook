@@ -24,15 +24,25 @@ const DOMAINS = [
 ];
 
 const ORDER = [6, 1, 0, 5, 4];
-const ICONS = ["🔑", "🎯", "📚", "📈", "✍️", "🧮"];
+
+const ICONS = [
+  "🔑",
+  "🎯",
+  "📚",
+  "📈",
+  "✍️",
+  "🧮"
+];
 
 function tabLabel(t, lang, i) {
   if (i === 6) {
     return (
       "📐 " +
-      (lang === "en"
-        ? "Cover Designer"
-        : "مصمم الغلاف")
+      (
+        lang === "en"
+          ? "Cover Designer"
+          : "مصمم الغلاف"
+      )
     );
   }
 
@@ -40,10 +50,17 @@ function tabLabel(t, lang, i) {
 }
 
 function errText(t, d) {
-  if (!d) return t.errGeneric;
+  if (!d) {
+    return t.errGeneric;
+  }
 
-  const code = String(d.error || "");
-  const detail = String(d.detail || "");
+  const code = String(
+    d.error || ""
+  );
+
+  const detail = String(
+    d.detail || ""
+  );
 
   if (code === "RATE_LIMITED") {
     return t.errRate;
@@ -87,17 +104,25 @@ function errText(t, d) {
 }
 
 export default function Home() {
-  const [lang, setLang] = useState("ar");
-  const [tab, setTab] = useState(6);
+  const [lang, setLang] =
+    useState("ar");
+
+  const [tab, setTab] =
+    useState(6);
+
   const [domain, setDomain] =
     useState("amazon.com");
-  const [seedKw, setSeedKw] = useState("");
+
+  const [seedKw, setSeedKw] =
+    useState("");
 
   const t = T[lang];
 
   useEffect(() => {
     const savedLanguage =
-      localStorage.getItem("awd_lang");
+      localStorage.getItem(
+        "awd_lang"
+      );
 
     if (
       savedLanguage &&
@@ -108,9 +133,16 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("awd_lang", lang);
-    document.documentElement.lang = lang;
-    document.documentElement.dir = t.dir;
+    localStorage.setItem(
+      "awd_lang",
+      lang
+    );
+
+    document.documentElement.lang =
+      lang;
+
+    document.documentElement.dir =
+      t.dir;
   }, [lang, t.dir]);
 
   function sendToKeywords(keyword) {
@@ -131,7 +163,9 @@ export default function Home() {
         <div className="brandbox">
           <h1>
             AllWDbook
-            <span className="tm">™</span>
+            <span className="tm">
+              ™
+            </span>
           </h1>
 
           <span className="mut">
@@ -141,13 +175,37 @@ export default function Home() {
 
         <button
           className="lang"
+          type="button"
+          aria-label={
+            lang === "ar"
+              ? "Switch to English"
+              : "التبديل إلى اللغة العربية"
+          }
+          title={
+            lang === "ar"
+              ? "English"
+              : "العربية"
+          }
           onClick={() =>
             setLang(
-              lang === "ar" ? "en" : "ar"
+              lang === "ar"
+                ? "en"
+                : "ar"
             )
           }
+          style={{
+            width: 48,
+            height: 42,
+            padding: 0,
+            display: "grid",
+            placeItems: "center",
+            fontSize: 24,
+            lineHeight: 1
+          }}
         >
-          {lang === "ar" ? "EN" : "عر"}
+          {lang === "ar"
+            ? "🇺🇸"
+            : "🇩🇿"}
         </button>
       </header>
 
@@ -158,30 +216,44 @@ export default function Home() {
       <select
         value={domain}
         onChange={(event) =>
-          setDomain(event.target.value)
+          setDomain(
+            event.target.value
+          )
         }
       >
-        {DOMAINS.map((item) => (
-          <option
-            key={item}
-            value={item}
-          >
-            {item}
-          </option>
-        ))}
+        {DOMAINS.map(
+          (marketDomain) => (
+            <option
+              key={marketDomain}
+              value={marketDomain}
+            >
+              {marketDomain}
+            </option>
+          )
+        )}
       </select>
 
       <div className="tabs">
-        {ORDER.map((item) => (
+        {ORDER.map((index) => (
           <button
-            key={item}
+            key={index}
             className={
               "tab" +
-              (item === tab ? " on" : "")
+              (
+                index === tab
+                  ? " on"
+                  : ""
+              )
             }
-            onClick={() => setTab(item)}
+            onClick={() =>
+              setTab(index)
+            }
           >
-            {tabLabel(t, lang, item)}
+            {tabLabel(
+              t,
+              lang,
+              index
+            )}
           </button>
         ))}
       </div>
@@ -195,7 +267,9 @@ export default function Home() {
           t={t}
           lang={lang}
           domain={domain}
-          onAnalyze={sendToKeywords}
+          onAnalyze={
+            sendToKeywords
+          }
         />
       )}
 
@@ -226,8 +300,10 @@ export default function Home() {
 
         <span>
           {t.by}{" "}
-          <b>All World Digital</b>
-          {" "}©{" "}
+          <b>
+            All World Digital
+          </b>{" "}
+          ©{" "}
           {new Date().getFullYear()}
           {" · "}
           {t.rights}
@@ -242,10 +318,18 @@ function Keywords({
   domain,
   seed
 }) {
-  const [q, setQ] = useState("");
-  const [d, setD] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [ai, setAi] = useState(null);
+  const [q, setQ] =
+    useState("");
+
+  const [d, setD] =
+    useState(null);
+
+  const [busy, setBusy] =
+    useState(false);
+
+  const [ai, setAi] =
+    useState(null);
+
   const [aiBusy, setAiBusy] =
     useState(false);
 
@@ -259,21 +343,31 @@ function Keywords({
   }, [seed]);
 
   async function run(term) {
-    const keyword = (term || q).trim();
+    const keyword =
+      (term || q).trim();
 
-    if (!keyword) return;
+    if (!keyword) {
+      return;
+    }
 
     setBusy(true);
 
     try {
-      const response = await fetch(
-        "/api/keywords?q=" +
-          encodeURIComponent(keyword) +
-          "&domain=" +
-          encodeURIComponent(domain)
-      );
+      const response =
+        await fetch(
+          "/api/keywords?q=" +
+            encodeURIComponent(
+              keyword
+            ) +
+            "&domain=" +
+            encodeURIComponent(
+              domain
+            )
+        );
 
-      setD(await response.json());
+      setD(
+        await response.json()
+      );
     } catch {
       setD({
         error: "NETWORK"
@@ -284,18 +378,25 @@ function Keywords({
   }
 
   async function askAi() {
-    if (!q.trim()) return;
+    if (!q.trim()) {
+      return;
+    }
 
     setAiBusy(true);
 
     try {
-      const response = await fetch(
-        "/api/ai?q=" +
-          encodeURIComponent(q.trim()) +
-          "&limit=15"
-      );
+      const response =
+        await fetch(
+          "/api/ai?q=" +
+            encodeURIComponent(
+              q.trim()
+            ) +
+            "&limit=15"
+        );
 
-      setAi(await response.json());
+      setAi(
+        await response.json()
+      );
     } catch {
       setAi({
         error: "NETWORK",
@@ -308,13 +409,17 @@ function Keywords({
 
   function copyAi() {
     const list =
-      ai && Array.isArray(ai.rows)
+      ai &&
+      Array.isArray(ai.rows)
         ? ai.rows
         : [];
 
     navigator.clipboard.writeText(
       list
-        .map((item) => item.keyword)
+        .map(
+          (item) =>
+            item.keyword
+        )
         .join("\n")
     );
   }
@@ -322,29 +427,41 @@ function Keywords({
   const confidence =
     d?.confidence || null;
 
-  const measured = confidence
-    ? confidence.bsrSampleSize ?? 0
-    : 0;
+  const measured =
+    confidence
+      ? (
+          confidence
+            .bsrSampleSize ?? 0
+        )
+      : 0;
 
-  const total = confidence
-    ? confidence.totalResults ?? 0
-    : 0;
+  const total =
+    confidence
+      ? (
+          confidence
+            .totalResults ?? 0
+        )
+      : 0;
 
-  const metrics = d?.metrics || null;
+  const metrics =
+    d?.metrics || null;
 
-  const suggestions = Array.isArray(
-    d?.suggestions
-  )
-    ? d.suggestions
-    : [];
+  const suggestions =
+    Array.isArray(
+      d?.suggestions
+    )
+      ? d.suggestions
+      : [];
 
-  const books = Array.isArray(d?.books)
-    ? d.books
-    : [];
+  const books =
+    Array.isArray(d?.books)
+      ? d.books
+      : [];
 
-  const aiRows = Array.isArray(ai?.rows)
-    ? ai.rows
-    : [];
+  const aiRows =
+    Array.isArray(ai?.rows)
+      ? ai.rows
+      : [];
 
   const symbol =
     d?.market?.symbol ||
@@ -358,13 +475,18 @@ function Keywords({
   return (
     <div className="card">
       <input
-        placeholder={t.kwPlaceholder}
+        placeholder={
+          t.kwPlaceholder
+        }
         value={q}
         onChange={(event) =>
-          setQ(event.target.value)
+          setQ(
+            event.target.value
+          )
         }
         onKeyDown={(event) =>
-          event.key === "Enter" && run()
+          event.key === "Enter" &&
+          run()
         }
       />
 
@@ -393,17 +515,25 @@ function Keywords({
         <div className="resultSection">
           {ai.error && (
             <p className="mut">
-              ⏳ {errText(t, ai)}
+              ⏳{" "}
+              {errText(t, ai)}
             </p>
           )}
 
           {aiRows.length > 0 && (
             <>
-              <h3>🤖 {t.aiTitle}</h3>
+              <h3>
+                🤖 {t.aiTitle}
+              </h3>
 
               <div className="trustNote">
-                <p>{t.aiNote}</p>
-                <p>{t.aiVerify}</p>
+                <p>
+                  {t.aiNote}
+                </p>
+
+                <p>
+                  {t.aiVerify}
+                </p>
 
                 <small>
                   {t.aiProvider}
@@ -411,19 +541,31 @@ function Keywords({
               </div>
 
               <div className="chips">
-                {aiRows.map((item) => (
-                  <button
-                    type="button"
-                    key={item.keyword}
-                    className="chip"
-                    onClick={() => {
-                      setQ(item.keyword);
-                      run(item.keyword);
-                    }}
-                  >
-                    🤖 {item.keyword}
-                  </button>
-                ))}
+                {aiRows.map(
+                  (item) => (
+                    <button
+                      type="button"
+                      key={
+                        item.keyword
+                      }
+                      className="chip"
+                      onClick={() => {
+                        setQ(
+                          item.keyword
+                        );
+
+                        run(
+                          item.keyword
+                        );
+                      }}
+                    >
+                      🤖{" "}
+                      {
+                        item.keyword
+                      }
+                    </button>
+                  )
+                )}
               </div>
 
               <button
@@ -442,7 +584,8 @@ function Keywords({
           {d.error && (
             <div className="trustNote resultSection">
               <p>
-                ⏳ {errText(t, d)}
+                ⏳{" "}
+                {errText(t, d)}
               </p>
 
               <small>
@@ -455,12 +598,16 @@ function Keywords({
             <div
               className={
                 "badge confidence b-" +
-                (confidence.level ||
-                  "none")
+                (
+                  confidence.level ||
+                  "none"
+                )
               }
             >
               {t.confidence}:{" "}
-              {t[confidence.level] ||
+              {t[
+                confidence.level
+              ] ||
                 confidence.level ||
                 "—"}
               {" · "}
@@ -503,7 +650,8 @@ function Keywords({
 
                 <div className="kpi">
                   <b>
-                    {metrics.avgDailySales ??
+                    {metrics
+                      .avgDailySales ??
                       "—"}
                   </b>
 
@@ -514,10 +662,12 @@ function Keywords({
 
                 <div className="kpi">
                   <b>
-                    {typeof metrics.avgPrice ===
+                    {typeof metrics
+                      .avgPrice ===
                     "number"
                       ? symbol +
-                        metrics.avgPrice
+                        metrics
+                          .avgPrice
                       : "—"}
                   </b>
 
@@ -528,11 +678,13 @@ function Keywords({
 
                 <div className="kpi">
                   <b>
-                    {typeof metrics.measuredMonthlyRoyalty ===
+                    {typeof metrics
+                      .measuredMonthlyRoyalty ===
                     "number"
                       ? symbol +
                         numberText(
-                          metrics.measuredMonthlyRoyalty
+                          metrics
+                            .measuredMonthlyRoyalty
                         )
                       : "—"}
                   </b>
@@ -544,7 +696,8 @@ function Keywords({
 
                 <div className="kpi">
                   <b>
-                    {metrics.avgReviews ??
+                    {metrics
+                      .avgReviews ??
                       "—"}
                   </b>
 
@@ -564,20 +717,32 @@ function Keywords({
             </>
           )}
 
-          {suggestions.length > 0 && (
+          {suggestions.length >
+            0 && (
             <>
-              <h3>✅ {t.suggested}</h3>
+              <h3>
+                ✅ {t.suggested}
+              </h3>
 
               <div className="chips">
                 {suggestions.map(
-                  (suggestion) => (
+                  (
+                    suggestion
+                  ) => (
                     <button
                       type="button"
-                      key={suggestion}
+                      key={
+                        suggestion
+                      }
                       className="chip"
                       onClick={() => {
-                        setQ(suggestion);
-                        run(suggestion);
+                        setQ(
+                          suggestion
+                        );
+
+                        run(
+                          suggestion
+                        );
                       }}
                     >
                       {suggestion}
@@ -590,38 +755,50 @@ function Keywords({
 
           {books.length > 0 && (
             <>
-              <h3>{t.topResults}</h3>
+              <h3>
+                {t.topResults}
+              </h3>
 
-              {books.map((book) => (
-                <div
-                  key={book.asin}
-                  className="bookRow"
-                >
-                  <b>
-                    {book.title ||
-                      book.asin}
-                  </b>
+              {books.map(
+                (book) => (
+                  <div
+                    key={
+                      book.asin
+                    }
+                    className="bookRow"
+                  >
+                    <b>
+                      {book.title ||
+                        book.asin}
+                    </b>
 
-                  <span className="mut">
-                    {book.price != null
-                      ? symbol +
-                        book.price
-                      : "—"}
-                    {" · BSR "}
-                    {numberText(book.bsr)}
+                    <span className="mut">
+                      {book.price !=
+                      null
+                        ? symbol +
+                          book.price
+                        : "—"}
+                      {" · BSR "}
+                      {numberText(
+                        book.bsr
+                      )}
 
-                    {book.source === "live"
-                      ? " 🟢"
-                      : " ⚪"}
+                      {book.source ===
+                      "live"
+                        ? " 🟢"
+                        : " ⚪"}
 
-                    {" · ⭐"}
-                    {book.rating ?? "—"}
-                    {" ("}
-                    {book.reviews ?? "—"}
-                    {")"}
-                  </span>
-                </div>
-              ))}
+                      {" · ⭐"}
+                      {book.rating ??
+                        "—"}
+                      {" ("}
+                      {book.reviews ??
+                        "—"}
+                      {")"}
+                    </span>
+                  </div>
+                )
+              )}
             </>
           )}
         </>
@@ -654,24 +831,28 @@ function Niches({
   async function load() {
     setBusy(true);
 
-    const seed = String(Date.now());
+    const seed =
+      String(Date.now());
 
     try {
-      const response = await fetch(
-        "/api/niches?cat=" +
-          cat +
-          "&domain=" +
-          domain +
-          "&count=" +
-          count +
-          "&seed=" +
-          seed
-      );
+      const response =
+        await fetch(
+          "/api/niches?cat=" +
+            cat +
+            "&domain=" +
+            domain +
+            "&count=" +
+            count +
+            "&seed=" +
+            seed
+        );
 
       const data =
         await response.json();
 
-      setRows(data.rows || []);
+      setRows(
+        data.rows || []
+      );
     } catch {
       setRows([]);
     }
@@ -683,20 +864,23 @@ function Niches({
     setBusy(true);
 
     try {
-      const response = await fetch(
-        "/api/niches?cat=" +
-          cat +
-          "&domain=" +
-          domain +
-          "&count=" +
-          count +
-          "&seed=fixed&validate=1"
-      );
+      const response =
+        await fetch(
+          "/api/niches?cat=" +
+            cat +
+            "&domain=" +
+            domain +
+            "&count=" +
+            count +
+            "&seed=fixed&validate=1"
+        );
 
       const data =
         await response.json();
 
-      setRows(data.rows || []);
+      setRows(
+        data.rows || []
+      );
     } catch {}
 
     setBusy(false);
@@ -705,7 +889,10 @@ function Niches({
   function copyAll() {
     navigator.clipboard.writeText(
       rows
-        .map((item) => item.keyword)
+        .map(
+          (item) =>
+            item.keyword
+        )
         .join("\n")
     );
 
@@ -716,15 +903,22 @@ function Niches({
     }, 1800);
   }
 
-  const categoryLabel = (key) =>
-    lang === "ar"
-      ? NICHE_CATEGORIES[key].ar
-      : NICHE_CATEGORIES[key].en;
+  const categoryLabel =
+    (key) =>
+      lang === "ar"
+        ? NICHE_CATEGORIES[
+            key
+          ].ar
+        : NICHE_CATEGORIES[
+            key
+          ].en;
 
   return (
     <div className="card">
       <div className="trustNote">
-        <p>{t.nicheNote}</p>
+        <p>
+          {t.nicheNote}
+        </p>
       </div>
 
       <label className="mut">
@@ -734,7 +928,9 @@ function Niches({
       <select
         value={cat}
         onChange={(event) =>
-          setCat(event.target.value)
+          setCat(
+            event.target.value
+          )
         }
       >
         {Object.keys(
@@ -757,7 +953,9 @@ function Niches({
         value={count}
         onChange={(event) =>
           setCount(
-            Number(event.target.value)
+            Number(
+              event.target.value
+            )
           )
         }
       >
@@ -790,7 +988,9 @@ function Niches({
           <div className="actionRow">
             <button
               className="mini"
-              onClick={validateCurrent}
+              onClick={
+                validateCurrent
+              }
               disabled={busy}
             >
               {t.nicheValidate}
@@ -806,51 +1006,61 @@ function Niches({
             </button>
           </div>
 
-          {rows.map((item) => (
-            <div
-              key={item.keyword}
-              className="nrow"
-            >
-              <span className="nicheText">
-                {item.keyword}
+          {rows.map(
+            (item) => (
+              <div
+                key={
+                  item.keyword
+                }
+                className="nrow"
+              >
+                <span className="nicheText">
+                  {item.keyword}
 
-                {item.longTail && (
-                  <small className="mut">
-                    {" · "}
-                    {t.longTail}
-                  </small>
-                )}
-              </span>
-
-              <span className="nicheActions">
-                <span
-                  className={
-                    "badge " +
-                    (item.demand
-                      ? "b-" +
-                        item.demand
-                      : "b-none")
-                  }
-                >
-                  {item.demand
-                    ? t[item.demand] ||
-                      item.demand
-                    : t.untested}
+                  {item.longTail && (
+                    <small className="mut">
+                      {" · "}
+                      {t.longTail}
+                    </small>
+                  )}
                 </span>
 
-                <button
-                  className="mini"
-                  onClick={() =>
-                    onAnalyze(
-                      item.keyword
-                    )
-                  }
-                >
-                  {t.analyzeThis}
-                </button>
-              </span>
-            </div>
-          ))}
+                <span className="nicheActions">
+                  <span
+                    className={
+                      "badge " +
+                      (
+                        item.demand
+                          ? "b-" +
+                            item.demand
+                          : "b-none"
+                      )
+                    }
+                  >
+                    {item.demand
+                      ? t[
+                          item.demand
+                        ] ||
+                        item.demand
+                      : t.untested}
+                  </span>
+
+                  <button
+                    className="mini"
+                    onClick={() =>
+                      onAnalyze(
+                        item.keyword
+                      )
+                    }
+                  >
+                    {
+                      t.analyzeThis
+                    }
+                  </button>
+                </span>
+              </div>
+            )
+          )}
         </>
       )}
     </div>
@@ -859,40 +1069,59 @@ function Niches({
 
 function escapeHtml(value) {
   return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 }
 
 function formatDescription(value) {
   return value
     .slice(0, 4000)
     .split("\n\n")
-    .map((paragraph) =>
-      paragraph.trim()
+    .map(
+      (paragraph) =>
+        paragraph.trim()
     )
     .filter(Boolean)
     .map((paragraph) => {
       if (
-        paragraph.startsWith("- ")
+        paragraph.startsWith(
+          "- "
+        )
       ) {
-        const listItems = paragraph
-          .split("\n")
-          .filter(Boolean)
-          .map(
-            (line) =>
-              "<li>" +
-              escapeHtml(
-                line.replace(
-                  /^- /,
-                  ""
-                )
-              ) +
-              "</li>"
-          )
-          .join("");
+        const listItems =
+          paragraph
+            .split("\n")
+            .filter(Boolean)
+            .map(
+              (line) =>
+                "<li>" +
+                escapeHtml(
+                  line.replace(
+                    /^- /,
+                    ""
+                  )
+                ) +
+                "</li>"
+            )
+            .join("");
 
         return (
           "<ul>" +
@@ -902,7 +1131,9 @@ function formatDescription(value) {
       }
 
       if (
-        paragraph.startsWith("# ")
+        paragraph.startsWith(
+          "# "
+        )
       ) {
         return (
           "<h4>" +
@@ -938,9 +1169,8 @@ function Formatter({ t }) {
     formatDescription(value);
 
   async function copyHtml() {
-    await navigator.clipboard.writeText(
-      html
-    );
+    await navigator.clipboard
+      .writeText(html);
 
     setCopied(true);
 
@@ -960,11 +1190,15 @@ function Formatter({ t }) {
         maxLength={4000}
         value={value}
         onChange={(event) =>
-          setValue(event.target.value)
+          setValue(
+            event.target.value
+          )
         }
       />
 
-      <h3>{t.preview}</h3>
+      <h3>
+        {t.preview}
+      </h3>
 
       <div
         className="prev"
@@ -974,7 +1208,9 @@ function Formatter({ t }) {
       />
 
       <div className="formatterHead">
-        <h3>{t.htmlCode}</h3>
+        <h3>
+          {t.htmlCode}
+        </h3>
 
         <button
           className="mini"
@@ -993,13 +1229,17 @@ function Formatter({ t }) {
       />
 
       <p className="mut">
-        {t.chars}: {value.length}/4000
+        {t.chars}:{" "}
+        {value.length}/4000
       </p>
     </div>
   );
 }
 
-function Calc({ t, domain }) {
+function Calc({
+  t,
+  domain
+}) {
   const [price, setPrice] =
     useState(12.99);
 
@@ -1012,7 +1252,8 @@ function Calc({ t, domain }) {
   const [large, setLarge] =
     useState(false);
 
-  const market = marketInfo(domain);
+  const market =
+    marketInfo(domain);
 
   const options = {
     domain,
@@ -1020,28 +1261,32 @@ function Calc({ t, domain }) {
     large
   };
 
-  const cost = printCost(
-    pages,
-    options
-  );
+  const cost =
+    printCost(
+      pages,
+      options
+    );
 
-  const rate = royaltyRate(
-    price,
-    domain
-  );
+  const rate =
+    royaltyRate(
+      price,
+      domain
+    );
 
-  const royalty = royaltyPerUnit(
-    price,
-    pages,
-    options
-  );
+  const royalty =
+    royaltyPerUnit(
+      price,
+      pages,
+      options
+    );
 
   return (
     <div className="card">
       <div className="trustNote">
         <p>
-          <b>{t.marketplace}:</b>
-          {" "}
+          <b>
+            {t.marketplace}:
+          </b>{" "}
           {domain}
           {" · "}
           {market.currency}
@@ -1063,7 +1308,9 @@ function Calc({ t, domain }) {
         value={price}
         onChange={(event) =>
           setPrice(
-            Number(event.target.value)
+            Number(
+              event.target.value
+            )
           )
         }
       />
@@ -1079,7 +1326,9 @@ function Calc({ t, domain }) {
         value={pages}
         onChange={(event) =>
           setPages(
-            Number(event.target.value)
+            Number(
+              event.target.value
+            )
           )
         }
       />
@@ -1091,7 +1340,9 @@ function Calc({ t, domain }) {
       <select
         value={ink}
         onChange={(event) =>
-          setInk(event.target.value)
+          setInk(
+            event.target.value
+          )
         }
       >
         <option value="black">
@@ -1113,7 +1364,9 @@ function Calc({ t, domain }) {
 
       <select
         value={
-          large ? "large" : "regular"
+          large
+            ? "large"
+            : "regular"
         }
         onChange={(event) =>
           setLarge(
@@ -1134,7 +1387,8 @@ function Calc({ t, domain }) {
       {cost === null ? (
         <div className="trustNote warnNote">
           <p>
-            ⚠️ {t.invalidPrint}
+            ⚠️{" "}
+            {t.invalidPrint}
           </p>
         </div>
       ) : (
@@ -1169,7 +1423,9 @@ function Calc({ t, domain }) {
               {royalty === null
                 ? "—"
                 : market.symbol +
-                  royalty.toFixed(2)}
+                  royalty.toFixed(
+                    2
+                  )}
             </b>
 
             <span>
