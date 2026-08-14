@@ -18,6 +18,144 @@ import {
   isValidEmail,
 } from "../../lib/auth";
 
+const VALID_PLANS = new Set([
+  "cover",
+  "micro_niche",
+  "keywords",
+  "pro_monthly",
+  "pro_yearly",
+]);
+
+const TEXT = {
+  ar: {
+    title:
+      "تسجيل الدخول",
+
+    normalNote:
+      "أدخل بريدك لاستعادة حسابك أو اشتراكك.",
+
+    purchaseNote:
+      "أدخل بريدك، وبعد تسجيل الدخول ستفتح صفحة الدفع تلقائيًا.",
+
+    emailPlaceholder:
+      "you@example.com",
+
+    send:
+      "إرسال رابط تسجيل الدخول",
+
+    sending:
+      "جارٍ الإرسال...",
+
+    check:
+      "تحقق من بريدك",
+
+    checkNote:
+      "افتح الرسالة واضغط على رابط تسجيل الدخول. ستنتقل تلقائيًا إلى صفحة الدفع.",
+
+    other:
+      "استخدام بريد آخر",
+
+    invalid:
+      "أدخل بريدًا إلكترونيًا صحيحًا.",
+
+    failed:
+      "تعذر إرسال رابط تسجيل الدخول.",
+
+    back:
+      "العودة إلى الموقع",
+  },
+
+  en: {
+    title:
+      "Sign in",
+
+    normalNote:
+      "Enter your email to restore your account or subscription.",
+
+    purchaseNote:
+      "Enter your email. Checkout will open automatically after sign-in.",
+
+    emailPlaceholder:
+      "you@example.com",
+
+    send:
+      "Send sign-in link",
+
+    sending:
+      "Sending...",
+
+    check:
+      "Check your email",
+
+    checkNote:
+      "Open the message and use the sign-in link. You will continue to checkout automatically.",
+
+    other:
+      "Use another email",
+
+    invalid:
+      "Enter a valid email address.",
+
+    failed:
+      "Unable to send the sign-in link.",
+
+    back:
+      "Return to the website",
+  },
+};
+
+function getPlanFromAddress() {
+  if (
+    typeof window ===
+    "undefined"
+  ) {
+    return "";
+  }
+
+  const value =
+    new URLSearchParams(
+      window.location.search
+    ).get("plan") || "";
+
+  return VALID_PLANS.has(
+    value
+  )
+    ? value
+    : "";
+}
+
+function rememberPlan(plan) {
+  if (!plan) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      "awd_pending_plan",
+      plan
+    );
+  } catch {}
+}
+
+function destinationForPlan(
+  plan
+) {
+  const destination =
+    new URL(
+      "/",
+      window.location.origin
+    );
+
+  if (plan) {
+    destination.searchParams.set(
+      "selectedPlan",
+      plan
+    );
+  }
+
+  return destination.toString();
+}
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -33,9 +171,50 @@ export default function LoginPage() {
   const [error, setError] =
     useState("");
 
+  const [plan, setPlan] =
+    useState("");
+
+  const [
+    language,
+    setLanguage,
+  ] = useState("ar");
+
+  const isEnglish =
+    language === "en";
+
+  const text =
+    isEnglish
+      ? TEXT.en
+      : TEXT.ar;
+
   useEffect(() => {
-    async function checkLogin() {
+    let active = true;
+
+    async function initialize() {
       try {
+        const selectedPlan =
+          getPlanFromAddress();
+
+        setPlan(selectedPlan);
+        rememberPlan(
+          selectedPlan
+        );
+
+        const savedLanguage =
+          localStorage.getItem(
+            "awd_lang"
+          );
+
+        if (
+          savedLanguage ===
+            "en" ||
+          savedLanguage === "ar"
+        ) {
+          setLanguage(
+            savedLanguage
+          );
+        }
+
         const supabase =
           getSupabase();
 
@@ -45,67 +224,73 @@ export default function LoginPage() {
           await supabase.auth
             .getSession();
 
-        /*
-         * حساب الزائر المجهول لديه جلسة،
-         * لكنه ليس حسابًا دائمًا.
-         * نعيد المستخدم للرئيسية فقط
-         * عندما يكون حسابه مرتبطًا ببريد.
-         */
-        if (session?.user?.email) {
+        if (
+          !active ||
+          !session?.user?.email
+        ) {
+          return;
+        }
+
+        const pendingPlan =
+          selectedPlan ||
+          localStorage.getItem(
+            "awd_pending_plan"
+          ) ||
+          "";
+
+        if (
+          pendingPlan &&
+          VALID_PLANS.has(
+            pendingPlan
+          )
+        ) {
+          router.replace(
+            `/?selectedPlan=${encodeURIComponent(
+              pendingPlan
+            )}`
+          );
+        } else {
           router.replace("/");
         }
-      } catch (error) {
-        console.error(
-          "Login check error:",
-          error
-        );
-      }
+      } catch {}
     }
 
-    checkLogin();
+    initialize();
+
+    return () => {
+      active = false;
+    };
   }, [router]);
 
   async function login(event) {
     event.preventDefault();
-
     setError("");
 
     const cleanEmail =
       normalizeEmail(email);
 
     if (
-      !isValidEmail(cleanEmail)
+      !isValidEmail(
+        cleanEmail
+      )
     ) {
-      setError(
-        "أدخل بريدًا إلكترونيًا صحيحًا."
-      );
-
+      setError(text.invalid);
       return;
     }
 
     setLoading(true);
 
     try {
+      const selectedPlan =
+        plan ||
+        getPlanFromAddress();
+
+      rememberPlan(
+        selectedPlan
+      );
+
       const supabase =
         getSupabase();
-
-      const plan =
-        new URLSearchParams(
-          window.location.search
-        ).get("plan");
-
-      const destination =
-        new URL(
-          "/",
-          window.location.origin
-        );
-
-      if (plan) {
-        destination.searchParams.set(
-          "selectedPlan",
-          plan
-        );
-      }
 
       const {
         error: loginError,
@@ -115,10 +300,13 @@ export default function LoginPage() {
             email: cleanEmail,
 
             options: {
-              shouldCreateUser: true,
+              shouldCreateUser:
+                true,
 
               emailRedirectTo:
-                destination.toString(),
+                destinationForPlan(
+                  selectedPlan
+                ),
             },
           });
 
@@ -127,15 +315,9 @@ export default function LoginPage() {
       }
 
       setSent(true);
-    } catch (error) {
-      console.error(
-        "Email login error:",
-        error
-      );
-
-      setError(
-        "تعذر إرسال رابط تسجيل الدخول. حاول مرة أخرى."
-      );
+    } catch (err) {
+      console.error(err);
+      setError(text.failed);
     } finally {
       setLoading(false);
     }
@@ -145,12 +327,19 @@ export default function LoginPage() {
     <main
       style={{
         minHeight: "100vh",
+
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent:
+          "center",
+
         padding: 20,
         background: "#081426",
         color: "white",
+
+        direction: isEnglish
+          ? "ltr"
+          : "rtl",
       }}
     >
       <div
@@ -158,57 +347,125 @@ export default function LoginPage() {
           width: "100%",
           maxWidth: 420,
           padding: 24,
+
           borderRadius: 18,
-          background: "#101f38",
+
+          background:
+            "#ffffff",
+
+          color: "#172033",
+
           border:
-            "1px solid #263a59",
+            "2px solid #d9e2ef",
+
+          boxShadow:
+            "0 22px 60px rgba(0,0,0,.42)",
         }}
       >
-        <h1
+        <div
           style={{
             textAlign: "center",
-            marginTop: 0,
           }}
         >
-          AllWDbook
-        </h1>
+          <img
+            src="/logov3.png"
+            alt="AllWDbook"
+            width="62"
+            height="62"
+            style={{
+              borderRadius:
+                "50%",
+            }}
+          />
+
+          <h1
+            style={{
+              margin:
+                "10px 0 4px",
+
+              fontSize: 25,
+            }}
+          >
+            AllWDbook
+          </h1>
+        </div>
 
         {!sent ? (
-          <form onSubmit={login}>
-            <p
+          <form
+            onSubmit={login}
+          >
+            <h2
               style={{
-                textAlign: "center",
-                color: "#aebed4",
-                lineHeight: 1.7,
+                textAlign:
+                  "center",
+
+                margin:
+                  "18px 0 7px",
+
+                fontSize: 20,
               }}
             >
-              أدخل بريدك للترقية
-              أو استعادة اشتراكك
+              {text.title}
+            </h2>
+
+            <p
+              style={{
+                textAlign:
+                  "center",
+
+                color:
+                  "#65738a",
+
+                lineHeight: 1.7,
+
+                margin:
+                  "0 0 12px",
+              }}
+            >
+              {plan
+                ? text.purchaseNote
+                : text.normalNote}
             </p>
 
             <input
               type="email"
               inputMode="email"
               autoComplete="email"
-              placeholder="you@example.com"
+              placeholder={
+                text.emailPlaceholder
+              }
               value={email}
-              onChange={(event) =>
+              onChange={(
+                event
+              ) =>
                 setEmail(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
-              disabled={loading}
+              disabled={
+                loading
+              }
               style={{
                 width: "100%",
+
                 boxSizing:
                   "border-box",
+
                 padding: 14,
                 marginTop: 10,
+
                 borderRadius: 10,
+
                 border:
-                  "1px solid #314667",
-                background: "#081426",
-                color: "white",
+                  "1px solid #cbd5e1",
+
+                background:
+                  "#f7f9fc",
+
+                color:
+                  "#172033",
+
                 fontSize: 16,
                 direction: "ltr",
               }}
@@ -216,50 +473,41 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={
+                loading
+              }
               style={{
                 width: "100%",
+
                 marginTop: 15,
                 padding: 14,
+
                 border: 0,
                 borderRadius: 10,
-                background: "#20c967",
-                color: "#06150c",
-                fontWeight: 800,
+
+                background:
+                  "#20c967",
+
+                color:
+                  "#06150c",
+
+                fontWeight: 900,
                 fontSize: 16,
               }}
             >
               {loading
-                ? "جارٍ الإرسال..."
-                : "إرسال رابط الدخول"}
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                router.replace("/")
-              }
-              style={{
-                width: "100%",
-                marginTop: 10,
-                padding: 12,
-                borderRadius: 10,
-                border:
-                  "1px solid #314667",
-                background:
-                  "transparent",
-                color: "#aebed4",
-                fontWeight: 700,
-              }}
-            >
-              المتابعة كزائر
+                ? text.sending
+                : text.send}
             </button>
           </form>
         ) : (
           <div
             style={{
-              textAlign: "center",
-              padding: 20,
+              textAlign:
+                "center",
+
+              padding:
+                "18px 8px 8px",
             }}
           >
             <div
@@ -271,55 +519,38 @@ export default function LoginPage() {
             </div>
 
             <h2>
-              تحقق من بريدك
+              {text.check}
             </h2>
 
             <p
               style={{
-                color: "#aebed4",
-                lineHeight: 1.7,
-              }}
-            >
-              أرسلنا رابط الدخول إلى:
-            </p>
+                color:
+                  "#65738a",
 
-            <p
-              style={{
-                color: "#ffffff",
-                direction: "ltr",
-                overflowWrap:
-                  "anywhere",
-                fontWeight: 800,
+                lineHeight: 1.8,
               }}
             >
-              {normalizeEmail(email)}
-            </p>
-
-            <p
-              style={{
-                color: "#aebed4",
-                lineHeight: 1.7,
-              }}
-            >
-              افتح الرسالة واضغط
-              على رابط تسجيل الدخول.
+              {text.checkNote}
             </p>
 
             <button
               type="button"
-              onClick={() => {
-                setSent(false);
-                setError("");
-              }}
+              onClick={() =>
+                setSent(false)
+              }
               style={{
                 background:
                   "transparent",
+
                 border: 0,
-                color: "#8fbfff",
-                fontWeight: 700,
+
+                color:
+                  "#1459a6",
+
+                fontWeight: 800,
               }}
             >
-              استخدام بريد آخر
+              {text.other}
             </button>
           </div>
         )}
@@ -329,15 +560,44 @@ export default function LoginPage() {
             style={{
               marginTop: 15,
               padding: 12,
+
               borderRadius: 10,
-              background: "#3b171b",
-              color: "#ffb4bb",
-              textAlign: "center",
+
+              background:
+                "#fff0ef",
+
+              border:
+                "1px solid #d9574f",
+
+              color:
+                "#b6322c",
+
+              textAlign:
+                "center",
             }}
           >
             {error}
           </div>
         )}
+
+        <a
+          href="/"
+          style={{
+            display: "block",
+
+            marginTop: 18,
+
+            textAlign:
+              "center",
+
+            color:
+              "#65738a",
+
+            fontSize: 13,
+          }}
+        >
+          {text.back}
+        </a>
       </div>
     </main>
   );
