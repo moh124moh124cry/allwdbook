@@ -8,8 +8,9 @@ export default function Template({ children }) {
       <div
         style={{
           position: "fixed",
-          top: 12,
-          right: 12,
+          top: 18,
+          left: "50%",
+          transform: "translateX(-50%)",
           zIndex: 9999,
         }}
       >
