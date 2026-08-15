@@ -1,179 +1,527 @@
-import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "../../../../lib/supabaseAdmin";
-import {
-  acceptsTestMode,
-  decryptLicenseCode,
-} from "../../../../lib/license";
+import crypto from "node:crypto";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+const CODE_ALPHABET =
+  "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 
-function bearerToken(request) {
-  const authorization =
-    request.headers.get("authorization") || "";
+const CODE_GROUPS = 5;
+const CODE_GROUP_SIZE = 4;
 
-  return authorization.startsWith("Bearer ")
-    ? authorization.slice(7).trim()
+function licenseSecret() {
+  const value = String(
+    process.env.LICENSE_SECRET || "",
+  );
+
+  if (value.length < 32) {
+    throw new Error("LICENSE_SECRET_MISSING");
+  }
+
+  return value;
+}
+
+function randomCharacters(length) {
+  const bytes = crypto.randomBytes(length);
+  let result = "";
+
+  for (const byte of bytes) {
+    result +=
+      CODE_ALPHABET[
+        byte % CODE_ALPHABET.length
+      ];
+  }
+
+  return result;
+}
+
+export function generateLicenseCode() {
+  const groups = Array.from(
+    {
+      length: CODE_GROUPS,
+    },
+    () => randomCharacters(CODE_GROUP_SIZE),
+  );
+
+  return `AWD-LIFE-${groups.join("-")}`;
+}
+
+export function normalizeLicenseCode(value) {
+  const compact = String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(
+      new RegExp("", "g"),
+      "",
+    );
+
+  if (!compact.startsWith("AWDLIFE")) {
+    return "";
+  }
+
+  const body = compact.slice(7);
+
+  if (
+    body.length !==
+    CODE_GROUPS * CODE_GROUP_SIZE
+  ) {
+    return "";
+  }
+
+  const groups = body.match(
+    new RegExp(
+      `.{1,${CODE_GROUP_SIZE}}`,
+      "g",
+    ),
+  );
+
+  return groups
+    ? `AWD-LIFE-${groups.join("-")}`
     : "";
 }
 
-export async function GET(request) {
-  const supabase = getSupabaseAdmin();
-  const token = bearerToken(request);
+export function hashLicenseCode(code) {
+  const normalized =
+    normalizeLicenseCode(code);
 
-  if (!token) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "UNAUTHORIZED",
-      },
-      {
-        status: 401,
-      },
+  if (!normalized) {
+    return "";
+  }
+
+  return crypto
+    .createHmac(
+      "sha256",
+      licenseSecret(),
+    )
+    .update(normalized)
+    .digest("hex");
+}
+
+export function encryptLicenseCode(code) {
+  const normalized =
+    normalizeLicenseCode(code);
+
+  if (!normalized) {
+    throw new Error(
+      "INVALID_LICENSE_CODE",
     );
   }
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser(token);
+  const key = crypto
+    .createHash("sha256")
+    .update(licenseSecret())
+    .digest();
 
-  if (userError || !user) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "INVALID_SESSION",
-      },
-      {
-        status: 401,
-      },
+  const iv = crypto.randomBytes(12);
+
+  const cipher = crypto.createCipheriv(
+    "aes-256-gcm",
+    key,
+    iv,
+  );
+
+  const encrypted = Buffer.concat([
+    cipher.update(normalized, "utf8"),
+    cipher.final(),
+  ]);
+
+  const tag = cipher.getAuthTag();
+
+  return [iv, tag, encrypted]
+    .map((part) =>
+      part.toString("base64url"),
+    )
+    .join(".");
+}
+
+export function decryptLicenseCode(
+  ciphertext,
+) {
+  const [
+    ivValue,
+    tagValue,
+    encryptedValue,
+  ] = String(ciphertext || "").split(".");
+
+  if (
+    !ivValue ||
+    !tagValue ||
+    !encryptedValue
+  ) {
+    throw new Error(
+      "INVALID_LICENSE_CIPHERTEXT",
     );
   }
 
+  const key = crypto
+    .createHash("sha256")
+    .update(licenseSecret())
+    .digest();
+
+  const decipher =
+    crypto.createDecipheriv(
+      "aes-256-gcm",
+      key,
+      Buffer.from(
+        ivValue,
+        "base64url",
+      ),
+    );
+
+  decipher.setAuthTag(
+    Buffer.from(
+      tagValue,
+      "base64url",
+    ),
+  );
+
+  return Buffer.concat([
+    decipher.update(
+      Buffer.from(
+        encryptedValue,
+        "base64url",
+      ),
+    ),
+    decipher.final(),
+  ]).toString("utf8");
+}
+
+export function licenseHint(code) {
+  const normalized =
+    normalizeLicenseCode(code);
+
+  const lastGroup =
+    normalized.split("-").at(-1) || "";
+
+  return (
+    "AWD-LIFE-****-****-****-****-" +
+    lastGroup
+  );
+}
+
+export function generateEmailOtp() {
+  return String(
+    crypto.randomInt(
+      100000,
+      1000000,
+    ),
+  );
+}
+
+export function hashEmailOtp({
+  licenseId,
+  email,
+  purpose,
+  otp,
+}) {
+  const normalizedEmail = String(
+    email || "",
+  ).toLowerCase();
+
+  return crypto
+    .createHmac(
+      "sha256",
+      licenseSecret(),
+    )
+    .update(
+      `${licenseId}:${normalizedEmail}:${purpose}:${otp}`,
+    )
+    .digest("hex");
+}
+
+export function safeEqualHex(
+  first,
+  second,
+) {
+  const left = Buffer.from(
+    String(first || ""),
+    "utf8",
+  );
+
+  const right = Buffer.from(
+    String(second || ""),
+    "utf8",
+  );
+
+  return (
+    left.length === right.length &&
+    crypto.timingSafeEqual(
+      left,
+      right,
+    )
+  );
+}
+
+export function acceptsTestMode(
+  testMode,
+) {
+  return (
+    testMode !== true ||
+    process.env
+      .LEMONSQUEEZY_ACCEPT_TEST_MODE ===
+      "true"
+  );
+}
+
+export async function createLifetimeLicense(
+  supabase,
+  {
+    source = "purchase",
+    purchaserEmail = null,
+    recoveryEmail = null,
+    emailVerified = false,
+    maxActivations = 3,
+    lemonOrderId = null,
+    lemonCustomerId = null,
+    lemonProductId = null,
+    lemonVariantId = null,
+    testMode = false,
+    note = null,
+    createdByEmail = null,
+  } = {},
+) {
+  for (
+    let attempt = 0;
+    attempt < 4;
+    attempt += 1
+  ) {
+    const code =
+      generateLicenseCode();
+
+    const record = {
+      code_hash:
+        hashLicenseCode(code),
+
+      code_ciphertext:
+        encryptLicenseCode(code),
+
+      code_hint:
+        licenseHint(code),
+
+      status: "active",
+      source,
+
+      purchaser_email:
+        purchaserEmail || null,
+
+      recovery_email:
+        recoveryEmail || null,
+
+      email_verified_at:
+        emailVerified
+          ? new Date().toISOString()
+          : null,
+
+      max_activations: Math.max(
+        1,
+        Math.min(
+          10,
+          Number(maxActivations) || 3,
+        ),
+      ),
+
+      lemon_order_id:
+        lemonOrderId || null,
+
+      lemon_customer_id:
+        lemonCustomerId || null,
+
+      lemon_product_id:
+        lemonProductId || null,
+
+      lemon_variant_id:
+        lemonVariantId || null,
+
+      test_mode:
+        Boolean(testMode),
+
+      note: note || null,
+
+      created_by_email:
+        createdByEmail || null,
+
+      updated_at:
+        new Date().toISOString(),
+    };
+
+    const {
+      data,
+      error,
+    } = await supabase
+      .from(
+        "allwdbook_lifetime_licenses",
+      )
+      .insert(record)
+      .select("*")
+      .single();
+
+    if (!error) {
+      return {
+        license: data,
+        code,
+      };
+    }
+
+    if (error.code !== "23505") {
+      throw new Error(
+        "LICENSE_CREATE_FAILED:" +
+          error.message,
+      );
+    }
+  }
+
+  throw new Error(
+    "LICENSE_CODE_COLLISION",
+  );
+}
+
+export async function activateLifetimeLicense(
+  supabase,
+  license,
+  userId,
+) {
   const {
-    data: activations,
-    error: activationError,
+    data: existing,
+    error: existingError,
   } = await supabase
-    .from("allwdbook_license_activations")
-    .select("license_id, activated_at")
-    .eq("user_id", user.id)
-    .is("revoked_at", null)
-    .order("activated_at", {
-      ascending: false,
+    .from(
+      "allwdbook_license_activations",
+    )
+    .select("id, revoked_at")
+    .eq(
+      "license_id",
+      license.id,
+    )
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (existingError) {
+    throw new Error(
+      "ACTIVATION_LOOKUP_FAILED:" +
+        existingError.message,
+    );
+  }
+
+  if (existing) {
+    const {
+      error,
+    } = await supabase
+      .from(
+        "allwdbook_license_activations",
+      )
+      .update({
+        revoked_at: null,
+
+        last_seen_at:
+          new Date().toISOString(),
+      })
+      .eq("id", existing.id);
+
+    if (error) {
+      throw new Error(
+        "ACTIVATION_UPDATE_FAILED:" +
+          error.message,
+      );
+    }
+
+    return {
+      allowed: true,
+      existing: true,
+    };
+  }
+
+  const {
+    count,
+    error: countError,
+  } = await supabase
+    .from(
+      "allwdbook_license_activations",
+    )
+    .select("id", {
+      count: "exact",
+      head: true,
+    })
+    .eq(
+      "license_id",
+      license.id,
+    )
+    .is("revoked_at", null);
+
+  if (countError) {
+    throw new Error(
+      "ACTIVATION_COUNT_FAILED:" +
+        countError.message,
+    );
+  }
+
+  if (
+    (count || 0) >=
+    license.max_activations
+  ) {
+    return {
+      allowed: false,
+      reason:
+        "ACTIVATION_LIMIT_REACHED",
+    };
+  }
+
+  const {
+    error,
+  } = await supabase
+    .from(
+      "allwdbook_license_activations",
+    )
+    .insert({
+      license_id: license.id,
+      user_id: userId,
     });
 
-  if (activationError) {
-    console.error(
-      "License code activation lookup failed:",
-      activationError,
-    );
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "LICENSE_LOOKUP_FAILED",
-      },
-      {
-        status: 500,
-      },
+  if (error) {
+    throw new Error(
+      "ACTIVATION_CREATE_FAILED:" +
+        error.message,
     );
   }
 
-  const licenseIds = (activations || []).map(
-    (item) => item.license_id,
-  );
+  return {
+    allowed: true,
+    existing: false,
+  };
+}
 
-  if (licenseIds.length === 0) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "NO_LIFETIME_LICENSE",
-      },
-      {
-        status: 404,
-      },
-    );
-  }
-
+export async function recordLicenseAudit(
+  supabase,
+  {
+    licenseId,
+    eventType,
+    actorUserId = null,
+    actorEmail = null,
+    metadata = {},
+  },
+) {
   const {
-    data: licenses,
-    error: licenseError,
+    error,
   } = await supabase
-    .from("allwdbook_lifetime_licenses")
-    .select(
-      "id, code_ciphertext, code_hint, status, test_mode, recovery_email, email_verified_at",
+    .from(
+      "allwdbook_license_audit",
     )
-    .in("id", licenseIds)
-    .eq("status", "active");
+    .insert({
+      license_id:
+        licenseId || null,
 
-  if (licenseError) {
+      event_type:
+        eventType,
+
+      actor_user_id:
+        actorUserId || null,
+
+      actor_email:
+        actorEmail || null,
+
+      metadata,
+    });
+
+  if (error) {
     console.error(
-      "License code lookup failed:",
-      licenseError,
-    );
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "LICENSE_LOOKUP_FAILED",
-      },
-      {
-        status: 500,
-      },
-    );
-  }
-
-  const license = (licenses || []).find(
-    (item) => acceptsTestMode(item.test_mode),
-  );
-
-  if (!license) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "NO_ACTIVE_LICENSE",
-      },
-      {
-        status: 404,
-      },
-    );
-  }
-
-  try {
-    return NextResponse.json(
-      {
-        ok: true,
-        code: decryptLicenseCode(
-          license.code_ciphertext,
-        ),
-        codeHint: license.code_hint,
-        recoveryEmail: license.email_verified_at
-          ? license.recovery_email
-          : null,
-        recoveryEmailVerified: Boolean(
-          license.email_verified_at,
-        ),
-      },
-      {
-        headers: {
-          "Cache-Control": "no-store",
-        },
-      },
-    );
-  } catch (error) {
-    console.error(
-      "License decryption failed:",
+      "License audit failed:",
       error,
-    );
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "LICENSE_DECRYPTION_FAILED",
-      },
-      {
-        status: 500,
-      },
     );
   }
 }
