@@ -1,165 +1,50 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  useRouter,
-} from "next/navigation";
-
-import {
-  getSupabase,
-} from "../../lib/supabase";
-
-const VALID_PLANS = new Set([
-  "cover",
-  "micro_niche",
-  "keywords",
-  "pro_monthly",
-  "pro_yearly",
-]);
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getSupabase } from "../../lib/supabase";
 
 const TEXT = {
   ar: {
-    title:
-      "تسجيل الدخول",
-
-    normalNote:
-      "سجّل الدخول بحساب Google للوصول إلى حسابك واشتراكاتك.",
-
-    purchaseNote:
-      "اختر حساب Google، وبعد تسجيل الدخول ستفتح صفحة دفع الباقة تلقائيًا.",
-
-    google:
-      "المتابعة باستخدام Google",
-
-    guest:
-      "الدخول كزائر",
-
-    guestNote:
-      "يمكنك تجربة الأدوات مجانًا كزائر دون إنشاء حساب.",
-
-    openingGoogle:
-      "جارٍ فتح Google...",
-
-    openingGuest:
-      "جارٍ فتح الموقع...",
-
-    failedGoogle:
-      "تعذر فتح تسجيل الدخول باستخدام Google. حاول مرة أخرى.",
-
-    failedGuest:
-      "تعذر إنشاء جلسة الزائر. حاول مرة أخرى.",
-
-    back:
-      "العودة إلى الموقع",
+    title: "تسجيل الدخول",
+    note: "سجّل الدخول بحساب Google، ثم اختر الباقة المناسبة بسهولة من داخل الموقع.",
+    google: "المتابعة باستخدام Google",
+    guest: "الدخول كزائر",
+    guestNote: "يمكنك تجربة الأدوات مجانًا كزائر دون إنشاء حساب.",
+    openingGoogle: "جارٍ فتح Google...",
+    openingGuest: "جارٍ فتح الموقع...",
+    failedGoogle: "تعذر فتح تسجيل الدخول باستخدام Google. حاول مرة أخرى.",
+    failedGuest: "تعذر إنشاء جلسة الزائر. حاول مرة أخرى.",
+    back: "العودة إلى الموقع",
   },
 
   en: {
-    title:
-      "Sign in",
-
-    normalNote:
-      "Sign in with Google to access your account and subscriptions.",
-
-    purchaseNote:
-      "Choose a Google account. Checkout will open automatically after sign-in.",
-
-    google:
-      "Continue with Google",
-
-    guest:
-      "Continue as guest",
-
+    title: "Sign in",
+    note: "Sign in with Google, then choose your preferred plan from inside the website.",
+    google: "Continue with Google",
+    guest: "Continue as guest",
     guestNote:
       "You can try the tools for free as a guest without creating an account.",
-
-    openingGoogle:
-      "Opening Google...",
-
-    openingGuest:
-      "Opening the website...",
-
-    failedGoogle:
-      "Unable to open Google sign-in. Please try again.",
-
-    failedGuest:
-      "Unable to create a guest session. Please try again.",
-
-    back:
-      "Return to the website",
+    openingGoogle: "Opening Google...",
+    openingGuest: "Opening the website...",
+    failedGoogle: "Unable to open Google sign-in. Please try again.",
+    failedGuest: "Unable to create a guest session. Please try again.",
+    back: "Return to the website",
   },
 };
 
-function getPlanFromAddress() {
-  if (
-    typeof window ===
-    "undefined"
-  ) {
-    return "";
-  }
-
-  const value =
-    new URLSearchParams(
-      window.location.search
-    ).get("plan") || "";
-
-  return VALID_PLANS.has(
-    value
-  )
-    ? value
-    : "";
-}
-
-function rememberPlan(plan) {
-  if (!plan) {
-    return;
-  }
+function clearPendingPurchase() {
+  if (typeof window === "undefined") return;
 
   try {
-    localStorage.setItem(
-      "awd_pending_plan",
-      plan
-    );
+    localStorage.removeItem("awd_pending_plan");
   } catch {}
 }
 
-function forgetPlan() {
-  try {
-    localStorage.removeItem(
-      "awd_pending_plan"
-    );
-  } catch {}
-}
-
-function destinationForPlan(
-  plan
-) {
-  const destination =
-    new URL(
-      "/",
-      window.location.origin
-    );
-
-  if (plan) {
-    destination.searchParams.set(
-      "selectedPlan",
-      plan
-    );
-  }
-
-  return destination.toString();
-}
-
-function isEmailSession(
-  session
-) {
+function isEmailSession(session) {
   return Boolean(
     session?.user?.email &&
-      session?.user
-        ?.is_anonymous !== true
+      session?.user?.is_anonymous !== true,
   );
 }
 
@@ -197,110 +82,56 @@ function GoogleIcon() {
 export default function LoginPage() {
   const router = useRouter();
 
-  const [plan, setPlan] =
-    useState("");
+  const [language, setLanguage] = useState("ar");
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
 
-  const [
-    language,
-    setLanguage,
-  ] = useState("ar");
-
-  const [busy, setBusy] =
-    useState("");
-
-  const [error, setError] =
-    useState("");
-
-  const isEnglish =
-    language === "en";
-
-  const text =
-    isEnglish
-      ? TEXT.en
-      : TEXT.ar;
+  const isEnglish = language === "en";
+  const text = isEnglish ? TEXT.en : TEXT.ar;
 
   useEffect(() => {
     let active = true;
 
     async function initialize() {
-      const selectedPlan =
-        getPlanFromAddress();
-
-      setPlan(selectedPlan);
-      rememberPlan(
-        selectedPlan
-      );
+      /*
+       * نحذف أي باقة كانت محفوظة سابقًا حتى لا تفتح
+       * صفحة الدفع تلقائيًا بعد تسجيل الدخول.
+       */
+      clearPendingPurchase();
 
       try {
         const savedLanguage =
-          localStorage.getItem(
-            "awd_lang"
-          );
+          localStorage.getItem("awd_lang");
 
         if (
-          savedLanguage ===
-            "en" ||
+          savedLanguage === "en" ||
           savedLanguage === "ar"
         ) {
-          setLanguage(
-            savedLanguage
-          );
+          setLanguage(savedLanguage);
         }
       } catch {}
 
       try {
-        const supabase =
-          getSupabase();
+        const supabase = getSupabase();
 
         const {
           data: { session },
-        } =
-          await supabase.auth
-            .getSession();
+        } = await supabase.auth.getSession();
 
+        /*
+         * إذا كان المستخدم مسجلًا بالفعل بحساب Google،
+         * نعيده إلى واجهة الموقع فقط.
+         */
         if (
-          !active ||
-          !isEmailSession(
-            session
-          )
+          active &&
+          isEmailSession(session)
         ) {
-          return;
+          router.replace("/");
         }
-
-        let rememberedPlan =
-          "";
-
-        try {
-          rememberedPlan =
-            localStorage.getItem(
-              "awd_pending_plan"
-            ) || "";
-        } catch {}
-
-        const pendingPlan =
-          VALID_PLANS.has(
-            selectedPlan
-          )
-            ? selectedPlan
-            : VALID_PLANS.has(
-                  rememberedPlan
-                )
-              ? rememberedPlan
-              : "";
-
-        router.replace(
-          pendingPlan
-            ? `/?selectedPlan=${encodeURIComponent(
-                pendingPlan
-              )}`
-            : "/"
-        );
-      } catch (
-        sessionError
-      ) {
+      } catch (sessionError) {
         console.error(
           "Login session check failed:",
-          sessionError
+          sessionError,
         );
       }
     }
@@ -313,117 +144,106 @@ export default function LoginPage() {
   }, [router]);
 
   async function continueWithGoogle() {
-    if (busy) {
-      return;
-    }
+    if (busy) return;
 
     setBusy("google");
     setError("");
 
+    /*
+     * حذف الباقة القديمة قبل فتح Google يمنع
+     * AccountMenu من فتح الدفع تلقائيًا.
+     */
+    clearPendingPurchase();
+
     try {
-      const selectedPlan =
-        plan ||
-        getPlanFromAddress();
-
-      rememberPlan(
-        selectedPlan
-      );
-
-      const supabase =
-        getSupabase();
+      const supabase = getSupabase();
 
       const {
         error: oauthError,
       } =
-        await supabase.auth
-          .signInWithOAuth({
-            provider:
-              "google",
+        await supabase.auth.signInWithOAuth({
+          provider: "google",
 
-            options: {
-              redirectTo:
-                destinationForPlan(
-                  selectedPlan
-                ),
+          options: {
+            /*
+             * العودة إلى واجهة الموقع فقط،
+             * دون selectedPlan ودون تحويل إلى الدفع.
+             */
+            redirectTo: new URL(
+              "/",
+              window.location.origin,
+            ).toString(),
 
-              queryParams: {
-                prompt:
-                  "select_account",
-              },
+            /*
+             * إظهار حسابات Google الموجودة على الجهاز.
+             */
+            queryParams: {
+              prompt: "select_account",
             },
-          });
+          },
+        });
 
       if (oauthError) {
         throw oauthError;
       }
-    } catch (
-      googleError
-    ) {
+    } catch (googleError) {
       console.error(
         "Google sign-in failed:",
-        googleError
+        googleError,
       );
 
-      setError(
-        text.failedGoogle
-      );
-
+      setError(text.failedGoogle);
       setBusy("");
     }
   }
 
   async function continueAsGuest() {
-    if (busy) {
-      return;
-    }
+    if (busy) return;
 
     setBusy("guest");
     setError("");
-    forgetPlan();
+    clearPendingPurchase();
 
     try {
-      const supabase =
-        getSupabase();
+      const supabase = getSupabase();
 
       const {
         data: { session },
-      } =
-        await supabase.auth
-          .getSession();
+      } = await supabase.auth.getSession();
 
-      if (
-        isEmailSession(session)
-      ) {
-        await supabase.auth
-          .signOut();
+      /*
+       * إذا كان هناك حساب Google مسجل ثم اختار المستخدم
+       * الدخول كزائر، نغلق جلسة Google أولًا.
+       */
+      if (isEmailSession(session)) {
+        await supabase.auth.signOut();
       }
 
       const {
         data: {
-          session:
-            nextSession,
+          session: nextSession,
         },
 
         error: guestError,
-      } =
-        await supabase.auth
-          .getSession();
+      } = await supabase.auth.getSession();
 
       if (guestError) {
         throw guestError;
       }
 
+      /*
+       * إنشاء جلسة مجهولة فقط عندما لا توجد
+       * جلسة زائر موجودة مسبقًا.
+       */
       if (
         !nextSession ||
         nextSession.user
           ?.is_anonymous !== true
       ) {
         const {
-          error:
-            anonymousError,
+          error: anonymousError,
         } =
-          await supabase.auth
-            .signInAnonymously();
+          await supabase.auth.signInAnonymously();
 
         if (anonymousError) {
           throw anonymousError;
@@ -435,13 +255,10 @@ export default function LoginPage() {
     } catch (guestError) {
       console.error(
         "Guest sign-in failed:",
-        guestError
+        guestError,
       );
 
-      setError(
-        text.failedGuest
-      );
-
+      setError(text.failedGuest);
       setBusy("");
     }
   }
@@ -450,19 +267,12 @@ export default function LoginPage() {
     <main
       style={{
         minHeight: "100vh",
-
         display: "flex",
         alignItems: "center",
-        justifyContent:
-          "center",
-
+        justifyContent: "center",
         padding: 20,
-
-        background:
-          "#081426",
-
+        background: "#081426",
         color: "white",
-
         direction: isEnglish
           ? "ltr"
           : "rtl",
@@ -472,22 +282,13 @@ export default function LoginPage() {
         style={{
           width: "100%",
           maxWidth: 430,
-
-          boxSizing:
-            "border-box",
-
+          boxSizing: "border-box",
           padding: 24,
           borderRadius: 18,
-
-          background:
-            "#ffffff",
-
-          color:
-            "#172033",
-
+          background: "#ffffff",
+          color: "#172033",
           border:
             "2px solid #d9e2ef",
-
           boxShadow:
             "0 22px 60px rgba(0,0,0,.42)",
         }}
@@ -503,16 +304,13 @@ export default function LoginPage() {
             width="62"
             height="62"
             style={{
-              borderRadius:
-                "50%",
+              borderRadius: "50%",
             }}
           />
 
           <h1
             style={{
-              margin:
-                "10px 0 4px",
-
+              margin: "10px 0 4px",
               fontSize: 25,
             }}
           >
@@ -521,9 +319,7 @@ export default function LoginPage() {
 
           <h2
             style={{
-              margin:
-                "17px 0 7px",
-
+              margin: "17px 0 7px",
               fontSize: 20,
             }}
           >
@@ -532,18 +328,12 @@ export default function LoginPage() {
 
           <p
             style={{
-              margin:
-                "0 0 18px",
-
-              color:
-                "#65738a",
-
+              margin: "0 0 18px",
+              color: "#65738a",
               lineHeight: 1.75,
             }}
           >
-            {plan
-              ? text.purchaseNote
-              : text.normalNote}
+            {text.note}
           </p>
         </div>
 
@@ -552,39 +342,23 @@ export default function LoginPage() {
           onClick={
             continueWithGoogle
           }
-          disabled={Boolean(
-            busy
-          )}
+          disabled={Boolean(busy)}
           style={{
             width: "100%",
             minHeight: 52,
-
             display: "flex",
-            alignItems:
-              "center",
-
+            alignItems: "center",
             justifyContent:
               "center",
-
             gap: 10,
-
-            padding:
-              "12px 14px",
-
+            padding: "12px 14px",
             borderRadius: 11,
-
             border:
               "1px solid #cbd5e1",
-
-            background:
-              "#ffffff",
-
-            color:
-              "#172033",
-
+            background: "#ffffff",
+            color: "#172033",
             fontSize: 16,
             fontWeight: 900,
-
             cursor: busy
               ? "wait"
               : "pointer",
@@ -600,18 +374,10 @@ export default function LoginPage() {
         <div
           style={{
             display: "flex",
-
-            alignItems:
-              "center",
-
+            alignItems: "center",
             gap: 10,
-
-            margin:
-              "17px 0",
-
-            color:
-              "#94a0b2",
-
+            margin: "17px 0",
+            color: "#94a0b2",
             fontSize: 12,
           }}
         >
@@ -619,9 +385,7 @@ export default function LoginPage() {
             style={{
               height: 1,
               flex: 1,
-
-              background:
-                "#d9e2ef",
+              background: "#d9e2ef",
             }}
           />
 
@@ -635,42 +399,26 @@ export default function LoginPage() {
             style={{
               height: 1,
               flex: 1,
-
-              background:
-                "#d9e2ef",
+              background: "#d9e2ef",
             }}
           />
         </div>
 
         <button
           type="button"
-          onClick={
-            continueAsGuest
-          }
-          disabled={Boolean(
-            busy
-          )}
+          onClick={continueAsGuest}
+          disabled={Boolean(busy)}
           style={{
             width: "100%",
             minHeight: 50,
-
-            padding:
-              "12px 14px",
-
+            padding: "12px 14px",
             borderRadius: 11,
-
             border:
               "1px solid #22a95f",
-
-            background:
-              "#effbf3",
-
-            color:
-              "#15733d",
-
+            background: "#effbf3",
+            color: "#15733d",
             fontSize: 15,
             fontWeight: 900,
-
             cursor: busy
               ? "wait"
               : "pointer",
@@ -683,17 +431,11 @@ export default function LoginPage() {
 
         <p
           style={{
-            margin:
-              "10px 4px 0",
-
-            color:
-              "#7a8799",
-
+            margin: "10px 4px 0",
+            color: "#7a8799",
             fontSize: 12,
             lineHeight: 1.6,
-
-            textAlign:
-              "center",
+            textAlign: "center",
           }}
         >
           {text.guestNote}
@@ -704,20 +446,12 @@ export default function LoginPage() {
             style={{
               marginTop: 15,
               padding: 12,
-
               borderRadius: 10,
-
-              background:
-                "#fff0ef",
-
+              background: "#fff0ef",
               border:
                 "1px solid #d9574f",
-
-              color:
-                "#b6322c",
-
-              textAlign:
-                "center",
+              color: "#b6322c",
+              textAlign: "center",
             }}
           >
             {error}
@@ -728,15 +462,9 @@ export default function LoginPage() {
           href="/"
           style={{
             display: "block",
-
             marginTop: 18,
-
-            textAlign:
-              "center",
-
-            color:
-              "#65738a",
-
+            textAlign: "center",
+            color: "#65738a",
             fontSize: 13,
           }}
         >
