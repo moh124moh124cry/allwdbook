@@ -1,4 +1,4 @@
-     "use client";
+"use client";
 
 import {
   useEffect,
@@ -107,6 +107,863 @@ const TEXT = {
       "الرمز غير صحيح أو غير فعال.",
     limit:
       "وصل الرمز إلى الحد الأقصى للأجهزة.",
+    checkoutMissing:
+      "رابط شراء مدى الحياة غير موجود.",
+  },
+  en: {
+    menu: "Open plans and access menu",
+    status: "Access status",
+    free: "Free plan",
+    lifetime: "Lifetime",
+    buyLifetime: "Activate Lifetime",
+    lifetimePrice: "$125 one-time payment",
+    choose: "Choose your plan",
+    restore: "Activate or restore access",
+    showCode: "Show recovery code",
+    secureEmail: "Add security email",
+    manage:
+      "Manage subscription and billing",
+    active: "Active",
+    included: "Included",
+    enterCode:
+      "Enter your Lifetime code",
+    codePlaceholder:
+      "AWD-LIFE-XXXX-XXXX-XXXX-XXXX-XXXX",
+    activate: "Activate code",
+    activating: "Processing...",
+    codeTitle: "Your recovery code",
+    codeWarning:
+      "Keep it private and store it somewhere safe.",
+    copy: "Copy code",
+    copied: "Copied",
+    emailTitle:
+      "Protect access with email",
+    emailNote:
+      "We will send a verification code to confirm ownership.",
+    send: "Send verification code",
+    otp: "6-digit verification code",
+    verify: "Verify email",
+    verified:
+      "Security email verified successfully",
+    close: "Close",
+    genericError:
+      "Unable to complete the request. Try again.",
+    badCode:
+      "This code is invalid or inactive.",
+    limit:
+      "This code has reached its device limit.",
+    checkoutMissing:
+      "The Lifetime checkout URL is missing.",
+  },
+};
+
+const fullButton = {
+  width: "100%",
+  marginTop: 10,
+  padding: 12,
+  borderRadius: 11,
+  fontWeight: 900,
+};
+
+export default function AccountMenu() {
+  const menuRef = useRef(null);
+  const access = useAccess();
+
+  const [open, setOpen] =
+    useState(false);
+
+  const [showPlans, setShowPlans] =
+    useState(false);
+
+  const [language, setLanguage] =
+    useState("ar");
+
+  const [session, setSession] =
+    useState(null);
+
+  const [dialog, setDialog] =
+    useState("");
+
+  const [busy, setBusy] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [licenseCode, setLicenseCode] =
+    useState("");
+
+  const [revealedCode, setRevealedCode] =
+    useState("");
+
+  const [copied, setCopied] =
+    useState(false);
+
+  const [email, setEmail] =
+    useState("");
+
+  const [otp, setOtp] =
+    useState("");
+
+  const [emailStep, setEmailStep] =
+    useState("email");
+
+  const isEnglish =
+    language === "en";
+
+  const text = isEnglish
+    ? TEXT.en
+    : TEXT.ar;
+
+  const activePlans =
+    Array.isArray(access.plans)
+      ? access.plans
+      : [];
+
+  const subscriptions =
+    Array.isArray(access.subscriptions)
+      ? access.subscriptions
+      : [];
+
+  const billingUrl =
+    subscriptions.find(
+      (item) =>
+        item.customer_portal_url,
+    )?.customer_portal_url || "";
+
+  useEffect(() => {
+    function detectLanguage() {
+      const nextLanguage =
+        document.documentElement.lang ===
+          "en" ||
+        document.documentElement.dir ===
+          "ltr"
+          ? "en"
+          : "ar";
+
+      setLanguage(nextLanguage);
+    }
+
+    detectLanguage();
+
+    const observer =
+      new MutationObserver(
+        detectLanguage,
+      );
+
+    observer.observe(
+      document.documentElement,
+      {
+        attributes: true,
+        attributeFilter: [
+          "dir",
+          "lang",
+        ],
+      },
+    );
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const supabase = getSupabase();
+
+    async function initialize() {
+      let {
+        data: {
+          session: currentSession,
+        },
+      } =
+        await supabase.auth.getSession();
+
+      if (!currentSession) {
+        const {
+          data,
+          error: signInError,
+        } =
+          await supabase.auth.signInAnonymously();
+
+        if (signInError) {
+          throw signInError;
+        }
+
+        currentSession =
+          data?.session || null;
+      }
+
+      if (mounted) {
+        setSession(currentSession);
+      }
+    }
+
+    initialize().catch(
+      (sessionError) => {
+        console.error(
+          "Account session error:",
+          sessionError,
+        );
+      },
+    );
+
+    const {
+      data: {
+        subscription,
+      },
+    } =
+      supabase.auth.onAuthStateChange(
+        (_event, nextSession) => {
+          if (mounted) {
+            setSession(
+              nextSession || null,
+            );
+          }
+        },
+      );
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    function closeOutside(event) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(
+          event.target,
+        )
+      ) {
+        setOpen(false);
+      }
+    }
+
+    function closeEscape(event) {
+      if (event.key === "Escape") {
+        if (dialog) {
+          setDialog("");
+        } else {
+          setOpen(false);
+        }
+      }
+    }
+
+    document.addEventListener(
+      "pointerdown",
+      closeOutside,
+    );
+
+    document.addEventListener(
+      "keydown",
+      closeEscape,
+    );
+
+    return () => {
+      document.removeEventListener(
+        "pointerdown",
+        closeOutside,
+      );
+
+      document.removeEventListener(
+        "keydown",
+        closeEscape,
+      );
+    };
+  }, [dialog]);
+
+  async function getSession() {
+    if (session) {
+      return session;
+    }
+
+    const supabase = getSupabase();
+
+    const {
+      data,
+      error: signInError,
+    } =
+      await supabase.auth.signInAnonymously();
+
+    if (signInError) {
+      throw signInError;
+    }
+
+    const currentSession =
+      data?.session || null;
+
+    setSession(currentSession);
+
+    return currentSession;
+  }
+
+  async function openCheckout(plan) {
+    if (busy) {
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+
+    try {
+      const currentSession =
+        await getSession();
+
+      const userId =
+        currentSession?.user?.id;
+
+      if (!userId) {
+        throw new Error(
+          "NO_GUEST_SESSION",
+        );
+      }
+
+      if (!plan.checkoutUrl) {
+        setError(
+          text.checkoutMissing,
+        );
+
+        return;
+      }
+
+      const checkout = new URL(
+        plan.checkoutUrl,
+      );
+
+      checkout.searchParams.set(
+        "checkout[custom][user_id]",
+        userId,
+      );
+
+      checkout.searchParams.set(
+        "checkout[custom][plan_id]",
+        plan.id,
+      );
+
+      if (
+        currentSession.user?.email
+      ) {
+        checkout.searchParams.set(
+          "checkout[email]",
+          currentSession.user.email,
+        );
+      }
+
+      window.location.assign(
+        checkout.toString(),
+      );
+    } catch (checkoutError) {
+      console.error(
+        "Checkout error:",
+        checkoutError,
+      );
+
+      setError(
+        text.genericError,
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function buyLifetime() {
+    return openCheckout({
+      id: "lifetime",
+      checkoutUrl:
+        LIFETIME_CHECKOUT_URL,
+    });
+  }
+
+  async function activateCode(event) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+
+    try {
+      const currentSession =
+        await getSession();
+
+      const response = await fetch(
+        "/api/license/activate",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${currentSession.access_token}`,
+          },
+
+          body: JSON.stringify({
+            code: licenseCode,
+          }),
+        },
+      );
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+      if (!response.ok) {
+        if (
+          data.error ===
+          "ACTIVATION_LIMIT_REACHED"
+        ) {
+          throw new Error("LIMIT");
+        }
+
+        throw new Error("BAD_CODE");
+      }
+
+      window.dispatchEvent(
+        new Event(
+          "allwdbook-access-refresh",
+        ),
+      );
+
+      window.location.reload();
+    } catch (activationError) {
+      setError(
+        activationError.message ===
+          "LIMIT"
+          ? text.limit
+          : text.badCode,
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function revealCode() {
+    setDialog("code");
+    setBusy(true);
+    setError("");
+
+    try {
+      const currentSession =
+        await getSession();
+
+      const response = await fetch(
+        "/api/license/code",
+        {
+          headers: {
+            Authorization:
+              `Bearer ${currentSession.access_token}`,
+          },
+
+          cache: "no-store",
+        },
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            "CODE_FAILED",
+        );
+      }
+
+      setRevealedCode(
+        data.code || "",
+      );
+
+      setEmail(
+        data.recoveryEmail || "",
+      );
+    } catch (codeError) {
+      console.error(
+        "License reveal failed:",
+        codeError,
+      );
+
+      setError(
+        text.genericError,
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyCode() {
+    await navigator.clipboard.writeText(
+      revealedCode,
+    );
+
+    setCopied(true);
+
+    window.setTimeout(() => {
+      setCopied(false);
+    }, 1500);
+  }
+
+  function openEmailSecurity() {
+    setDialog("email");
+
+    setEmail(
+      access.lifetimeLicense
+        ?.recoveryEmail || "",
+    );
+
+    setEmailStep("email");
+    setOtp("");
+    setError("");
+  }
+
+  async function sendEmailCode() {
+    setBusy(true);
+    setError("");
+
+    try {
+      const currentSession =
+        await getSession();
+
+      const response = await fetch(
+        "/api/license/email",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${currentSession.access_token}`,
+          },
+
+          body: JSON.stringify({
+            action: "send",
+            email,
+          }),
+        },
+      );
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            "SEND_FAILED",
+        );
+      }
+
+      setEmailStep("otp");
+    } catch (emailError) {
+      console.error(
+        "Security email send failed:",
+        emailError,
+      );
+
+      setError(
+        text.genericError,
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function verifyEmailCode() {
+    setBusy(true);
+    setError("");
+
+    try {
+      const currentSession =
+        await getSession();
+
+      const response = await fetch(
+        "/api/license/email",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${currentSession.access_token}`,
+          },
+
+          body: JSON.stringify({
+            action: "verify",
+            email,
+            otp,
+          }),
+        },
+      );
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            "VERIFY_FAILED",
+        );
+      }
+
+      setEmailStep("verified");
+
+      window.dispatchEvent(
+        new Event(
+          "allwdbook-access-refresh",
+        ),
+      );
+    } catch (verifyError) {
+      console.error(
+        "Security email verification failed:",
+        verifyError,
+      );
+
+      setError(
+        text.genericError,
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function planName(planId) {
+    const plan = PACKAGES.find(
+      (item) =>
+        item.id === planId,
+    );
+
+    return plan
+      ? isEnglish
+        ? plan.en
+        : plan.ar
+      : planId;
+  }
+
+  return (
+    <>
+      <div
+        ref={menuRef}
+        style={{
+          position: "relative",
+          flex: "0 0 auto",
+          zIndex: 10020,
+        }}
+      >
+        <button
+          type="button"
+          aria-label={text.menu}
+          onClick={() =>
+            setOpen(
+              (current) => !current,
+            )
+          }
+          style={{
+            width: 50,
+            height: 50,
+            padding: 2,
+            display: "grid",
+            placeItems: "center",
+            borderRadius: "50%",
+
+            border: open
+              ? "2px solid #f59e0b"
+              : "2px solid transparent",
+
+            background: "transparent",
+          }}
+        >
+          <img
+            src="/logov3.png"
+            alt="AllWDbook"
+            width="44"
+            height="44"
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: "50%",
+            }}
+          />
+        </button>
+
+        {open && (
+          <div
+            role="menu"
+            style={{
+              position: "absolute",
+              top: 58,
+
+              right: isEnglish
+                ? "auto"
+                : 0,
+
+              left: isEnglish
+                ? 0
+                : "auto",
+
+              width:
+                "min(370px, calc(100vw - 24px))",
+
+              maxHeight:
+                "min(720px, calc(100vh - 92px))",
+
+              overflowY: "auto",
+              padding: 14,
+              borderRadius: 16,
+              background: "#ffffff",
+              color: "#172033",
+
+              border:
+                "2px solid #d9e2ef",
+
+              boxShadow:
+                "0 22px 60px rgba(0,0,0,.42)",
+
+              direction: isEnglish
+                ? "ltr"
+                : "rtl",
+
+              textAlign: isEnglish
+                ? "left"
+                : "right",
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 900,
+              }}
+            >
+              {text.status}
+            </div>
+
+            <div
+              style={{
+                marginTop: 8,
+                padding: 10,
+                borderRadius: 10,
+
+                background:
+                  access.lifetime
+                    ? "#eafaf1"
+                    : "#f2f4f7",
+
+                color:
+                  access.lifetime
+                    ? "#15733d"
+                    : "#4e5c70",
+
+                fontWeight: 900,
+              }}
+            >
+              {access.lifetime
+                ? `♾️ ${text.lifetime}`
+                : activePlans.length
+                  ? activePlans
+                      .map(planName)
+                      .join(" · ")
+                  : text.free}
+            </div>
+
+            {!access.lifetime && (
+              <button
+                type="button"
+                onClick={buyLifetime}
+                disabled={busy}
+                style={{
+                  ...fullButton,
+
+                  border:
+                    "2px solid #d99a20",
+
+                  background:
+                    "linear-gradient(135deg,#fff8df,#ffe7a3)",
+
+                  color: "#744700",
+                }}
+              >
+                ♾️ {text.buyLifetime}
+
+                <small
+                  style={{
+                    display: "block",
+                    marginTop: 4,
+                  }}
+                >
+                  {text.lifetimePrice}
+                </small>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() =>
+                setShowPlans(
+                  (current) =>
+                    !current,
+                )
+              }
+              style={{
+                ...fullButton,
+                border:
+                  "1px solid #2776d2",
+                background: "#eaf3ff",
+                color: "#1459a6",
+              }}
+            >
+              🧾 {text.choose}
+            </button>
+
+            {showPlans && (
+              <div
+                style={{
+                  display: "grid",
+                  gap: 8,
+                  marginTop: 10,
+                }}
+              >
+                {PACKAGES.map(
+                  (plan) => {
+                    const current =
+                      access.lifetime ||
+                      activePlans.includes(
+                        plan.id,
+                      );
+
+                    return (
+                      <button
+                        key={plan.id}
+                        type="button"
+                        disabled={
+                          current ||
+                          busy
+                        }
+                        onClick={() =>
+                          openCheckout(
+                            plan,
+                          )
+                        }
+                        style={{
+                          display:
+                            "flex",
+
+                          justifyContent:
+                            "space-between",
+
+                          gap: 10,
+                          padding: 11,
+                          borderRadius: 10,
+
+                          border: current
+                            ? "2px solid #3ea968"
+                            : "1px solid #d9e2ef",
+
+                                "وصل الرمز إلى الحد الأقصى للأجهزة.",
     checkoutMissing:
       "رابط شراء مدى الحياة غير موجود.",
   },
