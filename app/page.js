@@ -15,10 +15,6 @@ import {
   marketInfo,
 } from "../lib/estimate";
 
-import {
-  getSupabase,
-} from "../lib/supabase";
-
 import CoverTool from "./covertool";
 import KeywordsPanel from "./keywordspanel";
 import AccountMenu from "./accountmenu";
@@ -26,6 +22,8 @@ import AccountMenu from "./accountmenu";
 import UpgradePrompt, {
   shouldBlockRememberedLimit,
 } from "./upgradeprompt";
+
+import { getSupabase } from "../lib/supabase";
 
 const DOMAINS = [
   "amazon.com",
@@ -37,13 +35,7 @@ const DOMAINS = [
   "amazon.ca",
 ];
 
-const ORDER = [
-  6,
-  1,
-  0,
-  5,
-  4,
-];
+const ORDER = [6, 1, 0, 5, 4];
 
 const ICONS = [
   "🔑",
@@ -54,19 +46,13 @@ const ICONS = [
   "🧮",
 ];
 
-function tabLabel(
-  t,
-  lang,
-  index
-) {
+function tabLabel(t, lang, index) {
   if (index === 6) {
     return (
       "📐 " +
-      (
-        lang === "en"
-          ? "Cover Designer"
-          : "مصمم الغلاف"
-      )
+      (lang === "en"
+        ? "Cover Designer"
+        : "مصمم الغلاف")
     );
   }
 
@@ -78,11 +64,15 @@ function tabLabel(
 }
 
 export default function Home() {
-  const [lang, setLang] =
-    useState("ar");
+  const [
+    lang,
+    setLang,
+  ] = useState("ar");
 
-  const [tab, setTab] =
-    useState(6);
+  const [
+    tab,
+    setTab,
+  ] = useState(6);
 
   const [
     domain,
@@ -98,9 +88,7 @@ export default function Home() {
 
   useEffect(() => {
     const savedLanguage =
-      localStorage.getItem(
-        "awd_lang"
-      );
+      localStorage.getItem("awd_lang");
 
     if (
       savedLanguage &&
@@ -108,12 +96,39 @@ export default function Home() {
     ) {
       setLang(savedLanguage);
     }
+
+    function syncLanguage(event) {
+      const nextLanguage =
+        event?.detail ||
+        localStorage.getItem(
+          "awd_lang",
+        );
+
+      if (
+        nextLanguage &&
+        T[nextLanguage]
+      ) {
+        setLang(nextLanguage);
+      }
+    }
+
+    window.addEventListener(
+      "awd-language-change",
+      syncLanguage,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "awd-language-change",
+        syncLanguage,
+      );
+    };
   }, []);
 
   useEffect(() => {
     localStorage.setItem(
       "awd_lang",
-      lang
+      lang,
     );
 
     document.documentElement.lang =
@@ -123,9 +138,7 @@ export default function Home() {
       t.dir;
   }, [lang, t.dir]);
 
-  function sendToKeywords(
-    keyword
-  ) {
+  function sendToKeywords(keyword) {
     setSeedKw(keyword);
     setTab(0);
 
@@ -170,7 +183,7 @@ export default function Home() {
             setLang(
               lang === "ar"
                 ? "en"
-                : "ar"
+                : "ar",
             )
           }
           style={{
@@ -197,53 +210,45 @@ export default function Home() {
         value={domain}
         onChange={(event) =>
           setDomain(
-            event.target.value
+            event.target.value,
           )
         }
       >
-        {DOMAINS.map(
-          (marketDomain) => (
-            <option
-              key={marketDomain}
-              value={marketDomain}
-            >
-              {marketDomain}
-            </option>
-          )
-        )}
+        {DOMAINS.map((item) => (
+          <option
+            key={item}
+            value={item}
+          >
+            {item}
+          </option>
+        ))}
       </select>
 
       <div className="tabs">
-        {ORDER.map(
-          (index) => (
-            <button
-              key={index}
-              className={
-                "tab" +
-                (
-                  index === tab
-                    ? " on"
-                    : ""
-                )
-              }
-              onClick={() =>
-                setTab(index)
-              }
-            >
-              {tabLabel(
-                t,
-                lang,
-                index
-              )}
-            </button>
-          )
-        )}
+        {ORDER.map((index) => (
+          <button
+            key={index}
+            className={
+              "tab" +
+              (index === tab
+                ? " on"
+                : "")
+            }
+            onClick={() =>
+              setTab(index)
+            }
+          >
+            {tabLabel(
+              t,
+              lang,
+              index,
+            )}
+          </button>
+        ))}
       </div>
 
       {tab === 6 && (
-        <CoverTool
-          lang={lang}
-        />
+        <CoverTool lang={lang} />
       )}
 
       {tab === 1 && (
@@ -284,13 +289,10 @@ export default function Home() {
 
         <span>
           {t.by}{" "}
-          <b>
-            All World Digital
-          </b>{" "}
+          <b>All World Digital</b>{" "}
           ©{" "}
-          {new Date().getFullYear()}
-          {" · "}
-          {t.rights}
+          {new Date().getFullYear()}{" "}
+          · {t.rights}
         </span>
       </footer>
     </div>
@@ -303,17 +305,25 @@ function Niches({
   domain,
   onAnalyze,
 }) {
-  const [cat, setCat] =
-    useState("coloring");
+  const [
+    category,
+    setCategory,
+  ] = useState("coloring");
 
-  const [count, setCount] =
-    useState(24);
+  const [
+    count,
+    setCount,
+  ] = useState(24);
 
-  const [rows, setRows] =
-    useState([]);
+  const [
+    rows,
+    setRows,
+  ] = useState([]);
 
-  const [busy, setBusy] =
-    useState(false);
+  const [
+    busy,
+    setBusy,
+  ] = useState(false);
 
   const [
     copied,
@@ -330,25 +340,23 @@ function Niches({
       getSupabase();
 
     let {
-      data: { session },
+      data: {
+        session,
+      },
     } =
-      await supabase.auth
-        .getSession();
+      await supabase.auth.getSession();
 
-    if (
-      !session?.access_token
-    ) {
+    if (!session?.access_token) {
       const {
         data,
         error,
       } =
-        await supabase.auth
-          .signInAnonymously();
+        await supabase.auth.signInAnonymously();
 
       if (error) {
         console.error(
           "Anonymous sign-in failed:",
-          error
+          error,
         );
 
         return false;
@@ -358,43 +366,39 @@ function Niches({
         data?.session || null;
     }
 
-    if (
-      !session?.access_token
-    ) {
+    if (!session?.access_token) {
       return false;
     }
 
-    const rememberedLimit =
+    const blocked =
       await shouldBlockRememberedLimit(
         "microNiche",
-        session.access_token
+        session.access_token,
       );
 
-    if (rememberedLimit) {
+    if (blocked) {
       setUpgradeOpen(true);
       return false;
     }
 
-    const response =
-      await fetch(
-        "/api/usage/consume",
-        {
-          method: "POST",
+    const response = await fetch(
+      "/api/usage/consume",
+      {
+        method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
+        headers: {
+          "Content-Type":
+            "application/json",
 
-            Authorization:
-              `Bearer ${session.access_token}`,
-          },
+          Authorization:
+            `Bearer ${session.access_token}`,
+        },
 
-          body: JSON.stringify({
-            toolId:
-              "microNiche",
-          }),
-        }
-      );
+        body: JSON.stringify({
+          toolId: "microNiche",
+        }),
+      },
+    );
 
     const data =
       await response
@@ -416,8 +420,9 @@ function Niches({
   async function load() {
     setBusy(true);
 
-    const seed =
-      String(Date.now());
+    const seed = String(
+      Date.now(),
+    );
 
     try {
       const allowed =
@@ -427,24 +432,21 @@ function Niches({
         return;
       }
 
-      const response =
-        await fetch(
-          "/api/niches?cat=" +
-            cat +
-            "&domain=" +
-            domain +
-            "&count=" +
-            count +
-            "&seed=" +
-            seed
-        );
+      const response = await fetch(
+        "/api/niches?cat=" +
+          category +
+          "&domain=" +
+          domain +
+          "&count=" +
+          count +
+          "&seed=" +
+          seed,
+      );
 
       const data =
         await response.json();
 
-      setRows(
-        data.rows || []
-      );
+      setRows(data.rows || []);
     } catch {
       setRows([]);
     } finally {
@@ -463,24 +465,22 @@ function Niches({
         return;
       }
 
-      const response =
-        await fetch(
-          "/api/niches?cat=" +
-            cat +
-            "&domain=" +
-            domain +
-            "&count=" +
-            count +
-            "&seed=fixed&validate=1"
-        );
+      const response = await fetch(
+        "/api/niches?cat=" +
+          category +
+          "&domain=" +
+          domain +
+          "&count=" +
+          count +
+          "&seed=fixed&validate=1",
+      );
 
       const data =
         await response.json();
 
-      setRows(
-        data.rows || []
-      );
+      setRows(data.rows || []);
     } catch {
+      setRows([]);
     } finally {
       setBusy(false);
     }
@@ -490,10 +490,9 @@ function Niches({
     navigator.clipboard.writeText(
       rows
         .map(
-          (item) =>
-            item.keyword
+          (row) => row.keyword,
         )
-        .join("\n")
+        .join("\n"),
     );
 
     setCopied(true);
@@ -503,23 +502,16 @@ function Niches({
     }, 1800);
   }
 
-  const categoryLabel = (
-    key
-  ) =>
-    lang === "ar"
-      ? NICHE_CATEGORIES[
-          key
-        ].ar
-      : NICHE_CATEGORIES[
-          key
-        ].en;
+  function categoryLabel(key) {
+    return lang === "ar"
+      ? NICHE_CATEGORIES[key].ar
+      : NICHE_CATEGORIES[key].en;
+  }
 
   return (
     <div className="card">
       <div className="trustNote">
-        <p>
-          {t.nicheNote}
-        </p>
+        <p>{t.nicheNote}</p>
       </div>
 
       <label className="mut">
@@ -527,15 +519,15 @@ function Niches({
       </label>
 
       <select
-        value={cat}
+        value={category}
         onChange={(event) =>
-          setCat(
-            event.target.value
+          setCategory(
+            event.target.value,
           )
         }
       >
         {Object.keys(
-          NICHE_CATEGORIES
+          NICHE_CATEGORIES,
         ).map((key) => (
           <option
             key={key}
@@ -555,8 +547,8 @@ function Niches({
         onChange={(event) =>
           setCount(
             Number(
-              event.target.value
-            )
+              event.target.value,
+            ),
           )
         }
       >
@@ -568,7 +560,7 @@ function Niches({
             >
               {number}
             </option>
-          )
+          ),
         )}
       </select>
 
@@ -607,61 +599,51 @@ function Niches({
             </button>
           </div>
 
-          {rows.map(
-            (item) => (
-              <div
-                key={
-                  item.keyword
-                }
-                className="nrow"
-              >
-                <span className="nicheText">
-                  {item.keyword}
+          {rows.map((row) => (
+            <div
+              key={row.keyword}
+              className="nrow"
+            >
+              <span className="nicheText">
+                {row.keyword}
 
-                  {item.longTail && (
-                    <small className="mut">
-                      {" · "}
-                      {t.longTail}
-                    </small>
-                  )}
+                {row.longTail && (
+                  <small className="mut">
+                    {" "}
+                    · {t.longTail}
+                  </small>
+                )}
+              </span>
+
+              <span className="nicheActions">
+                <span
+                  className={
+                    "badge " +
+                    (row.demand
+                      ? "b-" +
+                        row.demand
+                      : "b-none")
+                  }
+                >
+                  {row.demand
+                    ? t[row.demand] ||
+                      row.demand
+                    : t.untested}
                 </span>
 
-                <span className="nicheActions">
-                  <span
-                    className={
-                      "badge " +
-                      (
-                        item.demand
-                          ? "b-" +
-                            item.demand
-                          : "b-none"
-                      )
-                    }
-                  >
-                    {item.demand
-                      ? t[
-                          item.demand
-                        ] ||
-                        item.demand
-                      : t.untested}
-                  </span>
-
-                  <button
-                    className="mini"
-                    onClick={() =>
-                      onAnalyze(
-                        item.keyword
-                      )
-                    }
-                  >
-                    {
-                      t.analyzeThis
-                    }
-                  </button>
-                </span>
-              </div>
-            )
-          )}
+                <button
+                  className="mini"
+                  onClick={() =>
+                    onAnalyze(
+                      row.keyword,
+                    )
+                  }
+                >
+                  {t.analyzeThis}
+                </button>
+              </span>
+            </div>
+          ))}
         </>
       )}
 
@@ -678,78 +660,56 @@ function Niches({
 
 function escapeHtml(value) {
   return String(value)
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-function formatDescription(
-  value
-) {
+function formatDescription(value) {
   return value
     .slice(0, 4000)
     .split("\n\n")
-    .map(
-      (paragraph) =>
-        paragraph.trim()
+    .map((paragraph) =>
+      paragraph.trim(),
     )
     .filter(Boolean)
     .map((paragraph) => {
       if (
-        paragraph.startsWith(
-          "- "
-        )
+        paragraph.startsWith("- ")
       ) {
-        const items =
-          paragraph
-            .split("\n")
-            .filter(Boolean)
-            .map(
-              (line) =>
-                "<li>" +
-                escapeHtml(
-                  line.replace(
-                    /^- /,
-                    ""
-                  )
-                ) +
-                "</li>"
-            )
-            .join("");
+        const list = paragraph
+          .split("\n")
+          .filter(Boolean)
+          .map((line) => {
+            const cleanLine =
+              line.startsWith("- ")
+                ? line.slice(2)
+                : line;
+
+            return (
+              "<li>" +
+              escapeHtml(cleanLine) +
+              "</li>"
+            );
+          })
+          .join("");
 
         return (
           "<ul>" +
-          items +
+          list +
           "</ul>"
         );
       }
 
       if (
-        paragraph.startsWith(
-          "# "
-        )
+        paragraph.startsWith("# ")
       ) {
         return (
           "<h4>" +
           escapeHtml(
-            paragraph.slice(2)
+            paragraph.slice(2),
           ) +
           "</h4>"
         );
@@ -758,10 +718,10 @@ function formatDescription(
       return (
         "<p>" +
         escapeHtml(
-          paragraph
+          paragraph,
         ).replaceAll(
           "\n",
-          "NLBR"
+          "NLBR",
         ) +
         "</p>"
       );
@@ -770,8 +730,10 @@ function formatDescription(
 }
 
 function Formatter({ t }) {
-  const [value, setValue] =
-    useState("");
+  const [
+    value,
+    setValue,
+  ] = useState("");
 
   const [
     copied,
@@ -782,8 +744,9 @@ function Formatter({ t }) {
     formatDescription(value);
 
   async function copyHtml() {
-    await navigator.clipboard
-      .writeText(html);
+    await navigator.clipboard.writeText(
+      html,
+    );
 
     setCopied(true);
 
@@ -804,14 +767,12 @@ function Formatter({ t }) {
         value={value}
         onChange={(event) =>
           setValue(
-            event.target.value
+            event.target.value,
           )
         }
       />
 
-      <h3>
-        {t.preview}
-      </h3>
+      <h3>{t.preview}</h3>
 
       <div
         className="prev"
@@ -821,9 +782,7 @@ function Formatter({ t }) {
       />
 
       <div className="formatterHead">
-        <h3>
-          {t.htmlCode}
-        </h3>
+        <h3>{t.htmlCode}</h3>
 
         <button
           className="mini"
@@ -842,8 +801,8 @@ function Formatter({ t }) {
       />
 
       <p className="mut">
-        {t.chars}:{" "}
-        {value.length}/4000
+        {t.chars}: {value.length}
+        /4000
       </p>
     </div>
   );
@@ -853,17 +812,25 @@ function Calc({
   t,
   domain,
 }) {
-  const [price, setPrice] =
-    useState(12.99);
+  const [
+    price,
+    setPrice,
+  ] = useState(12.99);
 
-  const [pages, setPages] =
-    useState(120);
+  const [
+    pages,
+    setPages,
+  ] = useState(120);
 
-  const [ink, setInk] =
-    useState("black");
+  const [
+    ink,
+    setInk,
+  ] = useState("black");
 
-  const [large, setLarge] =
-    useState(false);
+  const [
+    large,
+    setLarge,
+  ] = useState(false);
 
   const market =
     marketInfo(domain);
@@ -874,34 +841,28 @@ function Calc({
     large,
   };
 
-  const cost =
-    printCost(
-      pages,
-      options
-    );
+  const cost = printCost(
+    pages,
+    options,
+  );
 
-  const rate =
-    royaltyRate(
-      price,
-      domain
-    );
+  const rate = royaltyRate(
+    price,
+    domain,
+  );
 
-  const royalty =
-    royaltyPerUnit(
-      price,
-      pages,
-      options
-    );
+  const royalty = royaltyPerUnit(
+    price,
+    pages,
+    options,
+  );
 
   return (
     <div className="card">
       <div className="trustNote">
         <p>
-          <b>
-            {t.marketplace}:
-          </b>{" "}
-          {domain}
-          {" · "}
+          <b>{t.marketplace}:</b>{" "}
+          {domain} ·{" "}
           {market.currency}
         </p>
 
@@ -922,8 +883,8 @@ function Calc({
         onChange={(event) =>
           setPrice(
             Number(
-              event.target.value
-            )
+              event.target.value,
+            ),
           )
         }
       />
@@ -940,8 +901,8 @@ function Calc({
         onChange={(event) =>
           setPages(
             Number(
-              event.target.value
-            )
+              event.target.value,
+            ),
           )
         }
       />
@@ -954,7 +915,7 @@ function Calc({
         value={ink}
         onChange={(event) =>
           setInk(
-            event.target.value
+            event.target.value,
           )
         }
       >
@@ -984,7 +945,7 @@ function Calc({
         onChange={(event) =>
           setLarge(
             event.target.value ===
-              "large"
+              "large",
           )
         }
       >
@@ -1000,8 +961,7 @@ function Calc({
       {cost === null ? (
         <div className="trustNote warnNote">
           <p>
-            ⚠️{" "}
-            {t.invalidPrint}
+            ⚠️ {t.invalidPrint}
           </p>
         </div>
       ) : (
@@ -1021,7 +981,7 @@ function Calc({
             <b>
               {rate
                 ? Math.round(
-                    rate * 100
+                    rate * 100,
                   ) + "%"
                 : "—"}
             </b>
@@ -1036,9 +996,7 @@ function Calc({
               {royalty === null
                 ? "—"
                 : market.symbol +
-                  royalty.toFixed(
-                    2
-                  )}
+                  royalty.toFixed(2)}
             </b>
 
             <span>
