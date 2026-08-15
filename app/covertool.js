@@ -11,7 +11,9 @@ import {
   layout,
   mm,
 } from "../lib/cover";
+import { jsPDF } from "jspdf";
 import { getSupabase } from "../lib/supabase";
+import { useAccess } from "../lib/useAccess";
 import UpgradePrompt, { shouldBlockRememberedLimit } from "./upgradeprompt";
 
 const BOOK_TYPES = [
@@ -269,6 +271,8 @@ const L = {
 export default function CoverTool({ lang }) {
   const t = L[lang === "en" ? "en" : "ar"];
   const isAr = lang !== "en";
+  const access = useAccess();
+
   const [bt, setBt] = useState(0);
   const [ti, setTi] = useState(12);
   const [pages, setPages] = useState(60);
@@ -284,6 +288,7 @@ export default function CoverTool({ lang }) {
   const [busy, setBusy] = useState("");
   const [fileStatus, setFileStatus] = useState("");
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+
   const cv = useRef(null);
 
   const trim = TRIMS[ti] || TRIMS[3];
@@ -291,125 +296,151 @@ export default function CoverTool({ lang }) {
   const cs = coverSize(trim.w, trim.h, n, paper);
   const ins = interiorSize(trim.w, trim.h, bleed);
   const lay = layout(trim.w, trim.h, n, paper, rtl);
+
   const chk = src
     ? checkImage(dim.w, dim.h, cs.widthPx, cs.heightPx)
     : { level: "none", ratio: 0 };
+
   const needFix = chk.level === "warn" || chk.level === "bad";
+  const activePlans = Array.isArray(access.plans) ? access.plans : [];
 
-  function applyType(e) {
-    const i = Number(e.target.value);
-    setBt(i);
+  const hasUnlimitedCoverAccess =
+    access.lifetime ||
+    activePlans.includes("cover") ||
+    activePlans.includes("pro_monthly") ||
+    activePlans.includes("pro_yearly");
 
-    if (i < 0) return;
+  function applyType(event) {
+    const index = Number(event.target.value);
 
-    const b = BOOK_TYPES[i];
+    setBt(index);
 
-    if (!b) return;
+    if (index < 0) return;
 
-    setTi(b.ti);
-    setPaper(b.paper);
-    setBleed(b.bleed);
-    setPages(b.pages);
+    const book = BOOK_TYPES[index];
+
+    if (!book) return;
+
+    setTi(book.ti);
+    setPaper(book.paper);
+    setBleed(book.bleed);
+    setPages(book.pages);
   }
 
-  function pickTrim(e) {
-    setTi(Number(e.target.value));
+  function pickTrim(event) {
+    setTi(Number(event.target.value));
     setBt(-1);
   }
 
-  function cover(ctx, s, sw, sh, W, H) {
-    const ir = sw / sh;
-    const cr = W / H;
+  function cover(context, image, sourceWidth, sourceHeight, width, height) {
+    const imageRatio = sourceWidth / sourceHeight;
+    const canvasRatio = width / height;
 
-    let dw = W;
-    let dh = H;
+    let drawWidth = width;
+    let drawHeight = height;
 
-    if (ir > cr) {
-      dh = H;
-      dw = H * ir;
+    if (imageRatio > canvasRatio) {
+      drawHeight = height;
+      drawWidth = height * imageRatio;
     } else {
-      dw = W;
-      dh = W / ir;
+      drawWidth = width;
+      drawHeight = width / imageRatio;
     }
 
-    ctx.drawImage(s, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    context.drawImage(
+      image,
+      (width - drawWidth) / 2,
+      (height - drawHeight) / 2,
+      drawWidth,
+      drawHeight,
+    );
   }
 
-  function paint(ctx, scale, withGuides) {
-    const W = cs.widthIn * scale;
-    const H = cs.heightIn * scale;
+  function paint(context, scale, withGuides) {
+    const width = cs.widthIn * scale;
+    const height = cs.heightIn * scale;
 
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, W, H);
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, width, height);
 
     if (src) {
-      cover(ctx, src, dim.w, dim.h, W, H);
+      cover(context, src, dim.w, dim.h, width, height);
     }
 
     if (!withGuides) return;
 
-    const u = (i) => i * scale;
+    const unit = (value) => value * scale;
 
-    ctx.lineWidth = Math.max(1, scale / 150);
-    ctx.strokeStyle = "#e11d48";
-    ctx.strokeRect(
-      u(0.125),
-      u(0.125),
-      u(cs.widthIn - 0.25),
-      u(cs.heightIn - 0.25),
+    context.lineWidth = Math.max(1, scale / 150);
+    context.strokeStyle = "#e11d48";
+
+    context.strokeRect(
+      unit(0.125),
+      unit(0.125),
+      unit(cs.widthIn - 0.25),
+      unit(cs.heightIn - 0.25),
     );
 
-    ctx.strokeStyle = "#2563eb";
+    context.strokeStyle = "#2563eb";
 
-    for (const z of lay.zones) {
-      ctx.beginPath();
-      ctx.moveTo(u(z.xIn), 0);
-      ctx.lineTo(u(z.xIn), H);
-      ctx.stroke();
+    for (const zone of lay.zones) {
+      context.beginPath();
+      context.moveTo(unit(zone.xIn), 0);
+      context.lineTo(unit(zone.xIn), height);
+      context.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(u(z.xIn + z.wIn), 0);
-      ctx.lineTo(u(z.xIn + z.wIn), H);
-      ctx.stroke();
+      context.beginPath();
+      context.moveTo(unit(zone.xIn + zone.wIn), 0);
+      context.lineTo(unit(zone.xIn + zone.wIn), height);
+      context.stroke();
     }
 
-    ctx.strokeStyle = "#16a34a";
-    ctx.setLineDash([u(0.06), u(0.06)]);
+    context.strokeStyle = "#16a34a";
+    context.setLineDash([unit(0.06), unit(0.06)]);
 
-    for (const z of lay.zones) {
-      if (z.id === "spine") continue;
+    for (const zone of lay.zones) {
+      if (zone.id === "spine") continue;
 
-      ctx.strokeRect(
-        u(z.xIn + 0.125),
-        u(0.25),
-        u(z.wIn - 0.25),
-        u(cs.heightIn - 0.5),
+      context.strokeRect(
+        unit(zone.xIn + 0.125),
+        unit(0.25),
+        unit(zone.wIn - 0.25),
+        unit(cs.heightIn - 0.5),
       );
     }
 
-    ctx.setLineDash([]);
+    context.setLineDash([]);
 
-    const bz = lay.zones[rtl ? 2 : 0];
+    const barcodeZone = lay.zones[rtl ? 2 : 0];
 
-    ctx.strokeStyle = "#f59e0b";
-    ctx.strokeRect(
-      u(bz.xIn + bz.wIn - 2.25),
-      u(cs.heightIn - 1.575),
-      u(2),
-      u(1.2),
+    context.strokeStyle = "#f59e0b";
+
+    context.strokeRect(
+      unit(barcodeZone.xIn + barcodeZone.wIn - 2.25),
+      unit(cs.heightIn - 1.575),
+      unit(2),
+      unit(1.2),
     );
 
-    ctx.fillStyle = "#111827";
-    ctx.font = "bold " + Math.round(scale / 6) + "px sans-serif";
-    ctx.textAlign = "center";
+    context.fillStyle = "#111827";
+    context.font = "bold " + Math.round(scale / 6) + "px sans-serif";
+    context.textAlign = "center";
 
-    for (const z of lay.zones) {
-      const nm =
-        z.id === "spine" ? t.sp : z.id === "front" ? t.front : t.back;
+    for (const zone of lay.zones) {
+      const name =
+        zone.id === "spine"
+          ? t.sp
+          : zone.id === "front"
+            ? t.front
+            : t.back;
 
-      if (z.id === "spine" && z.wIn < 0.5) continue;
+      if (zone.id === "spine" && zone.wIn < 0.5) continue;
 
-      ctx.fillText(nm, u(z.xIn + z.wIn / 2), u(0.55));
+      context.fillText(
+        name,
+        unit(zone.xIn + zone.wIn / 2),
+        unit(0.55),
+      );
     }
   }
 
@@ -455,6 +486,7 @@ export default function CoverTool({ lang }) {
     const data = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data }).promise;
     const page = await pdf.getPage(1);
+
     const baseViewport = page.getViewport({ scale: 1 });
 
     const targetScale = Math.min(
@@ -471,21 +503,21 @@ export default function CoverTool({ lang }) {
     canvas.width = Math.ceil(viewport.width);
     canvas.height = Math.ceil(viewport.height);
 
-    const ctx = canvas.getContext("2d", { alpha: false });
+    const context = canvas.getContext("2d", { alpha: false });
 
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
 
     await page.render({
-      canvasContext: ctx,
+      canvasContext: context,
       viewport,
     }).promise;
 
     return imageFromUrl(canvas.toDataURL("image/png"));
   }
 
-  async function onFile(e) {
-    const file = e.target.files?.[0];
+  async function onFile(event) {
+    const file = event.target.files?.[0];
 
     if (!file) return;
 
@@ -493,6 +525,7 @@ export default function CoverTool({ lang }) {
 
     const name = String(file.name || "").toLowerCase();
     const type = String(file.type || "").toLowerCase();
+
     const isPdf = type === "application/pdf" || name.endsWith(".pdf");
 
     const isImage =
@@ -521,7 +554,10 @@ export default function CoverTool({ lang }) {
       const reader = new FileReader();
 
       const url = await new Promise((resolve, reject) => {
-        reader.onload = (event) => resolve(event.target.result);
+        reader.onload = (readerEvent) => {
+          resolve(readerEvent.target.result);
+        };
+
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
@@ -566,6 +602,7 @@ export default function CoverTool({ lang }) {
 
         temporaryContext.imageSmoothingEnabled = true;
         temporaryContext.imageSmoothingQuality = "high";
+
         temporaryContext.drawImage(
           currentImage,
           0,
@@ -667,7 +704,9 @@ export default function CoverTool({ lang }) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ toolId: "coverDesigner" }),
+      body: JSON.stringify({
+        toolId: "coverDesigner",
+      }),
     });
 
     const data = await response.json().catch(() => ({}));
@@ -681,15 +720,14 @@ export default function CoverTool({ lang }) {
   }
 
   async function savePng() {
-    const allowed = await canExportCover();
+    const allowed =
+      hasUnlimitedCoverAccess || (await canExportCover());
 
     if (!allowed) return;
 
     setBusy(t.working);
 
     try {
-      await new Promise((resolve) => requestAnimationFrame(resolve));
-
       const canvas = bigCanvas();
 
       const blob = await new Promise((resolve, reject) => {
@@ -725,30 +763,39 @@ export default function CoverTool({ lang }) {
   }
 
   async function savePdf() {
-    const allowed = await canExportCover();
+    const allowed =
+      hasUnlimitedCoverAccess || (await canExportCover());
 
     if (!allowed) return;
 
     setBusy(t.working);
 
-    setTimeout(() => {
-      import("jspdf").then((module) => {
-        const canvas = bigCanvas();
-        const data = canvas.toDataURL("image/jpeg", 0.95);
+    try {
+      const canvas = bigCanvas();
+      const data = canvas.toDataURL("image/jpeg", 0.95);
 
-        const pdf = new module.jsPDF({
-          orientation:
-            cs.widthIn >= cs.heightIn ? "landscape" : "portrait",
-          unit: "in",
-          format: [cs.widthIn, cs.heightIn],
-        });
-
-        pdf.addImage(data, "JPEG", 0, 0, cs.widthIn, cs.heightIn);
-        pdf.save("allwdbook-cover.pdf");
-
-        setBusy("");
+      const pdf = new jsPDF({
+        orientation:
+          cs.widthIn >= cs.heightIn ? "landscape" : "portrait",
+        unit: "in",
+        format: [cs.widthIn, cs.heightIn],
       });
-    }, 60);
+
+      pdf.addImage(
+        data,
+        "JPEG",
+        0,
+        0,
+        cs.widthIn,
+        cs.heightIn,
+      );
+
+      pdf.save("allwdbook-cover.pdf");
+    } catch (error) {
+      console.error("PDF export failed:", error);
+    } finally {
+      setBusy("");
+    }
   }
 
   const badge =
@@ -810,7 +857,9 @@ export default function CoverTool({ lang }) {
           <input
             type="number"
             value={pages}
-            onChange={(event) => setPages(event.target.value)}
+            onChange={(event) => {
+              setPages(event.target.value);
+            }}
           />
         </div>
 
@@ -819,7 +868,9 @@ export default function CoverTool({ lang }) {
 
           <select
             value={paper}
-            onChange={(event) => setPaper(event.target.value)}
+            onChange={(event) => {
+              setPaper(event.target.value);
+            }}
           >
             {Object.keys(PAPER).map((key) => (
               <option key={key} value={key}>
@@ -834,7 +885,9 @@ export default function CoverTool({ lang }) {
 
           <select
             value={rtl ? "1" : "0"}
-            onChange={(event) => setRtl(event.target.value === "1")}
+            onChange={(event) => {
+              setRtl(event.target.value === "1");
+            }}
           >
             <option value="0">{t.ltr}</option>
             <option value="1">{t.rtlL}</option>
@@ -847,7 +900,9 @@ export default function CoverTool({ lang }) {
           <input
             type="checkbox"
             checked={bleed}
-            onChange={(event) => setBleed(event.target.checked)}
+            onChange={(event) => {
+              setBleed(event.target.checked);
+            }}
           />{" "}
           {t.bleed}
         </label>
@@ -856,7 +911,9 @@ export default function CoverTool({ lang }) {
           <input
             type="checkbox"
             checked={guides}
-            onChange={(event) => setGuides(event.target.checked)}
+            onChange={(event) => {
+              setGuides(event.target.checked);
+            }}
           />{" "}
           {t.guides}
         </label>
