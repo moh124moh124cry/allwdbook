@@ -1,2043 +1,2058 @@
 "use client";
-import {
-useEffect,
-useState,
-} from "react";
+
+import { useEffect, useState } from "react";
 import { T } from "../lib/i18n";
 import { NICHE_CATEGORIES } from "../lib/niches";
-import {
-printCost,
-royaltyPerUnit,
-royaltyRate,
-marketInfo,
-} from "../lib/estimate";
+import { printCost, royaltyPerUnit, royaltyRate, marketInfo } from "../lib/estimate";
 import CoverTool from "./covertool";
 import KeywordsPanel from "./keywordspanel";
 import AccountMenu from "./accountmenu";
-import UpgradePrompt, {
-shouldBlockRememberedLimit,
-} from "./upgradeprompt";
+import UpgradePrompt, { shouldBlockRememberedLimit } from "./upgradeprompt";
 import { getSupabase } from "../lib/supabase";
 
 const DOMAINS = [
-"amazon.com",
-"amazon.co.uk",
-"amazon.de",
-"amazon.fr",
-"amazon.it",
-"amazon.es",
-"amazon.ca",
+  "amazon.com",
+  "amazon.co.uk",
+  "amazon.de",
+  "amazon.fr",
+  "amazon.it",
+  "amazon.es",
+  "amazon.ca",
 ];
 
 const ORDER = [6, 1, 0, 5, 4];
 
 const ICONS = [
-"🔑",
-"🎯",
-"📚",
-"📈",
-"✍️",
-"🧮",
+  "🔑",
+  "🎯",
+  "📚",
+  "📈",
+  "✍️",
+  "🧮",
 ];
 
 function tabLabel(t, lang, index) {
-if (index === 6) {
-return (
-"📐 " +
-(lang === "en"
-? "Cover Designer"
-: "مصمم الغلاف")
-);
-}
-return (
-ICONS[index] +
-" " +
-t.tabs[index]
-);
+  if (index === 6) {
+    return "📐 " + (
+      lang === "en"
+        ? "Cover Designer"
+        : "مصمم الغلاف"
+    );
+  }
+
+  return ICONS[index] + " " + t.tabs[index];
 }
 
 export default function Home() {
-const [lang, setLang] = useState("ar");
-const [tab, setTab] = useState(6);
-const [domain, setDomain] = useState("amazon.com");
-const [seedKw, setSeedKw] = useState("");
-
-const t = T[lang];
-
-useEffect(() => {
-const savedLanguage = localStorage.getItem("awd_lang");
-if (savedLanguage && T[savedLanguage]) setLang(savedLanguage);
-
-function syncLanguage(event) {
-const nextLanguage =
-event?.detail ||
-localStorage.getItem("awd_lang");
-
-if (nextLanguage && T[nextLanguage]) {
-setLang(nextLanguage);
-}
-}
-
-window.addEventListener(
-"awd-language-change",
-syncLanguage,
-);
-
-return () =>
-window.removeEventListener(
-"awd-language-change",
-syncLanguage,
-);
-}, []);
-
-useEffect(() => {
-localStorage.setItem("awd_lang", lang);
-document.documentElement.lang = lang;
-document.documentElement.dir = t.dir;
-}, [lang, t.dir]);
-
-function sendToKeywords(keyword) {
-setSeedKw(keyword);
-setTab(0);
-window.scrollTo({
-top: 0,
-behavior: "smooth",
-});
-}
-
-const tools = [
-{
-id: 1,
-icon: "🎯",
-title:
-lang === "en"
-? "Micro-Niche Research"
-: "بحث النيش المصغر",
-text:
-lang === "en"
-? "Discover focused KDP niches."
-: "اكتشف نيشات KDP دقيقة ومناسبة.",
-},
-{
-id: 0,
-icon: "🔑",
-title:
-lang === "en"
-? "Keyword Research"
-: "بحث الكلمات المفتاحية",
-text:
-lang === "en"
-? "Find keywords to improve discoverability."
-: "ابحث عن الكلمات المفتاحية لزيادة ظهور كتبك.",
-},
-{
-id: 6,
-icon: "📐",
-title:
-lang === "en"
-? "Cover Designer"
-: "مصمم أغلفة الكتب",
-text:
-lang === "en"
-? "Create professional KDP-ready covers."
-: "صمم أغلفة احترافية لكتبك.",
-},
-{
-id: 5,
-icon: "🧮",
-title:
-lang === "en"
-? "Royalty Calculator"
-: "حاسبة الأرباح",
-text:
-lang === "en"
-? "Estimate your expected book royalties."
-: "احسب أرباحك المتوقعة قبل النشر.",
-},
-{
-id: 4,
-icon: "✍️",
-title:
-lang === "en"
-? "Book Description"
-: "منشئ وصف الكتاب",
-text:
-lang === "en"
-? "Create a persuasive book description."
-: "أنشئ وصفًا احترافيًا يجذب القراء.",
-},
-];
-
-return (
-<div
-className="awd-v2"
-style={{ minHeight: "100vh" }}
->
-<style jsx>{`
-.awd-v2{
-background:#07101d;
-color:#eef4ff;
-min-height:100vh;
-padding-bottom:30px
-}
-
-.awd-shell{
-width:min(1180px,calc(100% - 28px));
-margin:0 auto
-}
-
-.awd-header{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:18px;
-padding:14px 0;
-border-bottom:1px solid rgba(255,255,255,.08);
-position:sticky;
-top:0;
-z-index:30;
-background:rgba(7,16,29,.96);
-backdrop-filter:blur(14px)
-}
-
-.awd-brand{
-display:flex;
-align-items:center;
-gap:12px;
-min-width:0
-}
-
-.awd-logo{
-width:54px;
-height:54px;
-object-fit:contain;
-border-radius:14px;
-background:#07101d
-}
-
-.awd-brand h1{
-font-size:22px;
-margin:0;
-letter-spacing:.2px
-}
-
-.awd-brand p{
-margin:2px 0 0;
-color:#9aa9bf;
-font-size:12px
-}
-
-.awd-actions{
-display:flex;
-align-items:center;
-gap:8px
-}
-
-.awd-lang{
-border:1px solid rgba(255,255,255,.12);
-background:#101b2c;
-color:#fff;
-border-radius:12px;
-padding:10px 12px;
-cursor:pointer;
-white-space:nowrap
-}
-
-.awd-market{
-display:flex;
-align-items:center;
-justify-content:flex-end;
-gap:10px;
-padding:14px 0
-}
-
-.awd-market select{
-width:auto;
-min-width:170px
-}
-
-.awd-hero{
-margin-top:10px;
-border:1px solid rgba(255,255,255,.10);
-border-radius:24px;
-padding:28px;
-display:grid;
-grid-template-columns:1.15fr .85fr;
-gap:22px;
-align-items:center;
-background:
-radial-gradient(
-circle at 85% 20%,
-rgba(255,100,0,.18),
-transparent 35%
-),
-linear-gradient(
-135deg,
-#0a1728,
-#101b32 60%,
-#111c2d
-);
-overflow:hidden
-}
-
-.awd-hero h2{
-font-size:clamp(30px,5vw,56px);
-line-height:1.08;
-margin:0 0 14px
-}
-
-.awd-hero h2 span{
-color:#ff6a00
-}
-
-.awd-hero p{
-color:#aebbd0;
-font-size:16px;
-line-height:1.8;
-max-width:620px
-}
-
-.awd-cta{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-margin-top:20px
-}
-
-.awd-cta button{
-cursor:pointer;
-border-radius:12px;
-padding:12px 20px;
-border:1px solid rgba(255,255,255,.14);
-font-weight:700
-}
-
-.awd-primary{
-background:#ff6a00;
-color:#fff
-}
-
-.awd-secondary{
-background:#0c1625;
-color:#fff
-}
-
-.awd-hero-logo{
-display:flex;
-justify-content:center;
-align-items:center
-}
-
-.awd-hero-logo img{
-width:min(360px,100%);
-max-height:290px;
-object-fit:contain;
-filter:drop-shadow(
-0 18px 35px rgba(0,0,0,.35)
-)
-}
-
-.awd-features{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:10px;
-margin-top:18px
-}
-
-.awd-feature{
-border:1px solid rgba(255,255,255,.08);
-background:rgba(255,255,255,.025);
-padding:12px;
-border-radius:14px;
-text-align:center;
-color:#dce6f5;
-font-size:13px
-}
-
-.awd-tools-head{
-display:flex;
-align-items:end;
-justify-content:space-between;
-gap:12px;
-margin:28px 0 12px
-}
-
-.awd-tools-head h2{
-margin:0;
-font-size:25px
-}
-
-.awd-tools-head p{
-margin:6px 0 0;
-color:#9aa9bf
-}
-
-.awd-tools-grid{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:14px
-}
-
-.awd-tool{
-border:1px solid rgba(255,255,255,.09);
-border-radius:18px;
-background:
-linear-gradient(
-145deg,
-#0d192a,
-#0a1422
-);
-padding:18px;
-min-height:190px;
-display:flex;
-flex-direction:column;
-justify-content:space-between;
-box-shadow:
-0 12px 30px rgba(0,0,0,.12)
-}
-
-.awd-icon{
-width:48px;
-height:48px;
-display:grid;
-place-items:center;
-border-radius:14px;
-background:rgba(255,106,0,.12);
-font-size:25px
-}
-
-.awd-tool h3{
-margin:12px 0 6px;
-font-size:17px
-}
-
-.awd-tool p{
-margin:0;
-color:#93a2b7;
-font-size:13px;
-line-height:1.6
-}
-
-.awd-use{
-margin-top:14px;
-width:100%;
-border:1px solid rgba(255,255,255,.12);
-background:#101d2e;
-color:#fff;
-border-radius:10px;
-padding:10px;
-cursor:pointer
-}
-
-.awd-use:hover{
-border-color:#ff6a00
-}
-
-.awd-sub{
-margin-top:18px;
-border:1px solid rgba(255,255,255,.08);
-border-radius:20px;
-padding:20px;
-background:
-linear-gradient(
-100deg,
-#0d1829,
-#121d2d
-)
-}
-
-.awd-sub-row{
-display:flex;
-justify-content:space-between;
-gap:18px;
-align-items:center
-}
-
-.awd-progress{
-height:8px;
-background:#1d293a;
-border-radius:99px;
-overflow:hidden;
-margin:12px 0
-}
-
-.awd-progress span{
-display:block;
-width:35%;
-height:100%;
-background:#ff6a00;
-border-radius:99px
-}
-
-.awd-upgrade{
-border:0;
-background:#ff6a00;
-color:#fff;
-border-radius:10px;
-padding:10px 18px;
-font-weight:700;
-cursor:pointer
-}
-
-.awd-disclaimer{
-margin-top:18px;
-text-align:center;
-color:#74849b;
-font-size:11px;
-line-height:1.7;
-padding:0 8px
-}
-
-.awd-footer{
-margin-top:28px;
-padding:18px 0;
-text-align:center;
-color:#7f8da2;
-border-top:1px solid rgba(255,255,255,.08)
-}
-
-.awd-footer img{
-width:44px;
-height:44px;
-object-fit:contain;
-vertical-align:middle;
-margin-inline-end:8px
-}
-
-@media(max-width:820px){
-
-.awd-shell{
-width:min(100% - 18px,620px)
-}
-
-.awd-header{
-padding:10px 0;
-gap:8px
-}
-
-.awd-logo{
-width:44px;
-height:44px;
-border-radius:12px
-}
-
-.awd-brand{
-gap:9px
-}
-
-.awd-brand h1{
-font-size:18px
-}
-
-.awd-brand p{
-font-size:10px
-}
-
-.awd-actions{
-gap:6px
-}
-
-.awd-lang{
-padding:9px 10px;
-font-size:12px
-}
-
-.awd-market{
-justify-content:stretch;
-padding:12px 0
-}
-
-.awd-market label{
-font-size:12px
-}
-
-.awd-market select{
-width:100%;
-min-width:0
-}
-
-.awd-hero{
-grid-template-columns:1fr;
-padding:18px 14px;
-text-align:center;
-gap:12px;
-margin-top:6px;
-border-radius:20px
-}
-
-.awd-hero-logo{
-order:-1
-}
-
-.awd-hero-logo img{
-width:min(240px,72vw);
-max-height:205px
-}
-
-.awd-hero h2{
-font-size:clamp(28px,8vw,34px);
-line-height:1.12;
-margin-bottom:10px
-}
-
-.awd-hero p{
-font-size:14px;
-line-height:1.75;
-margin:0 auto;
-max-width:520px
-}
-
-.awd-cta{
-justify-content:center;
-margin-top:16px;
-gap:8px
-}
-
-.awd-cta button{
-flex:1;
-min-width:130px;
-padding:12px 10px
-}
-
-.awd-features{
-grid-template-columns:1fr;
-gap:7px;
-margin-top:14px
-}
-
-.awd-feature{
-padding:9px;
-font-size:12px
-}
-
-.awd-tools-head{
-align-items:start;
-flex-direction:column;
-margin:22px 0 10px
-}
-
-.awd-tools-head h2{
-font-size:22px
-}
-
-.awd-tools-head p{
-font-size:12px;
-line-height:1.6
-}
-
-.awd-tools-grid{
-grid-template-columns:repeat(2,1fr);
-gap:9px
-}
-
-.awd-tool{
-padding:13px;
-min-height:174px;
-border-radius:15px
-}
-
-.awd-icon{
-width:42px;
-height:42px;
-border-radius:12px;
-font-size:22px
-}
-
-.awd-tool h3{
-font-size:14px;
-line-height:1.35;
-margin:9px 0 5px
-}
-
-.awd-tool p{
-font-size:11px;
-line-height:1.55
-}
-
-.awd-use{
-margin-top:10px;
-padding:9px 6px;
-font-size:13px
-}
-
-.awd-sub{
-margin-top:14px;
-padding:15px;
-border-radius:16px
-}
-
-.awd-sub-row{
-flex-direction:column;
-align-items:stretch;
-gap:10px
-}
-
-.awd-upgrade{
-width:100%
-}
-
-}
-
-@media(max-width:480px){
-
-.awd-shell{
-width:calc(100% - 12px)
-}
-
-.awd-header{
-padding:8px 0
-}
-
-.awd-logo{
-width:40px;
-height:40px
-}
-
-.awd-brand h1{
-font-size:17px
-}
-
-.awd-brand p{
-display:none
-}
-
-.awd-actions .awd-lang{
-font-size:11px;
-padding:8px 8px
-}
-
-.awd-hero{
-padding:16px 11px;
-border-radius:18px
-}
-
-.awd-hero-logo img{
-width:min(210px,68vw);
-max-height:180px
-}
-
-.awd-hero h2{
-font-size:27px
-}
-
-.awd-hero p{
-font-size:13px
-}
-
-.awd-cta button{
-min-width:0;
-font-size:13px
-}
-
-.awd-tools-grid{
-grid-template-columns:1fr 1fr
-}
-
-.awd-tool{
-min-height:166px;
-padding:11px
-}
-
-.awd-tool h3{
-font-size:13px
-}
-
-.awd-tool p{
-font-size:10.5px
-}
-
-.awd-use{
-font-size:12px
-}
-
-.awd-disclaimer{
-font-size:10px
-}
-
-}
-
-`}</style>
-
-<div className="awd-shell">
-
-<header className="awd-header">
-
-<div className="awd-brand">
-
-<img
-className="awd-logo"
-src="/logov3.png"
-alt="AllWDbook"
-/>
-
-<div>
-<h1>AllWDbook</h1>
-<p>KDP Tools & Digital Publishing</p>
-</div>
-
-</div>
-
-<div className="awd-actions">
-
-<AccountMenu />
-
-<button
-className="awd-lang"
-type="button"
-onClick={() =>
-setLang(
-lang === "ar"
-? "en"
-: "ar",
-)
-}
-aria-label={
-lang === "ar"
-? "Switch to English"
-: "التبديل إلى العربية"
-}
->
-{lang === "ar"
-? "🇺🇸 English"
-: "🇩🇿 العربية"}
-</button>
-
-</div>
-
-</header>
-
-<div className="awd-market">
-
-<label
-className="mut"
-htmlFor="marketplace"
->
-{t.marketplace}
-</label>
-
-<select
-id="marketplace"
-value={domain}
-onChange={(event) =>
-setDomain(
-event.target.value,
-)
-}
->
-{DOMAINS.map(
-(item) => (
-<option
-key={item}
-value={item}
->
-{item}
-</option>
-),
-)}
-</select>
-
-</div>
-
-<section className="awd-hero">
-
-<div>
-
-<h2>
-{lang === "en"
-? <>
-Everything you need to succeed with{" "}
-<span>KDP</span>
-</>
-: <>
-كل ما تحتاجه للنجاح في{" "}
-<span>KDP</span>
-</>}
-</h2>
-
-<p>
-{lang === "en"
-? "Professional tools for research, keywords, covers, calculations and digital publishing — in one place."
-: "مجموعة متكاملة من الأدوات الاحترافية للبحث والكلمات المفتاحية وتصميم الأغلفة والحسابات والنشر الرقمي في مكان واحد."}
-</p>
-
-<div className="awd-cta">
-
-<button
-className="awd-primary"
-type="button"
-onClick={() =>
-setTab(1)
-}
->
-{lang === "en"
-? "Start Free 🚀"
-: "ابدأ مجانًا 🚀"}
-</button>
-
-<button
-className="awd-secondary"
-type="button"
-onClick={() =>
-document
-.getElementById(
-"awd-tools",
-)
-?.scrollIntoView({
-behavior:
-"smooth",
-})
-}
->
-{lang === "en"
-? "Explore Tools ▦"
-: "استكشف الأدوات ▦"}
-</button>
-
-</div>
-
-<div className="awd-features">
-
-<div className="awd-feature">
-🛡️{" "}
-{lang === "en"
-? "Secure"
-: "آمن"}
-</div>
-
-<div className="awd-feature">
-⚡{" "}
-{lang === "en"
-? "Fast Results"
-: "نتائج دقيقة وسريعة"}
-</div>
-
-<div className="awd-feature">
-✓{" "}
-{lang === "en"
-? "Professional Tools"
-: "أدوات احترافية"}
-</div>
-
-</div>
-
-</div>
-
-<div className="awd-hero-logo">
-
-<img
-src="/logov3.png"
-alt="AllWDbook KDP tools"
-/>
-
-</div>
-
-</section>
-
-<section id="awd-tools">
-
-<div className="awd-tools-head">
-
-<div>
-
-<h2>
-{lang === "en"
-? "Professional KDP Tools"
-: "أدوات KDP الاحترافية"}
-</h2>
-
-<p>
-{lang === "en"
-? "Choose a tool and continue using the existing powerful workflow."
-: "اختر الأداة التي تحتاجها واستمر باستخدام الأكواد الحالية القوية."}
-</p>
-
-</div>
-
-</div>
-
-<div className="awd-tools-grid">
-
-{tools.map(
-(tool) => (
-<article
-className="awd-tool"
-key={tool.id}
->
-
-<div>
-
-<div className="awd-icon">
-{tool.icon}
-</div>
-
-<h3>
-{tool.title}
-</h3>
-
-<p>
-{tool.text}
-</p>
-
-</div>
-
-<button
-className="awd-use"
-type="button"
-onClick={() => {
-setTab(tool.id);
-window.scrollTo({
-top: 0,
-behavior:
-"smooth",
-});
-}}
->
-{lang === "en"
-? "Use Tool"
-: "استخدم الأداة"}
-</button>
-
-</article>
-),
-)}
-
-</div>
-
-</section>
-
-<section className="awd-sub">
-
-<div className="awd-sub-row">
-
-<div>
-
-<strong
-style={{
-fontSize:18,
-}}
->
-{lang === "en"
-? "Subscription"
-: "خطة الاشتراك"}
-</strong>
-
-<div
-className="mut"
-style={{
-marginTop:4,
-}}
->
-{lang === "en"
-? "Your usage and plan will continue using the current system."
-: "سيستمر نظام الاستخدام والاشتراك الحالي كما هو."}
-</div>
-
-</div>
-
-<button
-className="awd-upgrade"
-type="button"
-onClick={() =>
-window.location.href =
-"/upgrade"
-}
->
-{lang === "en"
-? "Upgrade ⚡"
-: "ترقية الخطة ⚡"}
-</button>
-
-</div>
-
-<div className="awd-progress">
-<span />
-</div>
-
-</section>
-
-<div className="awd-disclaimer">
-
-{lang === "en"
-? "AllWDbook is an independent tool and is not affiliated with, endorsed by, or sponsored by Amazon.com, Inc."
-: "AllWDbook أداة مستقلة وليست تابعة لشركة Amazon.com, Inc. أو معتمدة أو مدعومة من طرفها."}
-
-</div>
-
-{tab === 6 && (
-<CoverTool
-lang={lang}
-/>
-)}
-
-{tab === 1 && (
-<Niches
-t={t}
-lang={lang}
-domain={domain}
-onAnalyze={
-sendToKeywords
-}
-/>
-)}
-
-{tab === 0 && (
-<KeywordsPanel
-t={t}
-domain={domain}
-seed={seedKw}
-/>
-)}
-
-{tab === 5 && (
-<Calc
-t={t}
-domain={domain}
-/>
-)}
-
-{tab === 4 && (
-<Formatter
-t={t}
-/>
-)}
-
-<footer className="awd-footer">
-
-<img
-src="/logov3.png"
-alt="AllWDbook"
-/>
-
-<span>
-{t.by}{" "}
-<b>All World Digital</b>{" "}
-©{" "}
-{new Date().getFullYear()}{" "}
-·{" "}
-{t.rights}
-</span>
-
-</footer>
-
-</div>
-
-</div>
-);
+  const [lang, setLang] = useState("ar");
+  const [tab, setTab] = useState(6);
+  const [domain, setDomain] = useState("amazon.com");
+  const [seedKw, setSeedKw] = useState("");
+
+  const t = T[lang];
+
+  useEffect(() => {
+    const savedLanguage =
+      localStorage.getItem("awd_lang");
+
+    if (
+      savedLanguage &&
+      T[savedLanguage]
+    ) {
+      setLang(savedLanguage);
+    }
+
+    function syncLanguage(event) {
+      const nextLanguage =
+        event?.detail ||
+        localStorage.getItem("awd_lang");
+
+      if (
+        nextLanguage &&
+        T[nextLanguage]
+      ) {
+        setLang(nextLanguage);
+      }
+    }
+
+    window.addEventListener(
+      "awd-language-change",
+      syncLanguage
+    );
+
+    return () =>
+      window.removeEventListener(
+        "awd-language-change",
+        syncLanguage
+      );
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "awd_lang",
+      lang
+    );
+
+    document.documentElement.lang =
+      lang;
+
+    document.documentElement.dir =
+      t.dir;
+  }, [lang, t.dir]);
+
+  function openTool(id) {
+    setTab(id);
+
+    setTimeout(() => {
+      document
+        .getElementById(
+          "awd-workspace"
+        )
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    }, 0);
+  }
+
+  function sendToKeywords(keyword) {
+    setSeedKw(keyword);
+    setTab(0);
+
+    setTimeout(() => {
+      document
+        .getElementById(
+          "awd-workspace"
+        )
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    }, 0);
+  }
+
+  const tools = [
+    {
+      id: 1,
+      icon: "🎯",
+      title:
+        lang === "en"
+          ? "Micro-Niche Research"
+          : "بحث النيش المصغر",
+      text:
+        lang === "en"
+          ? "Discover focused KDP niches."
+          : "اكتشف نيشات KDP دقيقة ومناسبة.",
+    },
+    {
+      id: 0,
+      icon: "🔑",
+      title:
+        lang === "en"
+          ? "Keyword Research"
+          : "بحث الكلمات المفتاحية",
+      text:
+        lang === "en"
+          ? "Find keywords to improve discoverability."
+          : "ابحث عن الكلمات المفتاحية لزيادة ظهور كتبك.",
+    },
+    {
+      id: 6,
+      icon: "📐",
+      title:
+        lang === "en"
+          ? "Cover Designer"
+          : "مصمم أغلفة الكتب",
+      text:
+        lang === "en"
+          ? "Create professional KDP-ready covers."
+          : "صمم أغلفة احترافية لكتبك.",
+    },
+    {
+      id: 5,
+      icon: "🧮",
+      title:
+        lang === "en"
+          ? "Royalty Calculator"
+          : "حاسبة الأرباح",
+      text:
+        lang === "en"
+          ? "Estimate your expected book royalties."
+          : "احسب أرباحك المتوقعة قبل النشر.",
+    },
+    {
+      id: 4,
+      icon: "✍️",
+      title:
+        lang === "en"
+          ? "Book Description"
+          : "منشئ وصف الكتاب",
+      text:
+        lang === "en"
+          ? "Create a persuasive book description."
+          : "أنشئ وصفًا احترافيًا يجذب القراء.",
+    },
+  ];
+
+  return (
+    <div
+      className="awd-v2"
+      style={{
+        minHeight: "100vh",
+      }}
+    >
+      <style jsx>{`
+        .awd-v2 {
+          background: #07101d;
+          color: #eef4ff;
+          min-height: 100vh;
+          padding-bottom: 30px;
+        }
+
+        .awd-shell {
+          width: min(
+            1180px,
+            calc(100% - 28px)
+          );
+          margin: 0 auto;
+        }
+
+        .awd-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 18px;
+          padding: 16px 0;
+          border-bottom: 1px solid
+            rgba(255,255,255,.08);
+          position: sticky;
+          top: 0;
+          z-index: 30;
+          background: rgba(
+            7,
+            16,
+            29,
+            .94
+          );
+          backdrop-filter: blur(14px);
+        }
+
+        .awd-brand {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0;
+        }
+
+        .awd-logo {
+          width: 54px;
+          height: 54px;
+          object-fit: contain;
+          border-radius: 14px;
+          background: #07101d;
+        }
+
+        .awd-brand h1 {
+          font-size: 22px;
+          margin: 0;
+          letter-spacing: .2px;
+        }
+
+        .awd-brand p {
+          margin: 2px 0 0;
+          color: #9aa9bf;
+          font-size: 12px;
+        }
+
+        .awd-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        /*
+          نحافظ على AccountMenu ووظيفته،
+          لكن نخفي شعار AllWDbook الموجود داخله
+          ونظهر مكانه أيقونة صغيرة.
+        */
+        .awd-actions button:has(
+          img[alt="AllWDbook"]
+        ) {
+          width: 42px;
+          height: 42px;
+          padding: 0;
+        }
+
+        .awd-actions button:has(
+          img[alt="AllWDbook"]
+        ) img {
+          display: none;
+        }
+
+        .awd-actions button:has(
+          img[alt="AllWDbook"]
+        )::after {
+          content: "☰";
+          font-size: 19px;
+          color: #eef4ff;
+        }
+
+        .awd-lang {
+          border: 1px solid
+            rgba(255,255,255,.12);
+          background: #101b2c;
+          color: #fff;
+          border-radius: 12px;
+          padding: 10px 12px;
+          cursor: pointer;
+        }
+
+        .awd-market {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 10px;
+          padding: 14px 0;
+        }
+
+        .awd-market select {
+          width: auto;
+          min-width: 170px;
+        }
+
+        .awd-hero {
+          margin-top: 10px;
+          border: 1px solid
+            rgba(255,255,255,.10);
+          border-radius: 24px;
+          padding: 28px;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 0;
+          align-items: center;
+          text-align: center;
+          background:
+            radial-gradient(
+              circle at 85% 20%,
+              rgba(255,100,0,.18),
+              transparent 35%
+            ),
+            linear-gradient(
+              135deg,
+              #0a1728,
+              #101b32 60%,
+              #111c2d
+            );
+          overflow: hidden;
+        }
+
+        .awd-hero h2 {
+          font-size:
+            clamp(30px,5vw,56px);
+          line-height: 1.08;
+          margin: 0 0 14px;
+        }
+
+        .awd-hero h2 span {
+          color: #ff6a00;
+        }
+
+        .awd-hero p {
+          color: #aebbd0;
+          font-size: 16px;
+          line-height: 1.8;
+          max-width: 720px;
+          margin: 0 auto;
+        }
+
+        .awd-cta {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          margin-top: 20px;
+          justify-content: center;
+        }
+
+        .awd-cta button {
+          cursor: pointer;
+          border-radius: 12px;
+          padding: 12px 20px;
+          border: 1px solid
+            rgba(255,255,255,.14);
+          font-weight: 700;
+        }
+
+        .awd-primary {
+          background: #ff6a00;
+          color: #fff;
+        }
+
+        .awd-secondary {
+          background: #0c1625;
+          color: #fff;
+        }
+
+        /*
+          الثلاث نقاط في سطر واحد
+        */
+        .awd-features {
+          display: grid;
+          grid-template-columns:
+            repeat(3,1fr);
+          gap: 10px;
+          margin: 18px auto 0;
+          max-width: 760px;
+        }
+
+        .awd-feature {
+          border: 1px solid
+            rgba(255,255,255,.08);
+          background:
+            rgba(255,255,255,.025);
+          padding: 12px;
+          border-radius: 14px;
+          text-align: center;
+          color: #dce6f5;
+          font-size: 13px;
+        }
+
+        .awd-tools-head {
+          display: flex;
+          align-items: end;
+          justify-content: space-between;
+          gap: 12px;
+          margin: 28px 0 12px;
+        }
+
+        .awd-tools-head h2 {
+          margin: 0;
+          font-size: 25px;
+        }
+
+        .awd-tools-head p {
+          margin: 6px 0 0;
+          color: #9aa9bf;
+        }
+
+        .awd-tools-grid {
+          display: grid;
+          grid-template-columns:
+            repeat(3,1fr);
+          gap: 14px;
+        }
+
+        .awd-tool {
+          border: 1px solid
+            rgba(255,255,255,.09);
+          border-radius: 18px;
+          background:
+            linear-gradient(
+              145deg,
+              #0d192a,
+              #0a1422
+            );
+          padding: 18px;
+          min-height: 190px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          box-shadow:
+            0 12px 30px
+            rgba(0,0,0,.12);
+        }
+
+        /*
+          تصغير أيقونات الأدوات
+        */
+        .awd-icon {
+          width: 42px;
+          height: 42px;
+          display: grid;
+          place-items: center;
+          border-radius: 14px;
+          background:
+            rgba(255,106,0,.12);
+          font-size: 25px;
+        }
+
+        .awd-tool h3 {
+          margin: 12px 0 6px;
+          font-size: 17px;
+        }
+
+        .awd-tool p {
+          margin: 0;
+          color: #93a2b7;
+          font-size: 13px;
+          line-height: 1.6;
+        }
+
+        .awd-use {
+          margin-top: 14px;
+          width: 100%;
+          border: 1px solid
+            rgba(255,255,255,.12);
+          background: #101d2e;
+          color: #fff;
+          border-radius: 10px;
+          padding: 10px;
+          cursor: pointer;
+        }
+
+        .awd-use:hover {
+          border-color: #ff6a00;
+        }
+
+        /*
+          مكان العمل
+        */
+        .awd-workspace {
+          margin-top: 18px;
+          border: 1px solid
+            rgba(255,255,255,.10);
+          border-radius: 20px;
+          padding: 16px;
+          background:
+            linear-gradient(
+              145deg,
+              #0d192a,
+              #0a1422
+            );
+          scroll-margin-top: 82px;
+        }
+
+        .awd-workspace-head {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 12px;
+        }
+
+        .awd-workspace-kicker {
+          display: inline-block;
+          color: #ff7a18;
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 1.4px;
+          margin-bottom: 4px;
+        }
+
+        .awd-workspace-head h2 {
+          margin: 0;
+          font-size: 21px;
+        }
+
+        .awd-workspace-head p {
+          margin: 5px 0 0;
+          color: #93a2b7;
+          font-size: 12px;
+          line-height: 1.6;
+        }
+
+        .awd-workspace-body {
+          border: 1px solid
+            rgba(255,255,255,.07);
+          border-radius: 16px;
+          padding: 4px;
+          background: #091321;
+          overflow: hidden;
+        }
+
+        .awd-workspace-body > .card {
+          margin: 0;
+        }
+
+        .awd-sub {
+          margin-top: 18px;
+          border: 1px solid
+            rgba(255,255,255,.08);
+          border-radius: 20px;
+          padding: 20px;
+          background:
+            linear-gradient(
+              100deg,
+              #0d1829,
+              #121d2d
+            );
+        }
+
+        .awd-sub-row {
+          display: flex;
+          justify-content: space-between;
+          gap: 18px;
+          align-items: center;
+        }
+
+        .awd-progress {
+          height: 8px;
+          background: #1d293a;
+          border-radius: 99px;
+          overflow: hidden;
+          margin: 12px 0;
+        }
+
+        .awd-progress span {
+          display: block;
+          width: 35%;
+          height: 100%;
+          background: #ff6a00;
+          border-radius: 99px;
+        }
+
+        .awd-upgrade {
+          border: 0;
+          background: #ff6a00;
+          color: #fff;
+          border-radius: 10px;
+          padding: 10px 18px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+
+        .awd-disclaimer {
+          margin-top: 18px;
+          text-align: center;
+          color: #74849b;
+          font-size: 11px;
+          line-height: 1.7;
+        }
+
+        .awd-footer {
+          margin-top: 28px;
+          padding: 18px 0;
+          text-align: center;
+          color: #7f8da2;
+          border-top: 1px solid
+            rgba(255,255,255,.08);
+        }
+
+        .awd-footer img {
+          width: 44px;
+          height: 44px;
+          object-fit: contain;
+          vertical-align: middle;
+          margin-inline-end: 8px;
+        }
+
+        @media(max-width:820px) {
+          .awd-shell {
+            width:
+              min(
+                100% - 18px,
+                620px
+              );
+          }
+
+          .awd-header {
+            padding: 10px 0;
+          }
+
+          .awd-logo {
+            width: 44px;
+            height: 44px;
+          }
+
+          .awd-brand h1 {
+            font-size: 18px;
+          }
+
+          .awd-brand p {
+            font-size: 10px;
+          }
+
+          .awd-market {
+            justify-content: stretch;
+          }
+
+          .awd-market select {
+            width: 100%;
+          }
+
+          .awd-hero {
+            padding: 20px;
+          }
+
+          .awd-hero h2 {
+            font-size: 32px;
+          }
+
+          .awd-hero p {
+            font-size: 14px;
+          }
+
+          .awd-cta button {
+            flex: 1;
+            min-width: 130px;
+          }
+
+          /*
+            آمن + نتائج سريعة + أدوات احترافية
+            في سطر واحد
+          */
+          .awd-features {
+            grid-template-columns:
+              repeat(3,1fr);
+            gap: 6px;
+          }
+
+          .awd-feature {
+            padding: 9px 5px;
+            font-size: 11px;
+          }
+
+          .awd-tools-head {
+            align-items: start;
+            flex-direction: column;
+          }
+
+          .awd-tools-grid {
+            grid-template-columns:
+              repeat(2,1fr);
+            gap: 10px;
+          }
+
+          .awd-tool {
+            padding: 14px;
+            min-height: 180px;
+          }
+
+          .awd-icon {
+            width: 38px;
+            height: 38px;
+            font-size: 21px;
+          }
+
+          .awd-tool h3 {
+            font-size: 15px;
+          }
+
+          .awd-tool p {
+            font-size: 12px;
+          }
+
+          .awd-sub-row {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .awd-upgrade {
+            width: 100%;
+          }
+        }
+
+        @media(max-width:480px) {
+          .awd-tools-grid {
+            grid-template-columns:
+              1fr 1fr;
+          }
+
+          .awd-tool {
+            min-height: 175px;
+          }
+
+          .awd-icon {
+            width: 34px;
+            height: 34px;
+            font-size: 18px;
+          }
+
+          .awd-brand p {
+            display: none;
+          }
+
+          .awd-hero h2 {
+            font-size: 28px;
+          }
+
+          .awd-feature {
+            font-size: 10px;
+            padding: 8px 3px;
+          }
+
+          .awd-workspace {
+            padding: 12px;
+            border-radius: 17px;
+          }
+
+          .awd-workspace-head h2 {
+            font-size: 19px;
+          }
+
+          .awd-workspace-head p {
+            font-size: 11px;
+          }
+
+          .awd-workspace-body {
+            padding: 2px;
+          }
+        }
+      `}</style>
+
+      <div className="awd-shell">
+
+        <header className="awd-header">
+
+          <div className="awd-brand">
+
+            <img
+              className="awd-logo"
+              src="/logov3.png"
+              alt="AllWDbook"
+            />
+
+            <div>
+              <h1>AllWDbook</h1>
+              <p>
+                KDP Tools &
+                Digital Publishing
+              </p>
+            </div>
+
+          </div>
+
+          <div className="awd-actions">
+
+            <AccountMenu />
+
+            <button
+              className="awd-lang"
+              type="button"
+              onClick={() =>
+                setLang(
+                  lang === "ar"
+                    ? "en"
+                    : "ar"
+                )
+              }
+              aria-label={
+                lang === "ar"
+                  ? "Switch to English"
+                  : "التبديل إلى العربية"
+              }
+            >
+              {lang === "ar"
+                ? "🇺🇸 English"
+                : "🇩🇿 العربية"}
+            </button>
+
+          </div>
+
+        </header>
+
+        <div className="awd-market">
+
+          <label
+            className="mut"
+            htmlFor="marketplace"
+          >
+            {t.marketplace}
+          </label>
+
+          <select
+            id="marketplace"
+            value={domain}
+            onChange={(event) =>
+              setDomain(
+                event.target.value
+              )
+            }
+          >
+            {DOMAINS.map(
+              (item) => (
+                <option
+                  key={item}
+                  value={item}
+                >
+                  {item}
+                </option>
+              )
+            )}
+          </select>
+
+        </div>
+
+        <section className="awd-hero">
+
+          <div>
+
+            <h2>
+              {lang === "en" ? (
+                <>
+                  Everything you need
+                  to succeed with{" "}
+                  <span>KDP</span>
+                </>
+              ) : (
+                <>
+                  كل ما تحتاجه للنجاح
+                  في{" "}
+                  <span>KDP</span>
+                </>
+              )}
+            </h2>
+
+            <p>
+              {lang === "en"
+                ? "Professional tools for research, keywords, covers, calculations and digital publishing — in one place."
+                : "مجموعة متكاملة من الأدوات الاحترافية للبحث والكلمات المفتاحية وتصميم الأغلفة والحسابات والنشر الرقمي في مكان واحد."}
+            </p>
+
+            <div className="awd-cta">
+
+              <button
+                className="awd-primary"
+                type="button"
+                onClick={() =>
+                  openTool(1)
+                }
+              >
+                {lang === "en"
+                  ? "Start Free 🚀"
+                  : "ابدأ مجانًا 🚀"}
+              </button>
+
+              <button
+                className="awd-secondary"
+                type="button"
+                onClick={() =>
+                  document
+                    .getElementById(
+                      "awd-tools"
+                    )
+                    ?.scrollIntoView({
+                      behavior:
+                        "smooth",
+                      block: "start",
+                    })
+                }
+              >
+                {lang === "en"
+                  ? "Explore Tools ▦"
+                  : "استكشف الأدوات ▦"}
+              </button>
+
+            </div>
+
+            <div className="awd-features">
+
+              <div className="awd-feature">
+                🛡️{" "}
+                {lang === "en"
+                  ? "Secure"
+                  : "آمن"}
+              </div>
+
+              <div className="awd-feature">
+                ⚡{" "}
+                {lang === "en"
+                  ? "Fast Results"
+                  : "نتائج سريعة"}
+              </div>
+
+              <div className="awd-feature">
+                ✓{" "}
+                {lang === "en"
+                  ? "Professional Tools"
+                  : "أدوات احترافية"}
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        <section id="awd-tools">
+
+          <div className="awd-tools-head">
+
+            <div>
+
+              <h2>
+                {lang === "en"
+                  ? "Professional KDP Tools"
+                  : "أدوات KDP الاحترافية"}
+              </h2>
+
+              <p>
+                {lang === "en"
+                  ? "Choose the tool you need. Its workspace will open below without changing the existing tool logic."
+                  : "اختر الأداة التي تحتاجها، وسيظهر مكان العمل الخاص بها أسفل الأدوات مباشرة دون تغيير الأكواد الحالية."}
+              </p>
+
+            </div>
+
+          </div>
+
+          <div className="awd-tools-grid">
+
+            {tools.map(
+              (tool) => (
+                <article
+                  className="awd-tool"
+                  key={tool.id}
+                >
+
+                  <div>
+
+                    <div className="awd-icon">
+                      {tool.icon}
+                    </div>
+
+                    <h3>
+                      {tool.title}
+                    </h3>
+
+                    <p>
+                      {tool.text}
+                    </p>
+
+                  </div>
+
+                  <button
+                    className="awd-use"
+                    type="button"
+                    onClick={() =>
+                      openTool(
+                        tool.id
+                      )
+                    }
+                  >
+                    {lang === "en"
+                      ? "Use Tool"
+                      : "استخدم الأداة"}
+                  </button>
+
+                </article>
+              )
+            )}
+
+          </div>
+
+        </section>
+
+        <section
+          id="awd-workspace"
+          className="awd-workspace"
+        >
+
+          <div className="awd-workspace-head">
+
+            <div>
+
+              <span className="awd-workspace-kicker">
+                {lang === "en"
+                  ? "WORKSPACE"
+                  : "مكان العمل"}
+              </span>
+
+              <h2>
+                {lang === "en"
+                  ? "Your selected tool"
+                  : "الأداة التي اخترتها"}
+              </h2>
+
+              <p>
+                {lang === "en"
+                  ? "The selected tool appears here. Your existing functionality remains unchanged."
+                  : "ستظهر هنا الأداة التي اخترتها مع جميع وظائفها الحالية، بدون تغيير منطقها أو أدائها."}
+              </p>
+
+            </div>
+
+          </div>
+
+          <div className="awd-workspace-body">
+
+            {tab === 6 && (
+              <CoverTool
+                lang={lang}
+              />
+            )}
+
+            {tab === 1 && (
+              <Niches
+                t={t}
+                lang={lang}
+                domain={domain}
+                onAnalyze={
+                  sendToKeywords
+                }
+              />
+            )}
+
+            {tab === 0 && (
+              <KeywordsPanel
+                t={t}
+                domain={domain}
+                seed={seedKw}
+              />
+            )}
+
+            {tab === 5 && (
+              <Calc
+                t={t}
+                domain={domain}
+              />
+            )}
+
+            {tab === 4 && (
+              <Formatter
+                t={t}
+              />
+            )}
+
+          </div>
+
+        </section>
+
+        <section className="awd-sub">
+
+          <div className="awd-sub-row">
+
+            <div>
+
+              <strong
+                style={{
+                  fontSize: 18,
+                }}
+              >
+                {lang === "en"
+                  ? "Subscription"
+                  : "خطة الاشتراك"}
+              </strong>
+
+              <div
+                className="mut"
+                style={{
+                  marginTop: 4,
+                }}
+              >
+                {lang === "en"
+                  ? "Your usage and plan will continue using the current system."
+                  : "سيستمر نظام الاستخدام والاشتراك الحالي كما هو."}
+              </div>
+
+            </div>
+
+            <button
+              className="awd-upgrade"
+              type="button"
+              onClick={() =>
+                window.location.href =
+                  "/upgrade"
+              }
+            >
+              {lang === "en"
+                ? "Upgrade ⚡"
+                : "ترقية الخطة ⚡"}
+            </button>
+
+          </div>
+
+          <div className="awd-progress">
+            <span />
+          </div>
+
+        </section>
+
+        <div className="awd-disclaimer">
+          {lang === "en"
+            ? "AllWDbook is an independent tool and is not affiliated with, endorsed by, or sponsored by Amazon.com, Inc."
+            : "AllWDbook أداة مستقلة وليست تابعة لشركة Amazon.com, Inc. أو معتمدة أو مدعومة من طرفها."}
+        </div>
+
+        <footer className="awd-footer">
+
+          <img
+            src="/logov3.png"
+            alt="AllWDbook"
+          />
+
+          <span>
+            {t.by}{" "}
+            <b>
+              All World Digital
+            </b>{" "}
+            ©{" "}
+            {new Date().getFullYear()}{" "}
+            · {t.rights}
+          </span>
+
+        </footer>
+
+      </div>
+
+    </div>
+  );
 }
 
 function Niches({
-t,
-lang,
-domain,
-onAnalyze,
+  t,
+  lang,
+  domain,
+  onAnalyze,
 }) {
+  const [
+    category,
+    setCategory,
+  ] = useState("coloring");
+
+  const [
+    count,
+    setCount,
+  ] = useState(24);
+
+  const [
+    rows,
+    setRows,
+  ] = useState([]);
+
+  const [
+    busy,
+    setBusy,
+  ] = useState(false);
+
+  const [
+    copied,
+    setCopied,
+  ] = useState(false);
+
+  const [
+    upgradeOpen,
+    setUpgradeOpen,
+  ] = useState(false);
+
+  async function canUseMicroNiche() {
+
+    const supabase =
+      getSupabase();
+
+    let {
+      data: {
+        session,
+      },
+    } =
+      await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+
+      const {
+        data,
+        error,
+      } =
+        await supabase.auth
+          .signInAnonymously();
+
+      if (error) {
+
+        console.error(
+          "Anonymous sign-in failed:",
+          error
+        );
+
+        return false;
+      }
+
+      session =
+        data?.session ||
+        null;
+    }
+
+    if (!session?.access_token) {
+      return false;
+    }
+
+    const blocked =
+      await shouldBlockRememberedLimit(
+        "microNiche",
+        session.access_token
+      );
+
+    if (blocked) {
+      setUpgradeOpen(true);
+      return false;
+    }
 
-const [
-category,
-setCategory,
-] = useState(
-"coloring",
-);
-
-const [
-count,
-setCount,
-] = useState(24);
-
-const [
-rows,
-setRows,
-] = useState([]);
-
-const [
-busy,
-setBusy,
-] = useState(false);
-
-const [
-copied,
-setCopied,
-] = useState(false);
-
-const [
-upgradeOpen,
-setUpgradeOpen,
-] = useState(false);
-
-async function canUseMicroNiche() {
-
-const supabase =
-getSupabase();
-
-let {
-data: {
-session,
-},
-} =
-await supabase.auth.getSession();
-
-if (!session?.access_token) {
-
-const {
-data,
-error,
-} =
-await supabase.auth.signInAnonymously();
-
-if (error) {
-
-console.error(
-"Anonymous sign-in failed:",
-error,
-);
-
-return false;
-}
-
-session =
-data?.session ||
-null;
-}
-
-if (!session?.access_token) {
-return false;
-}
-
-const blocked =
-await shouldBlockRememberedLimit(
-"microNiche",
-session.access_token,
-);
-
-if (blocked) {
-setUpgradeOpen(true);
-return false;
-}
-
-const response =
-await fetch(
-"/api/usage/consume",
-{
-method: "POST",
-
-headers: {
-"Content-Type":
-"application/json",
-
-Authorization:
-`Bearer ${session.access_token}`,
-},
-
-body:
-JSON.stringify({
-toolId:
-"microNiche",
-}),
-},
-);
+    const response =
+      await fetch(
+        "/api/usage/consume",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${session.access_token}`,
+          },
+
+          body:
+            JSON.stringify({
+              toolId:
+                "microNiche",
+            }),
+        }
+      );
 
-const data =
-await response
-.json()
-.catch(
-() => ({}),
-);
+    const data =
+      await response
+        .json()
+        .catch(
+          () => ({})
+        );
 
-if (
-!response.ok &&
-data?.error ===
-"DAILY_LIMIT_REACHED"
-) {
+    if (
+      !response.ok &&
+      data?.error ===
+        "DAILY_LIMIT_REACHED"
+    ) {
 
-setUpgradeOpen(
-true,
-);
+      setUpgradeOpen(true);
 
-return false;
-}
+      return false;
+    }
 
-return response.ok;
-}
+    return response.ok;
+  }
 
-async function load() {
+  async function load() {
 
-setBusy(true);
+    setBusy(true);
 
-const seed =
-String(
-Date.now(),
-);
+    const seed =
+      String(Date.now());
 
-try {
+    try {
 
-const allowed =
-await canUseMicroNiche();
+      const allowed =
+        await canUseMicroNiche();
 
-if (!allowed) {
-return;
-}
+      if (!allowed) {
+        return;
+      }
 
-const response =
-await fetch(
-"/api/niches?cat=" +
-category +
-"&domain=" +
-domain +
-"&count=" +
-count +
-"&seed=" +
-seed,
-);
+      const response =
+        await fetch(
+          "/api/niches?cat=" +
+            category +
+            "&domain=" +
+            domain +
+            "&count=" +
+            count +
+            "&seed=" +
+            seed
+        );
 
-const data =
-await response.json();
+      const data =
+        await response.json();
 
-setRows(
-data.rows || [],
-);
+      setRows(
+        data.rows || []
+      );
 
-} catch {
+    } catch {
 
-setRows([]);
+      setRows([]);
 
-} finally {
+    } finally {
 
-setBusy(false);
+      setBusy(false);
 
-}
-}
-
-async function validateCurrent() {
-
-setBusy(true);
-
-try {
-
-const allowed =
-await canUseMicroNiche();
-
-if (!allowed) {
-return;
-}
-
-const response =
-await fetch(
-"/api/niches?cat=" +
-category +
-"&domain=" +
-domain +
-"&count=" +
-count +
-"&seed=fixed&validate=1",
-);
-
-const data =
-await response.json();
-
-setRows(
-data.rows || [],
-);
-
-} catch {
-
-setRows([]);
-
-} finally {
-
-setBusy(false);
-
-}
-}
-
-function copyAll() {
-
-navigator.clipboard.writeText(
-rows
-.map(
-(row) =>
-row.keyword,
-)
-.join("\n"),
-);
-
-setCopied(true);
-
-setTimeout(() => {
-setCopied(false);
-}, 1800);
-}
-
-function categoryLabel(key) {
-
-return lang === "ar"
-? NICHE_CATEGORIES[
-key
-].ar
-: NICHE_CATEGORIES[
-key
-].en;
-}
-
-return (
-
-<div className="card">
-
-<div className="trustNote">
-<p>
-{t.nicheNote}
-</p>
-</div>
-
-<label className="mut">
-{t.nicheCat}
-</label>
-
-<select
-value={category}
-onChange={(event) =>
-setCategory(
-event.target.value,
-)
-}
->
-
-{Object.keys(
-NICHE_CATEGORIES,
-).map(
-(key) => (
-<option
-key={key}
-value={key}
->
-{categoryLabel(
-key,
-)}
-</option>
-),
-)}
-
-</select>
-
-<label className="mut">
-{t.nicheCount}
-</label>
-
-<select
-value={count}
-onChange={(event) =>
-setCount(
-Number(
-event.target.value,
-),
-)
-}
->
-
-{[
-12,
-24,
-40,
-60,
-].map(
-(number) => (
-<option
-key={number}
-value={number}
->
-{number}
-</option>
-),
-)}
-
-</select>
-
-<button
-className="go"
-onClick={load}
-disabled={busy}
->
-{busy
-? t.working
-: rows.length
-? t.nicheMore
-: t.nicheGen}
-</button>
-
-{rows.length > 0 && (
-
-<>
-
-<div className="actionRow">
-
-<button
-className="mini"
-onClick={
-validateCurrent
-}
-disabled={busy}
->
-{t.nicheValidate}
-</button>
-
-<button
-className="mini"
-onClick={copyAll}
->
-{copied
-? t.copied
-: t.copy}
-</button>
-
-</div>
-
-{rows.map(
-(row) => (
-
-<div
-key={
-row.keyword
-}
-className="nrow"
->
-
-<span
-className="nicheText"
->
-
-{row.keyword}
-
-{row.longTail && (
-
-<small
-className="mut"
->
-{" "}
-·{" "}
-{t.longTail}
-</small>
-
-)}
-
-</span>
-
-<span
-className="nicheActions"
->
-
-<span
-className={
-"badge " +
-(
-row.demand
-? "b-" +
-row.demand
-: "b-none"
-)
-}
->
-
-{row.demand
-? t[
-row.demand
-] ||
-row.demand
-: t.untested}
-
-</span>
-
-<button
-className="mini"
-onClick={() =>
-onAnalyze(
-row.keyword,
-)
-}
->
-{t.analyzeThis}
-</button>
-
-</span>
-
-</div>
-
-),
-)}
-
-</>
-
-)}
-
-<UpgradePrompt
-open={upgradeOpen}
-toolId="microNiche"
-onClose={() =>
-setUpgradeOpen(
-false,
-)
-}
-/>
-
-</div>
-
-);
+    }
+  }
+
+  async function validateCurrent() {
+
+    setBusy(true);
+
+    try {
+
+      const allowed =
+        await canUseMicroNiche();
+
+      if (!allowed) {
+        return;
+      }
+
+      const response =
+        await fetch(
+          "/api/niches?cat=" +
+            category +
+            "&domain=" +
+            domain +
+            "&count=" +
+            count +
+            "&seed=fixed&validate=1"
+        );
+
+      const data =
+        await response.json();
+
+      setRows(
+        data.rows || []
+      );
+
+    } catch {
+
+      setRows([]);
+
+    } finally {
+
+      setBusy(false);
+
+    }
+  }
+
+  function copyAll() {
+
+    navigator.clipboard.writeText(
+      rows
+        .map(
+          (row) =>
+            row.keyword
+        )
+        .join("\n")
+    );
+
+    setCopied(true);
+
+    setTimeout(
+      () =>
+        setCopied(false),
+      1800
+    );
+  }
+
+  function categoryLabel(key) {
+
+    return lang === "ar"
+      ? NICHE_CATEGORIES[
+          key
+        ].ar
+      : NICHE_CATEGORIES[
+          key
+        ].en;
+  }
+
+  return (
+    <div className="card">
+
+      <div className="trustNote">
+        <p>
+          {t.nicheNote}
+        </p>
+      </div>
+
+      <label className="mut">
+        {t.nicheCat}
+      </label>
+
+      <select
+        value={category}
+        onChange={(event) =>
+          setCategory(
+            event.target.value
+          )
+        }
+      >
+        {Object.keys(
+          NICHE_CATEGORIES
+        ).map(
+          (key) => (
+            <option
+              key={key}
+              value={key}
+            >
+              {categoryLabel(
+                key
+              )}
+            </option>
+          )
+        )}
+      </select>
+
+      <label className="mut">
+        {t.nicheCount}
+      </label>
+
+      <select
+        value={count}
+        onChange={(event) =>
+          setCount(
+            Number(
+              event.target.value
+            )
+          )
+        }
+      >
+        {[12,24,40,60].map(
+          (number) => (
+            <option
+              key={number}
+              value={number}
+            >
+              {number}
+            </option>
+          )
+        )}
+      </select>
+
+      <button
+        className="go"
+        onClick={load}
+        disabled={busy}
+      >
+        {busy
+          ? t.working
+          : rows.length
+            ? t.nicheMore
+            : t.nicheGen}
+      </button>
+
+      {rows.length > 0 && (
+        <>
+
+          <div className="actionRow">
+
+            <button
+              className="mini"
+              onClick={
+                validateCurrent
+              }
+              disabled={busy}
+            >
+              {t.nicheValidate}
+            </button>
+
+            <button
+              className="mini"
+              onClick={copyAll}
+            >
+              {copied
+                ? t.copied
+                : t.copy}
+            </button>
+
+          </div>
+
+          {rows.map(
+            (row) => (
+              <div
+                key={
+                  row.keyword
+                }
+                className="nrow"
+              >
+
+                <span className="nicheText">
+
+                  {row.keyword}
+
+                  {row.longTail && (
+                    <small className="mut">
+                      {" "}
+                      ·{" "}
+                      {t.longTail}
+                    </small>
+                  )}
+
+                </span>
+
+                <span className="nicheActions">
+
+                  <span
+                    className={
+                      "badge " +
+                      (
+                        row.demand
+                          ? "b-" +
+                            row.demand
+                          : "b-none"
+                      )
+                    }
+                  >
+                    {row.demand
+                      ? t[
+                          row.demand
+                        ] ||
+                        row.demand
+                      : t.untested}
+                  </span>
+
+                  <button
+                    className="mini"
+                    onClick={() =>
+                      onAnalyze(
+                        row.keyword
+                      )
+                    }
+                  >
+                    {t.analyzeThis}
+                  </button>
+
+                </span>
+
+              </div>
+            )
+          )}
+
+        </>
+      )}
+
+      <UpgradePrompt
+        open={
+          upgradeOpen
+        }
+        toolId="microNiche"
+        onClose={() =>
+          setUpgradeOpen(false)
+        }
+      />
+
+    </div>
+  );
 }
 
 function escapeHtml(value) {
-
-return String(value)
-.replaceAll(
-"&",
-"&amp;",
-)
-.replaceAll(
-"<",
-"&lt;",
-)
-.replaceAll(
-">",
-"&gt;",
-)
-.replaceAll(
-'"',
-"&quot;",
-)
-.replaceAll(
-"'",
-"&#039;",
-);
+  return String(value)
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 }
 
-function formatDescription(value) {
-
-return value
-.slice(0,4000)
-.split("\n\n")
-.map(
-(paragraph) =>
-paragraph.trim(),
-)
-.filter(Boolean)
-.map(
-(paragraph) => {
-
-if (
-paragraph.startsWith(
-"- ",
-)
+function formatDescription(
+  value
 ) {
 
-const list =
-paragraph
-.split("\n")
-.filter(Boolean)
-.map(
-(line) => {
+  return value
+    .slice(0,4000)
+    .split("\n\n")
+    .map(
+      (paragraph) =>
+        paragraph.trim()
+    )
+    .filter(Boolean)
+    .map(
+      (paragraph) => {
 
-const cleanLine =
-line.startsWith(
-"- ",
-)
-? line.slice(2)
-: line;
+        if (
+          paragraph.startsWith(
+            "- "
+          )
+        ) {
 
-return (
-"<li>" +
-escapeHtml(
-cleanLine,
-) +
-"</li>"
-);
+          const list =
+            paragraph
+              .split("\n")
+              .filter(Boolean)
+              .map(
+                (line) => {
 
-},
-)
-.join("");
+                  const cleanLine =
+                    line.startsWith(
+                      "- "
+                    )
+                      ? line.slice(2)
+                      : line;
 
-return (
-"<ul>" +
-list +
-"</ul>"
-);
-}
+                  return (
+                    "<li>" +
+                    escapeHtml(
+                      cleanLine
+                    ) +
+                    "</li>"
+                  );
+                }
+              )
+              .join("");
 
-if (
-paragraph.startsWith(
-"# ",
-)
-) {
+          return (
+            "<ul>" +
+            list +
+            "</ul>"
+          );
+        }
 
-return (
-"<h4>" +
-escapeHtml(
-paragraph.slice(2),
-) +
-"</h4>"
-);
-}
+        if (
+          paragraph.startsWith(
+            "# "
+          )
+        ) {
 
-return (
-"<p>" +
-escapeHtml(
-paragraph,
-).replaceAll(
-"\n",
-"NLBR",
-) +
-"</p>"
-);
+          return (
+            "<h4>" +
+            escapeHtml(
+              paragraph.slice(2)
+            ) +
+            "</h4>"
+          );
+        }
 
-},
-)
-.join("");
+        return (
+          "<p>" +
+          escapeHtml(
+            paragraph
+          ).replaceAll(
+            "\n",
+            "\u0001NLBR\u0001"
+          ) +
+          "</p>"
+        );
+      }
+    )
+    .join("");
 }
 
 function Formatter({
-t,
+  t,
 }) {
 
-const [
-value,
-setValue,
-] = useState("");
+  const [
+    value,
+    setValue,
+  ] = useState("");
 
-const [
-copied,
-setCopied,
-] = useState(false);
+  const [
+    copied,
+    setCopied,
+  ] = useState(false);
 
-const html =
-formatDescription(
-value,
-);
+  const html =
+    formatDescription(
+      value
+    );
 
-async function copyHtml() {
+  async function copyHtml() {
 
-await navigator.clipboard.writeText(
-html,
-);
+    await navigator.clipboard.writeText(
+      html
+    );
 
-setCopied(true);
+    setCopied(true);
 
-setTimeout(() => {
-setCopied(false);
-},1600);
-}
+    setTimeout(
+      () =>
+        setCopied(false),
+      1600
+    );
+  }
 
-return (
+  return (
+    <div className="card">
 
-<div className="card">
+      <p className="mut">
+        {t.fmtNote}
+      </p>
 
-<p className="mut">
-{t.fmtNote}
-</p>
+      <textarea
+        rows={8}
+        maxLength={4000}
+        value={value}
+        onChange={(event) =>
+          setValue(
+            event.target.value
+          )
+        }
+      />
 
-<textarea
-rows={8}
-maxLength={4000}
-value={value}
-onChange={(event) =>
-setValue(
-event.target.value,
-)
-}
-/>
+      <h3>
+        {t.preview}
+      </h3>
 
-<h3>
-{t.preview}
-</h3>
+      <div
+        className="prev"
+        dangerouslySetInnerHTML={{
+          __html: html,
+        }}
+      />
 
-<div
-className="prev"
-dangerouslySetInnerHTML={{
-__html:html,
-}}
-/>
+      <div className="formatterHead">
 
-<div
-className="formatterHead"
->
+        <h3>
+          {t.htmlCode}
+        </h3>
 
-<h3>
-{t.htmlCode}
-</h3>
+        <button
+          className="mini"
+          onClick={copyHtml}
+        >
+          {copied
+            ? t.copied
+            : t.copyHtml}
+        </button>
 
-<button
-className="mini"
-onClick={copyHtml}
->
-{copied
-? t.copied
-: t.copyHtml}
-</button>
+      </div>
 
-</div>
+      <textarea
+        rows={5}
+        readOnly
+        value={html}
+      />
 
-<textarea
-rows={5}
-readOnly
-value={html}
-/>
+      <p className="mut">
+        {t.chars}:{" "}
+        {value.length}/4000
+      </p>
 
-<p className="mut">
-{t.chars}:{" "}
-{value.length}
-/4000
-</p>
-
-</div>
-
-);
+    </div>
+  );
 }
 
 function Calc({
-t,
-domain,
+  t,
+  domain,
 }) {
 
-const [
-price,
-setPrice,
-] =
-useState(12.99);
+  const [
+    price,
+    setPrice,
+  ] = useState(12.99);
 
-const [
-pages,
-setPages,
-] =
-useState(120);
+  const [
+    pages,
+    setPages,
+  ] = useState(120);
 
-const [
-ink,
-setInk,
-] =
-useState("black");
+  const [
+    ink,
+    setInk,
+  ] = useState(
+    "black"
+  );
 
-const [
-large,
-setLarge,
-] =
-useState(false);
+  const [
+    large,
+    setLarge,
+  ] = useState(false);
 
-const market =
-marketInfo(
-domain,
-);
+  const market =
+    marketInfo(
+      domain
+    );
 
-const options = {
-domain,
-ink,
-large,
-};
+  const options = {
+    domain,
+    ink,
+    large,
+  };
 
-const cost =
-printCost(
-pages,
-options,
-);
+  const cost =
+    printCost(
+      pages,
+      options
+    );
 
-const rate =
-royaltyRate(
-price,
-domain,
-);
+  const rate =
+    royaltyRate(
+      price,
+      domain
+    );
 
-const royalty =
-royaltyPerUnit(
-price,
-pages,
-options,
-);
+  const royalty =
+    royaltyPerUnit(
+      price,
+      pages,
+      options
+    );
 
-return (
+  return (
+    <div className="card">
 
-<div className="card">
+      <div className="trustNote">
 
-<div className="trustNote">
+        <p>
+          <b>
+            {t.marketplace}:
+          </b>{" "}
+          {domain} ·{" "}
+          {market.currency}
+        </p>
 
-<p>
+        <small>
+          {t.calcNote}
+        </small>
 
-<b>
-{t.marketplace}:
-</b>{" "}
-{domain} ·{" "}
-{market.currency}
+      </div>
 
-</p>
+      <label className="mut">
+        {t.price}
+      </label>
 
-<small>
-{t.calcNote}
-</small>
+      <input
+        type="number"
+        min="0"
+        step="0.01"
+        value={price}
+        onChange={(event) =>
+          setPrice(
+            Number(
+              event.target.value
+            )
+          )
+        }
+      />
 
-</div>
+      <label className="mut">
+        {t.pages}
+      </label>
 
-<label className="mut">
-{t.price}
-</label>
+      <input
+        type="number"
+        min="24"
+        max="828"
+        value={pages}
+        onChange={(event) =>
+          setPages(
+            Number(
+              event.target.value
+            )
+          )
+        }
+      />
 
-<input
-type="number"
-min="0"
-step="0.01"
-value={price}
-onChange={(event) =>
-setPrice(
-Number(
-event.target.value,
-),
-)
-}
-/>
+      <label className="mut">
+        {t.printType}
+      </label>
 
-<label className="mut">
-{t.pages}
-</label>
+      <select
+        value={ink}
+        onChange={(event) =>
+          setInk(
+            event.target.value
+          )
+        }
+      >
 
-<input
-type="number"
-min="24"
-max="828"
-value={pages}
-onChange={(event) =>
-setPages(
-Number(
-event.target.value,
-),
-)
-}
-/>
+        <option value="black">
+          {t.blackInk}
+        </option>
 
-<label className="mut">
-{t.printType}
-</label>
+        <option value="premium">
+          {t.premiumColor}
+        </option>
 
-<select
-value={ink}
-onChange={(event) =>
-setInk(
-event.target.value,
-)
-}
->
+        <option value="standard">
+          {t.standardColor}
+        </option>
 
-<option value="black">
-{t.blackInk}
-</option>
+      </select>
 
-<option value="premium">
-{t.premiumColor}
-</option>
+      <label className="mut">
+        {t.trimClass}
+      </label>
 
-<option value="standard">
-{t.standardColor}
-</option>
+      <select
+        value={
+          large
+            ? "large"
+            : "regular"
+        }
+        onChange={(event) =>
+          setLarge(
+            event.target.value ===
+              "large"
+          )
+        }
+      >
 
-</select>
+        <option value="regular">
+          {t.regularTrim}
+        </option>
 
-<label className="mut">
-{t.trimClass}
-</label>
+        <option value="large">
+          {t.largeTrim}
+        </option>
 
-<select
-value={
-large
-? "large"
-: "regular"
-}
-onChange={(event) =>
-setLarge(
-event.target.value ===
-"large",
-)
-}
->
+      </select>
 
-<option value="regular">
-{t.regularTrim}
-</option>
+      {cost === null ? (
 
-<option value="large">
-{t.largeTrim}
-</option>
+        <div className="trustNote warnNote">
 
-</select>
+          <p>
+            ⚠️{" "}
+            {t.invalidPrint}
+          </p>
 
-{cost === null ? (
+        </div>
 
-<div
-className="trustNote warnNote"
->
+      ) : (
 
-<p>
-⚠️{" "}
-{t.invalidPrint}
-</p>
+        <div className="grid resultSection">
 
-</div>
+          <div className="kpi">
 
-) : (
+            <b>
+              {market.symbol}
+              {cost.toFixed(2)}
+            </b>
 
-<div
-className="grid resultSection"
->
+            <span>
+              {t.printCost}
+            </span>
 
-<div className="kpi">
+          </div>
 
-<b>
-{market.symbol}
-{cost.toFixed(2)}
-</b>
+          <div className="kpi">
 
-<span>
-{t.printCost}
-</span>
+            <b>
+              {rate
+                ? Math.round(
+                    rate * 100
+                  ) + "%"
+                : "—"}
+            </b>
 
-</div>
+            <span>
+              {t.royaltyRate}
+            </span>
 
-<div className="kpi">
+          </div>
 
-<b>
+          <div className="kpi fullKpi">
 
-{rate
-? Math.round(
-rate * 100,
-) + "%"
-: "—"}
+            <b>
+              {royalty === null
+                ? "—"
+                : market.symbol +
+                  royalty.toFixed(2)}
+            </b>
 
-</b>
+            <span>
+              {t.royaltyUnit}
+            </span>
 
-<span>
-{t.royaltyRate}
-</span>
+          </div>
 
-</div>
+        </div>
 
-<div
-className="kpi fullKpi"
->
+      )}
 
-<b>
+      <p className="mut disclaimer">
+        ⚖️{" "}
+        {t.notAdvice}
+      </p>
 
-{royalty === null
-? "—"
-: market.symbol +
-royalty.toFixed(2)}
-
-</b>
-
-<span>
-{t.royaltyUnit}
-</span>
-
-</div>
-
-</div>
-
-)}
-
-<p className="mut disclaimer">
-⚖️{" "}
-{t.notAdvice}
-</p>
-
-</div>
-);
+    </div>
+  );
 }
