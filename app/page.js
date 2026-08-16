@@ -72,7 +72,10 @@ export default function Home() {
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem("awd_lang");
-    if (savedLanguage && T[savedLanguage]) setLang(savedLanguage);
+
+    if (savedLanguage && T[savedLanguage]) {
+      setLang(savedLanguage);
+    }
 
     function syncLanguage(event) {
       const nextLanguage =
@@ -185,96 +188,96 @@ export default function Home() {
       style={{ minHeight: "100vh" }}
     >
       <style jsx>{`
-        .awd-v2 {
-          background: #07101d;
-          color: #eef4ff;
-          min-height: 100vh;
-          padding-bottom: 30px;
+        .awd-v2{
+          background:#07101d;
+          color:#eef4ff;
+          min-height:100vh;
+          padding-bottom:30px
         }
 
-        .awd-shell {
-          width: min(1180px, calc(100% - 28px));
-          margin: 0 auto;
+        .awd-shell{
+          width:min(1180px,calc(100% - 28px));
+          margin:0 auto
         }
 
-        .awd-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 18px;
-          padding: 16px 0;
-          border-bottom: 1px solid rgba(255,255,255,.08);
-          position: sticky;
-          top: 0;
-          z-index: 30;
-          background: rgba(7,16,29,.94);
-          backdrop-filter: blur(14px);
+        .awd-header{
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:18px;
+          padding:16px 0;
+          border-bottom:1px solid rgba(255,255,255,.08);
+          position:sticky;
+          top:0;
+          z-index:30;
+          background:rgba(7,16,29,.94);
+          backdrop-filter:blur(14px)
         }
 
-        .awd-brand {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          min-width: 0;
+        .awd-brand{
+          display:flex;
+          align-items:center;
+          gap:12px;
+          min-width:0
         }
 
-        .awd-logo {
-          width: 54px;
-          height: 54px;
-          object-fit: contain;
-          border-radius: 14px;
-          background: #07101d;
+        .awd-logo{
+          width:54px;
+          height:54px;
+          object-fit:contain;
+          border-radius:14px;
+          background:#07101d
         }
 
-        .awd-brand h1 {
-          font-size: 22px;
-          margin: 0;
-          letter-spacing: .2px;
+        .awd-brand h1{
+          font-size:22px;
+          margin:0;
+          letter-spacing:.2px
         }
 
-        .awd-brand p {
-          margin: 2px 0 0;
-          color: #9aa9bf;
-          font-size: 12px;
+        .awd-brand p{
+          margin:2px 0 0;
+          color:#9aa9bf;
+          font-size:12px
         }
 
-        .awd-actions {
-          display: flex;
-          align-items: center;
-          gap: 8px;
+        .awd-actions{
+          display:flex;
+          align-items:center;
+          gap:8px
         }
 
-        .awd-lang {
-          border: 1px solid rgba(255,255,255,.12);
-          background: #101b2c;
-          color: #fff;
-          border-radius: 12px;
-          padding: 10px 12px;
-          cursor: pointer;
+        .awd-lang{
+          border:1px solid rgba(255,255,255,.12);
+          background:#101b2c;
+          color:#fff;
+          border-radius:12px;
+          padding:10px 12px;
+          cursor:pointer
         }
 
-        .awd-market {
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          gap: 10px;
-          padding: 14px 0;
+        .awd-market{
+          display:flex;
+          align-items:center;
+          justify-content:flex-end;
+          gap:10px;
+          padding:14px 0
         }
 
-        .awd-market select {
-          width: auto;
-          min-width: 170px;
+        .awd-market select{
+          width:auto;
+          min-width:170px
         }
 
-        .awd-hero {
-          margin-top: 10px;
-          border: 1px solid rgba(255,255,255,.10);
-          border-radius: 24px;
-          padding: 28px;
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 22px;
-          align-items: center;
+        .awd-hero{
+          margin-top:10px;
+          border:1px solid rgba(255,255,255,.10);
+          border-radius:24px;
+          padding:28px;
+          display:grid;
+          grid-template-columns:1.15fr .85fr;
+          gap:22px;
+          align-items:center;
           background:
             radial-gradient(
               circle at 85% 20%,
@@ -287,329 +290,368 @@ export default function Home() {
               #101b32 60%,
               #111c2d
             );
-          overflow: hidden;
+          overflow:hidden
         }
 
-        .awd-hero h2 {
-          font-size: clamp(30px,5vw,56px);
-          line-height: 1.08;
-          margin: 0 0 14px;
+        .awd-hero h2{
+          font-size:clamp(30px,5vw,56px);
+          line-height:1.08;
+          margin:0 0 14px
         }
 
-        .awd-hero h2 span {
-          color: #ff6a00;
+        .awd-hero h2 span{
+          color:#ff6a00
         }
 
-        .awd-hero p {
-          color: #aebbd0;
-          font-size: 16px;
-          line-height: 1.8;
-          max-width: 620px;
+        .awd-hero p{
+          color:#aebbd0;
+          font-size:16px;
+          line-height:1.8;
+          max-width:620px
         }
 
-        .awd-cta {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-          margin-top: 20px;
+        .awd-cta{
+          display:flex;
+          gap:10px;
+          flex-wrap:wrap;
+          margin-top:20px
         }
 
-        .awd-cta button {
-          cursor: pointer;
-          border-radius: 12px;
-          padding: 12px 20px;
-          border: 1px solid rgba(255,255,255,.14);
-          font-weight: 700;
+        .awd-cta button{
+          cursor:pointer;
+          border-radius:12px;
+          padding:12px 20px;
+          border:1px solid rgba(255,255,255,.14);
+          font-weight:700
         }
 
-        .awd-primary {
-          background: #ff6a00;
-          color: #fff;
+        .awd-primary{
+          background:#ff6a00;
+          color:#fff
         }
 
-        .awd-secondary {
-          background: #0c1625;
-          color: #fff;
+        .awd-secondary{
+          background:#0c1625;
+          color:#fff
         }
 
-        .awd-features {
-          display: grid;
-          grid-template-columns: repeat(3,1fr);
-          gap: 10px;
-          margin-top: 18px;
+        .awd-hero-logo{
+          display:flex;
+          justify-content:center;
+          align-items:center
         }
 
-        .awd-feature {
-          border: 1px solid rgba(255,255,255,.08);
-          background: rgba(255,255,255,.025);
-          padding: 12px;
-          border-radius: 14px;
-          text-align: center;
-          color: #dce6f5;
-          font-size: 13px;
+        .awd-hero-logo img{
+          width:min(360px,100%);
+          max-height:290px;
+          object-fit:contain;
+          filter:drop-shadow(
+            0 18px 35px rgba(0,0,0,.35)
+          )
         }
 
-        .awd-tools-head {
-          display: flex;
-          align-items: end;
-          justify-content: space-between;
-          gap: 12px;
-          margin: 28px 0 12px;
+        .awd-features{
+          display:grid;
+          grid-template-columns:repeat(3,1fr);
+          gap:10px;
+          margin-top:18px
         }
 
-        .awd-tools-head h2 {
-          margin: 0;
-          font-size: 25px;
+        .awd-feature{
+          border:1px solid rgba(255,255,255,.08);
+          background:rgba(255,255,255,.025);
+          padding:12px;
+          border-radius:14px;
+          text-align:center;
+          color:#dce6f5;
+          font-size:13px
         }
 
-        .awd-tools-head p {
-          margin: 6px 0 0;
-          color: #9aa9bf;
+        .awd-tools-head{
+          display:flex;
+          align-items:end;
+          justify-content:space-between;
+          gap:12px;
+          margin:28px 0 12px
         }
 
-        .awd-tools-grid {
-          display: grid;
-          grid-template-columns: repeat(3,1fr);
-          gap: 14px;
+        .awd-tools-head h2{
+          margin:0;
+          font-size:25px
         }
 
-        .awd-tool {
-          border: 1px solid rgba(255,255,255,.09);
-          border-radius: 18px;
-          background: linear-gradient(
-            145deg,
-            #0d192a,
-            #0a1422
-          );
-          padding: 18px;
-          min-height: 190px;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          box-shadow: 0 12px 30px rgba(0,0,0,.12);
+        .awd-tools-head p{
+          margin:6px 0 0;
+          color:#9aa9bf
         }
 
-        .awd-icon {
-          width: 48px;
-          height: 48px;
-          display: grid;
-          place-items: center;
-          border-radius: 14px;
-          background: rgba(255,106,0,.12);
-          font-size: 25px;
+        .awd-tools-grid{
+          display:grid;
+          grid-template-columns:repeat(3,1fr);
+          gap:14px
         }
 
-        .awd-tool h3 {
-          margin: 12px 0 6px;
-          font-size: 17px;
+        .awd-tool{
+          border:1px solid rgba(255,255,255,.09);
+          border-radius:18px;
+          background:
+            linear-gradient(
+              145deg,
+              #0d192a,
+              #0a1422
+            );
+          padding:18px;
+          min-height:190px;
+          display:flex;
+          flex-direction:column;
+          justify-content:space-between;
+          box-shadow:
+            0 12px 30px rgba(0,0,0,.12)
         }
 
-        .awd-tool p {
-          margin: 0;
-          color: #93a2b7;
-          font-size: 13px;
-          line-height: 1.6;
+        .awd-icon{
+          width:48px;
+          height:48px;
+          display:grid;
+          place-items:center;
+          border-radius:14px;
+          background:rgba(255,106,0,.12);
+          font-size:25px
         }
 
-        .awd-use {
-          margin-top: 14px;
-          width: 100%;
-          border: 1px solid rgba(255,255,255,.12);
-          background: #101d2e;
-          color: #fff;
-          border-radius: 10px;
-          padding: 10px;
-          cursor: pointer;
+        .awd-tool h3{
+          margin:12px 0 6px;
+          font-size:17px
         }
 
-        .awd-use:hover {
-          border-color: #ff6a00;
+        .awd-tool p{
+          margin:0;
+          color:#93a2b7;
+          font-size:13px;
+          line-height:1.6
         }
 
-        .awd-sub {
-          margin-top: 18px;
-          border: 1px solid rgba(255,255,255,.08);
-          border-radius: 20px;
-          padding: 20px;
-          background: linear-gradient(
-            100deg,
-            #0d1829,
-            #121d2d
-          );
+        .awd-use{
+          margin-top:14px;
+          width:100%;
+          border:1px solid rgba(255,255,255,.12);
+          background:#101d2e;
+          color:#fff;
+          border-radius:10px;
+          padding:10px;
+          cursor:pointer
         }
 
-        .awd-sub-row {
-          display: flex;
-          justify-content: space-between;
-          gap: 18px;
-          align-items: center;
+        .awd-use:hover{
+          border-color:#ff6a00
         }
 
-        .awd-progress {
-          height: 8px;
-          background: #1d293a;
-          border-radius: 99px;
-          overflow: hidden;
-          margin: 12px 0;
+        .awd-sub{
+          margin-top:18px;
+          border:1px solid rgba(255,255,255,.08);
+          border-radius:20px;
+          padding:20px;
+          background:
+            linear-gradient(
+              100deg,
+              #0d1829,
+              #121d2d
+            )
         }
 
-        .awd-progress span {
-          display: block;
-          width: 35%;
-          height: 100%;
-          background: #ff6a00;
-          border-radius: 99px;
+        .awd-sub-row{
+          display:flex;
+          justify-content:space-between;
+          gap:18px;
+          align-items:center
         }
 
-        .awd-upgrade {
-          border: 0;
-          background: #ff6a00;
-          color: #fff;
-          border-radius: 10px;
-          padding: 10px 18px;
-          font-weight: 700;
-          cursor: pointer;
+        .awd-progress{
+          height:8px;
+          background:#1d293a;
+          border-radius:99px;
+          overflow:hidden;
+          margin:12px 0
         }
 
-        .awd-disclaimer {
-          margin-top: 18px;
-          text-align: center;
-          color: #74849b;
-          font-size: 11px;
-          line-height: 1.7;
+        .awd-progress span{
+          display:block;
+          width:35%;
+          height:100%;
+          background:#ff6a00;
+          border-radius:99px
         }
 
-        .awd-footer {
-          margin-top: 28px;
-          padding: 18px 0;
-          text-align: center;
-          color: #7f8da2;
-          border-top: 1px solid rgba(255,255,255,.08);
+        .awd-upgrade{
+          border:0;
+          background:#ff6a00;
+          color:#fff;
+          border-radius:10px;
+          padding:10px 18px;
+          font-weight:700;
+          cursor:pointer
         }
 
-        .awd-footer img {
-          width: 44px;
-          height: 44px;
-          object-fit: contain;
-          vertical-align: middle;
-          margin-inline-end: 8px;
+        .awd-disclaimer{
+          margin-top:18px;
+          text-align:center;
+          color:#74849b;
+          font-size:11px;
+          line-height:1.7
         }
 
-        @media(max-width:820px) {
-          .awd-shell {
-            width: min(100% - 18px,620px);
+        .awd-footer{
+          margin-top:28px;
+          padding:18px 0;
+          text-align:center;
+          color:#7f8da2;
+          border-top:1px solid rgba(255,255,255,.08)
+        }
+
+        .awd-footer img{
+          width:44px;
+          height:44px;
+          object-fit:contain;
+          vertical-align:middle;
+          margin-inline-end:8px
+        }
+
+        @media(max-width:820px){
+          .awd-shell{
+            width:min(100% - 18px,620px)
           }
 
-          .awd-header {
-            padding: 10px 0;
+          .awd-header{
+            padding:10px 0
           }
 
-          .awd-logo {
-            width: 44px;
-            height: 44px;
+          .awd-logo{
+            width:44px;
+            height:44px
           }
 
-          .awd-brand h1 {
-            font-size: 18px;
+          .awd-brand h1{
+            font-size:18px
           }
 
-          .awd-brand p {
-            font-size: 10px;
+          .awd-brand p{
+            font-size:10px
           }
 
-          .awd-market {
-            justify-content: stretch;
+          .awd-market{
+            justify-content:stretch
           }
 
-          .awd-market select {
-            width: 100%;
+          .awd-market select{
+            width:100%
           }
 
-          .awd-hero {
-            grid-template-columns: 1fr;
-            padding: 20px;
-            text-align: center;
+          .awd-hero{
+            grid-template-columns:1fr;
+            padding:20px;
+            text-align:center
           }
 
-          .awd-hero h2 {
-            font-size: 32px;
+          .awd-hero-logo{
+            order:-1
           }
 
-          .awd-hero p {
-            font-size: 14px;
+          .awd-hero-logo img{
+            width:min(280px,85vw);
+            max-height:230px
           }
 
-          .awd-cta {
-            justify-content: center;
+          .awd-hero h2{
+            font-size:32px
           }
 
-          .awd-cta button {
-            flex: 1;
-            min-width: 130px;
+          .awd-hero p{
+            font-size:14px
           }
 
-          .awd-features {
-            grid-template-columns: 1fr;
+          .awd-cta{
+            justify-content:center
           }
 
-          .awd-tools-head {
-            align-items: start;
-            flex-direction: column;
+          .awd-cta button{
+            flex:1;
+            min-width:130px
           }
 
-          .awd-tools-grid {
-            grid-template-columns: repeat(2,1fr);
-            gap: 10px;
+          .awd-features{
+            grid-template-columns:repeat(3,1fr)
           }
 
-          .awd-tool {
-            padding: 14px;
-            min-height: 180px;
+          .awd-tools-head{
+            align-items:start;
+            flex-direction:column
           }
 
-          .awd-tool h3 {
-            font-size: 15px;
+          .awd-tools-grid{
+            grid-template-columns:repeat(2,1fr);
+            gap:10px
           }
 
-          .awd-tool p {
-            font-size: 12px;
+          .awd-tool{
+            padding:14px;
+            min-height:180px
           }
 
-          .awd-sub-row {
-            flex-direction: column;
-            align-items: stretch;
+          .awd-tool h3{
+            font-size:15px
           }
 
-          .awd-upgrade {
-            width: 100%;
+          .awd-tool p{
+            font-size:12px
+          }
+
+          .awd-sub-row{
+            flex-direction:column;
+            align-items:stretch
+          }
+
+          .awd-upgrade{
+            width:100%
           }
         }
 
-        @media(max-width:480px) {
-          .awd-tools-grid {
-            grid-template-columns: 1fr 1fr;
+        @media(max-width:480px){
+          .awd-tools-grid{
+            grid-template-columns:1fr 1fr
           }
 
-          .awd-tool {
-            min-height: 175px;
+          .awd-tool{
+            min-height:175px
           }
 
-          .awd-brand p {
-            display: none;
+          .awd-brand p{
+            display:none
           }
 
-          .awd-actions .lang {
-            font-size: 12px;
+          .awd-actions .lang{
+            font-size:12px
           }
 
-          .awd-hero h2 {
-            font-size: 28px;
+          .awd-hero h2{
+            font-size:28px
+          }
+
+          .awd-features{
+            grid-template-columns:repeat(3,1fr);
+            gap:8px
+          }
+
+          .awd-feature{
+            padding:10px 5px;
+            font-size:12px
           }
         }
       `}</style>
 
       <div className="awd-shell">
+
         <header className="awd-header">
+
           <div className="awd-brand">
             <img
               className="awd-logo"
@@ -626,6 +668,9 @@ export default function Home() {
           </div>
 
           <div className="awd-actions">
+
+            {/* تم حذف AccountMenu هنا فقط */}
+
             <button
               className="awd-lang"
               type="button"
@@ -646,10 +691,13 @@ export default function Home() {
                 ? "🇺🇸 English"
                 : "🇩🇿 العربية"}
             </button>
+
           </div>
+
         </header>
 
         <div className="awd-market">
+
           <label
             className="mut"
             htmlFor="marketplace"
@@ -675,21 +723,24 @@ export default function Home() {
               </option>
             ))}
           </select>
+
         </div>
 
         <section className="awd-hero">
+
           <div>
+
             <h2>
               {lang === "en" ? (
                 <>
-                  Everything you need to
-                  succeed with{" "}
+                  Everything you need
+                  to succeed with{" "}
                   <span>KDP</span>
                 </>
               ) : (
                 <>
-                  كل ما تحتاجه للنجاح في{" "}
-                  <span>KDP</span>
+                  كل ما تحتاجه للنجاح
+                  في <span>KDP</span>
                 </>
               )}
             </h2>
@@ -701,6 +752,7 @@ export default function Home() {
             </p>
 
             <div className="awd-cta">
+
               <button
                 className="awd-primary"
                 type="button"
@@ -731,9 +783,11 @@ export default function Home() {
                   ? "Explore Tools ▦"
                   : "استكشف الأدوات ▦"}
               </button>
+
             </div>
 
             <div className="awd-features">
+
               <div className="awd-feature">
                 🛡️{" "}
                 {lang === "en"
@@ -745,7 +799,7 @@ export default function Home() {
                 ⚡{" "}
                 {lang === "en"
                   ? "Fast Results"
-                  : "نتائج دقيقة وسريعة"}
+                  : "نتائج سريعة"}
               </div>
 
               <div className="awd-feature">
@@ -754,13 +808,26 @@ export default function Home() {
                   ? "Professional Tools"
                   : "أدوات احترافية"}
               </div>
+
             </div>
+
           </div>
+
+          <div className="awd-hero-logo">
+            <img
+              src="/logov3.png"
+              alt="AllWDbook KDP tools"
+            />
+          </div>
+
         </section>
 
         <section id="awd-tools">
+
           <div className="awd-tools-head">
+
             <div>
+
               <h2>
                 {lang === "en"
                   ? "Professional KDP Tools"
@@ -772,16 +839,22 @@ export default function Home() {
                   ? "Choose a tool and continue using the existing powerful workflow."
                   : "اختر الأداة التي تحتاجها واستمر باستخدام الأكواد الحالية القوية."}
               </p>
+
             </div>
+
           </div>
 
           <div className="awd-tools-grid">
+
             {tools.map((tool) => (
+
               <article
                 className="awd-tool"
                 key={tool.id}
               >
+
                 <div>
+
                   <div className="awd-icon">
                     {tool.icon}
                   </div>
@@ -793,6 +866,7 @@ export default function Home() {
                   <p>
                     {tool.text}
                   </p>
+
                 </div>
 
                 <button
@@ -803,7 +877,8 @@ export default function Home() {
 
                     window.scrollTo({
                       top: 0,
-                      behavior: "smooth",
+                      behavior:
+                        "smooth",
                     });
                   }}
                 >
@@ -811,14 +886,21 @@ export default function Home() {
                     ? "Use Tool"
                     : "استخدم الأداة"}
                 </button>
+
               </article>
+
             ))}
+
           </div>
+
         </section>
 
         <section className="awd-sub">
+
           <div className="awd-sub-row">
+
             <div>
+
               <strong
                 style={{
                   fontSize: 18,
@@ -839,6 +921,7 @@ export default function Home() {
                   ? "Your usage and plan will continue using the current system."
                   : "سيستمر نظام الاستخدام والاشتراك الحالي كما هو."}
               </div>
+
             </div>
 
             <button
@@ -853,17 +936,21 @@ export default function Home() {
                 ? "Upgrade ⚡"
                 : "ترقية الخطة ⚡"}
             </button>
+
           </div>
 
           <div className="awd-progress">
             <span />
           </div>
+
         </section>
 
         <div className="awd-disclaimer">
+
           {lang === "en"
             ? "AllWDbook is an independent tool and is not affiliated with, endorsed by, or sponsored by Amazon.com, Inc."
             : "AllWDbook أداة مستقلة وليست تابعة لشركة Amazon.com, Inc. أو معتمدة أو مدعومة من طرفها."}
+
         </div>
 
         {tab === 6 && (
@@ -875,7 +962,9 @@ export default function Home() {
             t={t}
             lang={lang}
             domain={domain}
-            onAnalyze={sendToKeywords}
+            onAnalyze={
+              sendToKeywords
+            }
           />
         )}
 
@@ -899,6 +988,7 @@ export default function Home() {
         )}
 
         <footer className="awd-footer">
+
           <img
             src="/logov3.png"
             alt="AllWDbook"
@@ -906,12 +996,18 @@ export default function Home() {
 
           <span>
             {t.by}{" "}
-            <b>All World Digital</b>{" "}
-            © {new Date().getFullYear()} ·{" "}
-            {t.rights}
+            <b>
+              All World Digital
+            </b>{" "}
+            ©{" "}
+            {new Date().getFullYear()}{" "}
+            · {t.rights}
           </span>
+
         </footer>
+
       </div>
+
     </div>
   );
 }
@@ -922,6 +1018,7 @@ function Niches({
   domain,
   onAnalyze,
 }) {
+
   const [
     category,
     setCategory,
@@ -953,6 +1050,7 @@ function Niches({
   ] = useState(false);
 
   async function canUseMicroNiche() {
+
     const supabase =
       getSupabase();
 
@@ -964,6 +1062,7 @@ function Niches({
       await supabase.auth.getSession();
 
     if (!session?.access_token) {
+
       const {
         data,
         error,
@@ -971,6 +1070,7 @@ function Niches({
         await supabase.auth.signInAnonymously();
 
       if (error) {
+
         console.error(
           "Anonymous sign-in failed:",
           error
@@ -994,28 +1094,31 @@ function Niches({
       );
 
     if (blocked) {
+
       setUpgradeOpen(true);
+
       return false;
     }
 
-    const response = await fetch(
-      "/api/usage/consume",
-      {
-        method: "POST",
+    const response =
+      await fetch(
+        "/api/usage/consume",
+        {
+          method: "POST",
 
-        headers: {
-          "Content-Type":
-            "application/json",
+          headers: {
+            "Content-Type":
+              "application/json",
 
-          Authorization:
-            `Bearer ${session.access_token}`,
-        },
+            Authorization:
+              `Bearer ${session.access_token}`,
+          },
 
-        body: JSON.stringify({
-          toolId: "microNiche",
-        }),
-      }
-    );
+          body: JSON.stringify({
+            toolId: "microNiche",
+          }),
+        }
+      );
 
     const data =
       await response
@@ -1027,7 +1130,9 @@ function Niches({
       data?.error ===
         "DAILY_LIMIT_REACHED"
     ) {
+
       setUpgradeOpen(true);
+
       return false;
     }
 
@@ -1035,13 +1140,14 @@ function Niches({
   }
 
   async function load() {
+
     setBusy(true);
 
-    const seed = String(
-      Date.now()
-    );
+    const seed =
+      String(Date.now());
 
     try {
+
       const allowed =
         await canUseMicroNiche();
 
@@ -1052,30 +1158,39 @@ function Niches({
       const response =
         await fetch(
           "/api/niches?cat=" +
-            category +
-            "&domain=" +
-            domain +
-            "&count=" +
-            count +
-            "&seed=" +
-            seed
+          category +
+          "&domain=" +
+          domain +
+          "&count=" +
+          count +
+          "&seed=" +
+          seed
         );
 
       const data =
         await response.json();
 
-      setRows(data.rows || []);
+      setRows(
+        data.rows || []
+      );
+
     } catch {
+
       setRows([]);
+
     } finally {
+
       setBusy(false);
+
     }
   }
 
   async function validateCurrent() {
+
     setBusy(true);
 
     try {
+
       const allowed =
         await canUseMicroNiche();
 
@@ -1086,26 +1201,34 @@ function Niches({
       const response =
         await fetch(
           "/api/niches?cat=" +
-            category +
-            "&domain=" +
-            domain +
-            "&count=" +
-            count +
-            "&seed=fixed&validate=1"
+          category +
+          "&domain=" +
+          domain +
+          "&count=" +
+          count +
+          "&seed=fixed&validate=1"
         );
 
       const data =
         await response.json();
 
-      setRows(data.rows || []);
+      setRows(
+        data.rows || []
+      );
+
     } catch {
+
       setRows([]);
+
     } finally {
+
       setBusy(false);
+
     }
   }
 
   function copyAll() {
+
     navigator.clipboard.writeText(
       rows
         .map(
@@ -1123,15 +1246,20 @@ function Niches({
   }
 
   function categoryLabel(key) {
+
     return lang === "ar"
       ? NICHE_CATEGORIES[key].ar
       : NICHE_CATEGORIES[key].en;
   }
 
   return (
+
     <div className="card">
+
       <div className="trustNote">
-        <p>{t.nicheNote}</p>
+        <p>
+          {t.nicheNote}
+        </p>
       </div>
 
       <label className="mut">
@@ -1146,16 +1274,20 @@ function Niches({
           )
         }
       >
+
         {Object.keys(
           NICHE_CATEGORIES
         ).map((key) => (
+
           <option
             key={key}
             value={key}
           >
             {categoryLabel(key)}
           </option>
+
         ))}
+
       </select>
 
       <label className="mut">
@@ -1172,16 +1304,20 @@ function Niches({
           )
         }
       >
+
         {[12, 24, 40, 60].map(
           (number) => (
+
             <option
               key={number}
               value={number}
             >
               {number}
             </option>
+
           )
         )}
+
       </select>
 
       <button
@@ -1189,16 +1325,21 @@ function Niches({
         onClick={load}
         disabled={busy}
       >
+
         {busy
           ? t.working
           : rows.length
             ? t.nicheMore
             : t.nicheGen}
+
       </button>
 
       {rows.length > 0 && (
+
         <>
+
           <div className="actionRow">
+
             <button
               className="mini"
               onClick={
@@ -1217,38 +1358,52 @@ function Niches({
                 ? t.copied
                 : t.copy}
             </button>
+
           </div>
 
           {rows.map((row) => (
+
             <div
               key={row.keyword}
               className="nrow"
             >
+
               <span className="nicheText">
+
                 {row.keyword}
 
                 {row.longTail && (
+
                   <small className="mut">
+
                     {" "}
                     · {t.longTail}
+
                   </small>
+
                 )}
+
               </span>
 
               <span className="nicheActions">
+
                 <span
                   className={
                     "badge " +
-                    (row.demand
-                      ? "b-" +
-                        row.demand
-                      : "b-none")
+                    (
+                      row.demand
+                        ? "b-" +
+                          row.demand
+                        : "b-none"
+                    )
                   }
                 >
+
                   {row.demand
                     ? t[row.demand] ||
                       row.demand
                     : t.untested}
+
                 </span>
 
                 <button
@@ -1261,10 +1416,15 @@ function Niches({
                 >
                   {t.analyzeThis}
                 </button>
+
               </span>
+
             </div>
+
           ))}
+
         </>
+
       )}
 
       <UpgradePrompt
@@ -1274,11 +1434,13 @@ function Niches({
           setUpgradeOpen(false)
         }
       />
+
     </div>
   );
 }
 
 function escapeHtml(value) {
+
   return String(value)
     .replaceAll(
       "&",
@@ -1303,22 +1465,27 @@ function escapeHtml(value) {
 }
 
 function formatDescription(value) {
+
   return value
     .slice(0, 4000)
     .split("\n\n")
-    .map((paragraph) =>
-      paragraph.trim()
+    .map(
+      (paragraph) =>
+        paragraph.trim()
     )
     .filter(Boolean)
     .map((paragraph) => {
+
       if (
         paragraph.startsWith("- ")
       ) {
+
         const list =
           paragraph
             .split("\n")
             .filter(Boolean)
             .map((line) => {
+
               const cleanLine =
                 line.startsWith("- ")
                   ? line.slice(2)
@@ -1344,6 +1511,7 @@ function formatDescription(value) {
       if (
         paragraph.startsWith("# ")
       ) {
+
         return (
           "<h4>" +
           escapeHtml(
@@ -1368,6 +1536,7 @@ function formatDescription(value) {
 }
 
 function Formatter({ t }) {
+
   const [
     value,
     setValue,
@@ -1382,6 +1551,7 @@ function Formatter({ t }) {
     formatDescription(value);
 
   async function copyHtml() {
+
     await navigator.clipboard.writeText(
       html
     );
@@ -1394,7 +1564,9 @@ function Formatter({ t }) {
   }
 
   return (
+
     <div className="card">
+
       <p className="mut">
         {t.fmtNote}
       </p>
@@ -1410,7 +1582,9 @@ function Formatter({ t }) {
         }
       />
 
-      <h3>{t.preview}</h3>
+      <h3>
+        {t.preview}
+      </h3>
 
       <div
         className="prev"
@@ -1420,7 +1594,10 @@ function Formatter({ t }) {
       />
 
       <div className="formatterHead">
-        <h3>{t.htmlCode}</h3>
+
+        <h3>
+          {t.htmlCode}
+        </h3>
 
         <button
           className="mini"
@@ -1430,6 +1607,7 @@ function Formatter({ t }) {
             ? t.copied
             : t.copyHtml}
         </button>
+
       </div>
 
       <textarea
@@ -1439,9 +1617,13 @@ function Formatter({ t }) {
       />
 
       <p className="mut">
-        {t.chars}: {value.length}
+
+        {t.chars}:{" "}
+        {value.length}
         /4000
+
       </p>
+
     </div>
   );
 }
@@ -1450,6 +1632,7 @@ function Calc({
   t,
   domain,
 }) {
+
   const [
     price,
     setPrice,
@@ -1479,15 +1662,17 @@ function Calc({
     large,
   };
 
-  const cost = printCost(
-    pages,
-    options
-  );
+  const cost =
+    printCost(
+      pages,
+      options
+    );
 
-  const rate = royaltyRate(
-    price,
-    domain
-  );
+  const rate =
+    royaltyRate(
+      price,
+      domain
+    );
 
   const royalty =
     royaltyPerUnit(
@@ -1497,19 +1682,27 @@ function Calc({
     );
 
   return (
+
     <div className="card">
+
       <div className="trustNote">
+
         <p>
+
           <b>
             {t.marketplace}:
           </b>{" "}
+
           {domain} ·{" "}
+
           {market.currency}
+
         </p>
 
         <small>
           {t.calcNote}
         </small>
+
       </div>
 
       <label className="mut">
@@ -1560,6 +1753,7 @@ function Calc({
           )
         }
       >
+
         <option value="black">
           {t.blackInk}
         </option>
@@ -1571,6 +1765,7 @@ function Calc({
         <option value="standard">
           {t.standardColor}
         </option>
+
       </select>
 
       <label className="mut">
@@ -1590,6 +1785,7 @@ function Calc({
           )
         }
       >
+
         <option value="regular">
           {t.regularTrim}
         </option>
@@ -1597,18 +1793,25 @@ function Calc({
         <option value="large">
           {t.largeTrim}
         </option>
+
       </select>
 
       {cost === null ? (
+
         <div className="trustNote warnNote">
+
           <p>
-            ⚠️{" "}
-            {t.invalidPrint}
+            ⚠️ {t.invalidPrint}
           </p>
+
         </div>
+
       ) : (
+
         <div className="grid resultSection">
+
           <div className="kpi">
+
             <b>
               {market.symbol}
               {cost.toFixed(2)}
@@ -1617,40 +1820,52 @@ function Calc({
             <span>
               {t.printCost}
             </span>
+
           </div>
 
           <div className="kpi">
+
             <b>
+
               {rate
                 ? Math.round(
                     rate * 100
                   ) + "%"
                 : "—"}
+
             </b>
 
             <span>
               {t.royaltyRate}
             </span>
+
           </div>
 
           <div className="kpi fullKpi">
+
             <b>
+
               {royalty === null
                 ? "—"
                 : market.symbol +
                   royalty.toFixed(2)}
+
             </b>
 
             <span>
               {t.royaltyUnit}
             </span>
+
           </div>
+
         </div>
+
       )}
 
       <p className="mut disclaimer">
         ⚖️ {t.notAdvice}
       </p>
+
     </div>
   );
 }
