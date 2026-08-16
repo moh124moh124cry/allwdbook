@@ -685,21 +685,13 @@ export default function Home() {
         <header className="awd-header">
 
           <div className="awd-brand">
-
-            <img
-              className="awd-logo"
-              src="/logov3.png"
-              alt="AllWDbook"
-            />
-
+            {/* تم حذف الشعار من الهيدر */}
             <div>
               <h1>AllWDbook</h1>
-
               <p>
                 KDP Tools & Digital Publishing
               </p>
             </div>
-
           </div>
 
           <div className="awd-actions">
