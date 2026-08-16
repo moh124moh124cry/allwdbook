@@ -17,6 +17,7 @@ import {
 
 import CoverTool from "./covertool";
 import KeywordsPanel from "./keywordspanel";
+import AccountMenu from "./accountmenu";
 
 import UpgradePrompt, {
   shouldBlockRememberedLimit,
@@ -64,16 +65,27 @@ function tabLabel(t, lang, index) {
 
 export default function Home() {
   const [lang, setLang] = useState("ar");
-  const [tab, setTab] = useState(6);
+
+  /*
+   * مهم:
+   * لا توجد أداة مفتوحة عند دخول الصفحة.
+   * الأداة تظهر فقط بعد الضغط على "استخدم الأداة".
+   */
+  const [tab, setTab] = useState(null);
+
   const [domain, setDomain] = useState("amazon.com");
   const [seedKw, setSeedKw] = useState("");
 
   const t = T[lang];
 
   useEffect(() => {
-    const savedLanguage = localStorage.getItem("awd_lang");
+    const savedLanguage =
+      localStorage.getItem("awd_lang");
 
-    if (savedLanguage && T[savedLanguage]) {
+    if (
+      savedLanguage &&
+      T[savedLanguage]
+    ) {
       setLang(savedLanguage);
     }
 
@@ -82,7 +94,10 @@ export default function Home() {
         event?.detail ||
         localStorage.getItem("awd_lang");
 
-      if (nextLanguage && T[nextLanguage]) {
+      if (
+        nextLanguage &&
+        T[nextLanguage]
+      ) {
         setLang(nextLanguage);
       }
     }
@@ -100,9 +115,16 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("awd_lang", lang);
-    document.documentElement.lang = lang;
-    document.documentElement.dir = t.dir;
+    localStorage.setItem(
+      "awd_lang",
+      lang
+    );
+
+    document.documentElement.lang =
+      lang;
+
+    document.documentElement.dir =
+      t.dir;
   }, [lang, t.dir]);
 
   function sendToKeywords(keyword) {
@@ -115,6 +137,10 @@ export default function Home() {
     });
   }
 
+  /*
+   * الأدوات الحالية كما هي.
+   * لم يتم تغيير IDs أو وظائف الأزرار.
+   */
   const tools = [
     {
       id: 1,
@@ -188,6 +214,7 @@ export default function Home() {
       style={{ minHeight: "100vh" }}
     >
       <style jsx>{`
+
         .awd-v2{
           background:#07101d;
           color:#eef4ff;
@@ -196,7 +223,10 @@ export default function Home() {
         }
 
         .awd-shell{
-          width:min(1180px,calc(100% - 28px));
+          width:min(
+            1180px,
+            calc(100% - 28px)
+          );
           margin:0 auto
         }
 
@@ -269,15 +299,16 @@ export default function Home() {
           min-width:170px
         }
 
+        /*
+         * الواجهة الرئيسية
+         * تم حذف صورة الشعار الكبيرة من الوسط نهائياً.
+         */
         .awd-hero{
           margin-top:10px;
           border:1px solid rgba(255,255,255,.10);
           border-radius:24px;
           padding:28px;
-          display:grid;
-          grid-template-columns:1.15fr .85fr;
-          gap:22px;
-          align-items:center;
+          display:block;
           background:
             radial-gradient(
               circle at 85% 20%,
@@ -335,21 +366,9 @@ export default function Home() {
           color:#fff
         }
 
-        .awd-hero-logo{
-          display:flex;
-          justify-content:center;
-          align-items:center
-        }
-
-        .awd-hero-logo img{
-          width:min(360px,100%);
-          max-height:290px;
-          object-fit:contain;
-          filter:drop-shadow(
-            0 18px 35px rgba(0,0,0,.35)
-          )
-        }
-
+        /*
+         * المميزات الثلاث في سطر واحد.
+         */
         .awd-features{
           display:grid;
           grid-template-columns:repeat(3,1fr);
@@ -409,14 +428,17 @@ export default function Home() {
             0 12px 30px rgba(0,0,0,.12)
         }
 
+        /*
+         * تصغير أيقونة الأداة قليلاً.
+         */
         .awd-icon{
-          width:48px;
-          height:48px;
+          width:42px;
+          height:42px;
           display:grid;
           place-items:center;
-          border-radius:14px;
+          border-radius:12px;
           background:rgba(255,106,0,.12);
-          font-size:25px
+          font-size:22px
         }
 
         .awd-tool h3{
@@ -516,9 +538,21 @@ export default function Home() {
           margin-inline-end:8px
         }
 
+        /*
+         * مساحة العمل تظهر فقط عندما يختار المستخدم أداة.
+         */
+        .awd-workspace{
+          margin-top:24px;
+          scroll-margin-top:90px
+        }
+
         @media(max-width:820px){
+
           .awd-shell{
-            width:min(100% - 18px,620px)
+            width:min(
+              100% - 18px,
+              620px
+            )
           }
 
           .awd-header{
@@ -547,18 +581,8 @@ export default function Home() {
           }
 
           .awd-hero{
-            grid-template-columns:1fr;
             padding:20px;
             text-align:center
-          }
-
-          .awd-hero-logo{
-            order:-1
-          }
-
-          .awd-hero-logo img{
-            width:min(280px,85vw);
-            max-height:230px
           }
 
           .awd-hero h2{
@@ -566,7 +590,9 @@ export default function Home() {
           }
 
           .awd-hero p{
-            font-size:14px
+            font-size:14px;
+            margin-left:auto;
+            margin-right:auto
           }
 
           .awd-cta{
@@ -578,8 +604,17 @@ export default function Home() {
             min-width:130px
           }
 
+          /*
+           * المميزات تبقى في سطر واحد على الهاتف.
+           */
           .awd-features{
-            grid-template-columns:repeat(3,1fr)
+            grid-template-columns:repeat(3,1fr);
+            gap:8px
+          }
+
+          .awd-feature{
+            padding:10px 5px;
+            font-size:11px
           }
 
           .awd-tools-head{
@@ -616,6 +651,7 @@ export default function Home() {
         }
 
         @media(max-width:480px){
+
           .awd-tools-grid{
             grid-template-columns:1fr 1fr
           }
@@ -636,16 +672,12 @@ export default function Home() {
             font-size:28px
           }
 
-          .awd-features{
-            grid-template-columns:repeat(3,1fr);
-            gap:8px
-          }
-
           .awd-feature{
-            padding:10px 5px;
-            font-size:12px
+            font-size:10px;
+            padding:9px 3px
           }
         }
+
       `}</style>
 
       <div className="awd-shell">
@@ -653,6 +685,7 @@ export default function Home() {
         <header className="awd-header">
 
           <div className="awd-brand">
+
             <img
               className="awd-logo"
               src="/logov3.png"
@@ -661,15 +694,17 @@ export default function Home() {
 
             <div>
               <h1>AllWDbook</h1>
+
               <p>
                 KDP Tools & Digital Publishing
               </p>
             </div>
+
           </div>
 
           <div className="awd-actions">
 
-            {/* تم حذف AccountMenu هنا فقط */}
+            <AccountMenu />
 
             <button
               className="awd-lang"
@@ -726,6 +761,11 @@ export default function Home() {
 
         </div>
 
+        {/* =========================
+            HERO
+            بدون الصورة البرتقالية
+           ========================= */}
+
         <section className="awd-hero">
 
           <div>
@@ -740,7 +780,8 @@ export default function Home() {
               ) : (
                 <>
                   كل ما تحتاجه للنجاح
-                  في <span>KDP</span>
+                  في{" "}
+                  <span>KDP</span>
                 </>
               )}
             </h2>
@@ -813,14 +854,11 @@ export default function Home() {
 
           </div>
 
-          <div className="awd-hero-logo">
-            <img
-              src="/logov3.png"
-              alt="AllWDbook KDP tools"
-            />
-          </div>
-
         </section>
+
+        {/* =========================
+            TOOLS
+           ========================= */}
 
         <section id="awd-tools">
 
@@ -869,17 +907,32 @@ export default function Home() {
 
                 </div>
 
+                {/*
+                 * هذا الزر لم يتم تغيير أدائه.
+                 * عند الضغط تظهر مساحة العمل
+                 * الخاصة بالأداة نفسها.
+                 */}
+
                 <button
                   className="awd-use"
                   type="button"
                   onClick={() => {
+
                     setTab(tool.id);
 
-                    window.scrollTo({
-                      top: 0,
-                      behavior:
-                        "smooth",
-                    });
+                    setTimeout(() => {
+                      document
+                        .getElementById(
+                          "awd-workspace"
+                        )
+                        ?.scrollIntoView({
+                          behavior:
+                            "smooth",
+                          block:
+                            "start",
+                        });
+                    }, 50);
+
                   }}
                 >
                   {lang === "en"
@@ -895,6 +948,10 @@ export default function Home() {
 
         </section>
 
+        {/* =========================
+            SUBSCRIPTION
+           ========================= */}
+
         <section className="awd-sub">
 
           <div className="awd-sub-row">
@@ -903,7 +960,7 @@ export default function Home() {
 
               <strong
                 style={{
-                  fontSize: 18,
+                  fontSize:18,
                 }}
               >
                 {lang === "en"
@@ -914,7 +971,7 @@ export default function Home() {
               <div
                 className="mut"
                 style={{
-                  marginTop: 4,
+                  marginTop:4,
                 }}
               >
                 {lang === "en"
@@ -928,8 +985,8 @@ export default function Home() {
               className="awd-upgrade"
               type="button"
               onClick={() =>
-                (window.location.href =
-                  "/upgrade")
+                window.location.href =
+                  "/upgrade"
               }
             >
               {lang === "en"
@@ -953,38 +1010,58 @@ export default function Home() {
 
         </div>
 
-        {tab === 6 && (
-          <CoverTool lang={lang} />
-        )}
+        {/* ==========================================
+            مساحة العمل
+            لا تظهر إلا بعد اختيار أداة
+           ========================================== */}
 
-        {tab === 1 && (
-          <Niches
-            t={t}
-            lang={lang}
-            domain={domain}
-            onAnalyze={
-              sendToKeywords
-            }
-          />
-        )}
+        {tab !== null && (
 
-        {tab === 0 && (
-          <KeywordsPanel
-            t={t}
-            domain={domain}
-            seed={seedKw}
-          />
-        )}
+          <div
+            id="awd-workspace"
+            className="awd-workspace"
+          >
 
-        {tab === 5 && (
-          <Calc
-            t={t}
-            domain={domain}
-          />
-        )}
+            {tab === 6 && (
+              <CoverTool
+                lang={lang}
+              />
+            )}
 
-        {tab === 4 && (
-          <Formatter t={t} />
+            {tab === 1 && (
+              <Niches
+                t={t}
+                lang={lang}
+                domain={domain}
+                onAnalyze={
+                  sendToKeywords
+                }
+              />
+            )}
+
+            {tab === 0 && (
+              <KeywordsPanel
+                t={t}
+                domain={domain}
+                seed={seedKw}
+              />
+            )}
+
+            {tab === 5 && (
+              <Calc
+                t={t}
+                domain={domain}
+              />
+            )}
+
+            {tab === 4 && (
+              <Formatter
+                t={t}
+              />
+            )}
+
+          </div>
+
         )}
 
         <footer className="awd-footer">
@@ -1011,6 +1088,12 @@ export default function Home() {
     </div>
   );
 }
+
+
+/* =========================================================
+   MICRO NICHE
+   الكود الأصلي للأداة محفوظ كما هو
+   ========================================================= */
 
 function Niches({
   t,
@@ -1061,13 +1144,16 @@ function Niches({
     } =
       await supabase.auth.getSession();
 
-    if (!session?.access_token) {
+    if (
+      !session?.access_token
+    ) {
 
       const {
         data,
         error,
       } =
-        await supabase.auth.signInAnonymously();
+        await supabase.auth
+          .signInAnonymously();
 
       if (error) {
 
@@ -1080,10 +1166,13 @@ function Niches({
       }
 
       session =
-        data?.session || null;
+        data?.session ||
+        null;
     }
 
-    if (!session?.access_token) {
+    if (
+      !session?.access_token
+    ) {
       return false;
     }
 
@@ -1104,9 +1193,9 @@ function Niches({
       await fetch(
         "/api/usage/consume",
         {
-          method: "POST",
+          method:"POST",
 
-          headers: {
+          headers:{
             "Content-Type":
               "application/json",
 
@@ -1114,9 +1203,11 @@ function Niches({
               `Bearer ${session.access_token}`,
           },
 
-          body: JSON.stringify({
-            toolId: "microNiche",
-          }),
+          body:
+            JSON.stringify({
+              toolId:
+                "microNiche",
+            }),
         }
       );
 
@@ -1257,9 +1348,11 @@ function Niches({
     <div className="card">
 
       <div className="trustNote">
+
         <p>
           {t.nicheNote}
         </p>
+
       </div>
 
       <label className="mut">
@@ -1305,7 +1398,7 @@ function Niches({
         }
       >
 
-        {[12, 24, 40, 60].map(
+        {[12,24,40,60].map(
           (number) => (
 
             <option
@@ -1375,10 +1468,8 @@ function Niches({
                 {row.longTail && (
 
                   <small className="mut">
-
                     {" "}
                     · {t.longTail}
-
                   </small>
 
                 )}
@@ -1398,12 +1489,10 @@ function Niches({
                     )
                   }
                 >
-
                   {row.demand
                     ? t[row.demand] ||
                       row.demand
                     : t.untested}
-
                 </span>
 
                 <button
@@ -1439,6 +1528,11 @@ function Niches({
   );
 }
 
+
+/* =========================================================
+   FORMATTER
+   ========================================================= */
+
 function escapeHtml(value) {
 
   return String(value)
@@ -1464,10 +1558,11 @@ function escapeHtml(value) {
     );
 }
 
+
 function formatDescription(value) {
 
   return value
-    .slice(0, 4000)
+    .slice(0,4000)
     .split("\n\n")
     .map(
       (paragraph) =>
@@ -1527,13 +1622,14 @@ function formatDescription(value) {
           paragraph
         ).replaceAll(
           "\n",
-          "NLBR"
+          "<br/>"
         ) +
         "</p>"
       );
     })
     .join("");
 }
+
 
 function Formatter({ t }) {
 
@@ -1560,7 +1656,7 @@ function Formatter({ t }) {
 
     setTimeout(() => {
       setCopied(false);
-    }, 1600);
+    },1600);
   }
 
   return (
@@ -1617,16 +1713,19 @@ function Formatter({ t }) {
       />
 
       <p className="mut">
-
         {t.chars}:{" "}
         {value.length}
         /4000
-
       </p>
 
     </div>
   );
 }
+
+
+/* =========================================================
+   ROYALTY CALCULATOR
+   ========================================================= */
 
 function Calc({
   t,
@@ -1801,7 +1900,8 @@ function Calc({
         <div className="trustNote warnNote">
 
           <p>
-            ⚠️ {t.invalidPrint}
+            ⚠️{" "}
+            {t.invalidPrint}
           </p>
 
         </div>
@@ -1826,13 +1926,13 @@ function Calc({
           <div className="kpi">
 
             <b>
-
-              {rate
-                ? Math.round(
-                    rate * 100
-                  ) + "%"
-                : "—"}
-
+              {
+                rate
+                  ? Math.round(
+                      rate * 100
+                    ) + "%"
+                  : "—"
+              }
             </b>
 
             <span>
@@ -1863,7 +1963,10 @@ function Calc({
       )}
 
       <p className="mut disclaimer">
-        ⚖️ {t.notAdvice}
+
+        ⚖️{" "}
+        {t.notAdvice}
+
       </p>
 
     </div>
