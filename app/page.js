@@ -1,13 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import { T } from "../lib/i18n";
 import { NICHE_CATEGORIES } from "../lib/niches";
-import { printCost, royaltyPerUnit, royaltyRate, marketInfo } from "../lib/estimate";
+
+import {
+  printCost,
+  royaltyPerUnit,
+  royaltyRate,
+  marketInfo,
+} from "../lib/estimate";
+
 import CoverTool from "./covertool";
 import KeywordsPanel from "./keywordspanel";
-import AccountMenu from "./accountmenu";
-import UpgradePrompt, { shouldBlockRememberedLimit } from "./upgradeprompt";
+
+import UpgradePrompt, {
+  shouldBlockRememberedLimit,
+} from "./upgradeprompt";
+
 import { getSupabase } from "../lib/supabase";
 
 const DOMAINS = [
@@ -33,14 +47,19 @@ const ICONS = [
 
 function tabLabel(t, lang, index) {
   if (index === 6) {
-    return "📐 " + (
-      lang === "en"
+    return (
+      "📐 " +
+      (lang === "en"
         ? "Cover Designer"
-        : "مصمم الغلاف"
+        : "مصمم الغلاف")
     );
   }
 
-  return ICONS[index] + " " + t.tabs[index];
+  return (
+    ICONS[index] +
+    " " +
+    t.tabs[index]
+  );
 }
 
 export default function Home() {
@@ -52,25 +71,15 @@ export default function Home() {
   const t = T[lang];
 
   useEffect(() => {
-    const savedLanguage =
-      localStorage.getItem("awd_lang");
-
-    if (
-      savedLanguage &&
-      T[savedLanguage]
-    ) {
-      setLang(savedLanguage);
-    }
+    const savedLanguage = localStorage.getItem("awd_lang");
+    if (savedLanguage && T[savedLanguage]) setLang(savedLanguage);
 
     function syncLanguage(event) {
       const nextLanguage =
         event?.detail ||
         localStorage.getItem("awd_lang");
 
-      if (
-        nextLanguage &&
-        T[nextLanguage]
-      ) {
+      if (nextLanguage && T[nextLanguage]) {
         setLang(nextLanguage);
       }
     }
@@ -88,47 +97,19 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(
-      "awd_lang",
-      lang
-    );
-
-    document.documentElement.lang =
-      lang;
-
-    document.documentElement.dir =
-      t.dir;
+    localStorage.setItem("awd_lang", lang);
+    document.documentElement.lang = lang;
+    document.documentElement.dir = t.dir;
   }, [lang, t.dir]);
-
-  function openTool(id) {
-    setTab(id);
-
-    setTimeout(() => {
-      document
-        .getElementById(
-          "awd-workspace"
-        )
-        ?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-    }, 0);
-  }
 
   function sendToKeywords(keyword) {
     setSeedKw(keyword);
     setTab(0);
 
-    setTimeout(() => {
-      document
-        .getElementById(
-          "awd-workspace"
-        )
-        ?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-    }, 0);
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   const tools = [
@@ -144,6 +125,7 @@ export default function Home() {
           ? "Discover focused KDP niches."
           : "اكتشف نيشات KDP دقيقة ومناسبة.",
     },
+
     {
       id: 0,
       icon: "🔑",
@@ -156,6 +138,7 @@ export default function Home() {
           ? "Find keywords to improve discoverability."
           : "ابحث عن الكلمات المفتاحية لزيادة ظهور كتبك.",
     },
+
     {
       id: 6,
       icon: "📐",
@@ -168,6 +151,7 @@ export default function Home() {
           ? "Create professional KDP-ready covers."
           : "صمم أغلفة احترافية لكتبك.",
     },
+
     {
       id: 5,
       icon: "🧮",
@@ -180,6 +164,7 @@ export default function Home() {
           ? "Estimate your expected book royalties."
           : "احسب أرباحك المتوقعة قبل النشر.",
     },
+
     {
       id: 4,
       icon: "✍️",
@@ -197,9 +182,7 @@ export default function Home() {
   return (
     <div
       className="awd-v2"
-      style={{
-        minHeight: "100vh",
-      }}
+      style={{ minHeight: "100vh" }}
     >
       <style jsx>{`
         .awd-v2 {
@@ -210,10 +193,7 @@ export default function Home() {
         }
 
         .awd-shell {
-          width: min(
-            1180px,
-            calc(100% - 28px)
-          );
+          width: min(1180px, calc(100% - 28px));
           margin: 0 auto;
         }
 
@@ -223,17 +203,11 @@ export default function Home() {
           justify-content: space-between;
           gap: 18px;
           padding: 16px 0;
-          border-bottom: 1px solid
-            rgba(255,255,255,.08);
+          border-bottom: 1px solid rgba(255,255,255,.08);
           position: sticky;
           top: 0;
           z-index: 30;
-          background: rgba(
-            7,
-            16,
-            29,
-            .94
-          );
+          background: rgba(7,16,29,.94);
           backdrop-filter: blur(14px);
         }
 
@@ -270,36 +244,8 @@ export default function Home() {
           gap: 8px;
         }
 
-        /*
-          نحافظ على AccountMenu ووظيفته،
-          لكن نخفي شعار AllWDbook الموجود داخله
-          ونظهر مكانه أيقونة صغيرة.
-        */
-        .awd-actions button:has(
-          img[alt="AllWDbook"]
-        ) {
-          width: 42px;
-          height: 42px;
-          padding: 0;
-        }
-
-        .awd-actions button:has(
-          img[alt="AllWDbook"]
-        ) img {
-          display: none;
-        }
-
-        .awd-actions button:has(
-          img[alt="AllWDbook"]
-        )::after {
-          content: "☰";
-          font-size: 19px;
-          color: #eef4ff;
-        }
-
         .awd-lang {
-          border: 1px solid
-            rgba(255,255,255,.12);
+          border: 1px solid rgba(255,255,255,.12);
           background: #101b2c;
           color: #fff;
           border-radius: 12px;
@@ -322,15 +268,13 @@ export default function Home() {
 
         .awd-hero {
           margin-top: 10px;
-          border: 1px solid
-            rgba(255,255,255,.10);
+          border: 1px solid rgba(255,255,255,.10);
           border-radius: 24px;
           padding: 28px;
           display: grid;
           grid-template-columns: 1fr;
-          gap: 0;
+          gap: 22px;
           align-items: center;
-          text-align: center;
           background:
             radial-gradient(
               circle at 85% 20%,
@@ -347,8 +291,7 @@ export default function Home() {
         }
 
         .awd-hero h2 {
-          font-size:
-            clamp(30px,5vw,56px);
+          font-size: clamp(30px,5vw,56px);
           line-height: 1.08;
           margin: 0 0 14px;
         }
@@ -361,8 +304,7 @@ export default function Home() {
           color: #aebbd0;
           font-size: 16px;
           line-height: 1.8;
-          max-width: 720px;
-          margin: 0 auto;
+          max-width: 620px;
         }
 
         .awd-cta {
@@ -370,15 +312,13 @@ export default function Home() {
           gap: 10px;
           flex-wrap: wrap;
           margin-top: 20px;
-          justify-content: center;
         }
 
         .awd-cta button {
           cursor: pointer;
           border-radius: 12px;
           padding: 12px 20px;
-          border: 1px solid
-            rgba(255,255,255,.14);
+          border: 1px solid rgba(255,255,255,.14);
           font-weight: 700;
         }
 
@@ -392,23 +332,16 @@ export default function Home() {
           color: #fff;
         }
 
-        /*
-          الثلاث نقاط في سطر واحد
-        */
         .awd-features {
           display: grid;
-          grid-template-columns:
-            repeat(3,1fr);
+          grid-template-columns: repeat(3,1fr);
           gap: 10px;
-          margin: 18px auto 0;
-          max-width: 760px;
+          margin-top: 18px;
         }
 
         .awd-feature {
-          border: 1px solid
-            rgba(255,255,255,.08);
-          background:
-            rgba(255,255,255,.025);
+          border: 1px solid rgba(255,255,255,.08);
+          background: rgba(255,255,255,.025);
           padding: 12px;
           border-radius: 14px;
           text-align: center;
@@ -436,42 +369,33 @@ export default function Home() {
 
         .awd-tools-grid {
           display: grid;
-          grid-template-columns:
-            repeat(3,1fr);
+          grid-template-columns: repeat(3,1fr);
           gap: 14px;
         }
 
         .awd-tool {
-          border: 1px solid
-            rgba(255,255,255,.09);
+          border: 1px solid rgba(255,255,255,.09);
           border-radius: 18px;
-          background:
-            linear-gradient(
-              145deg,
-              #0d192a,
-              #0a1422
-            );
+          background: linear-gradient(
+            145deg,
+            #0d192a,
+            #0a1422
+          );
           padding: 18px;
           min-height: 190px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          box-shadow:
-            0 12px 30px
-            rgba(0,0,0,.12);
+          box-shadow: 0 12px 30px rgba(0,0,0,.12);
         }
 
-        /*
-          تصغير أيقونات الأدوات
-        */
         .awd-icon {
-          width: 42px;
-          height: 42px;
+          width: 48px;
+          height: 48px;
           display: grid;
           place-items: center;
           border-radius: 14px;
-          background:
-            rgba(255,106,0,.12);
+          background: rgba(255,106,0,.12);
           font-size: 25px;
         }
 
@@ -490,8 +414,7 @@ export default function Home() {
         .awd-use {
           margin-top: 14px;
           width: 100%;
-          border: 1px solid
-            rgba(255,255,255,.12);
+          border: 1px solid rgba(255,255,255,.12);
           background: #101d2e;
           color: #fff;
           border-radius: 10px;
@@ -503,78 +426,16 @@ export default function Home() {
           border-color: #ff6a00;
         }
 
-        /*
-          مكان العمل
-        */
-        .awd-workspace {
-          margin-top: 18px;
-          border: 1px solid
-            rgba(255,255,255,.10);
-          border-radius: 20px;
-          padding: 16px;
-          background:
-            linear-gradient(
-              145deg,
-              #0d192a,
-              #0a1422
-            );
-          scroll-margin-top: 82px;
-        }
-
-        .awd-workspace-head {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 12px;
-          margin-bottom: 12px;
-        }
-
-        .awd-workspace-kicker {
-          display: inline-block;
-          color: #ff7a18;
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 1.4px;
-          margin-bottom: 4px;
-        }
-
-        .awd-workspace-head h2 {
-          margin: 0;
-          font-size: 21px;
-        }
-
-        .awd-workspace-head p {
-          margin: 5px 0 0;
-          color: #93a2b7;
-          font-size: 12px;
-          line-height: 1.6;
-        }
-
-        .awd-workspace-body {
-          border: 1px solid
-            rgba(255,255,255,.07);
-          border-radius: 16px;
-          padding: 4px;
-          background: #091321;
-          overflow: hidden;
-        }
-
-        .awd-workspace-body > .card {
-          margin: 0;
-        }
-
         .awd-sub {
           margin-top: 18px;
-          border: 1px solid
-            rgba(255,255,255,.08);
+          border: 1px solid rgba(255,255,255,.08);
           border-radius: 20px;
           padding: 20px;
-          background:
-            linear-gradient(
-              100deg,
-              #0d1829,
-              #121d2d
-            );
+          background: linear-gradient(
+            100deg,
+            #0d1829,
+            #121d2d
+          );
         }
 
         .awd-sub-row {
@@ -623,8 +484,7 @@ export default function Home() {
           padding: 18px 0;
           text-align: center;
           color: #7f8da2;
-          border-top: 1px solid
-            rgba(255,255,255,.08);
+          border-top: 1px solid rgba(255,255,255,.08);
         }
 
         .awd-footer img {
@@ -637,11 +497,7 @@ export default function Home() {
 
         @media(max-width:820px) {
           .awd-shell {
-            width:
-              min(
-                100% - 18px,
-                620px
-              );
+            width: min(100% - 18px,620px);
           }
 
           .awd-header {
@@ -670,7 +526,9 @@ export default function Home() {
           }
 
           .awd-hero {
+            grid-template-columns: 1fr;
             padding: 20px;
+            text-align: center;
           }
 
           .awd-hero h2 {
@@ -681,24 +539,17 @@ export default function Home() {
             font-size: 14px;
           }
 
+          .awd-cta {
+            justify-content: center;
+          }
+
           .awd-cta button {
             flex: 1;
             min-width: 130px;
           }
 
-          /*
-            آمن + نتائج سريعة + أدوات احترافية
-            في سطر واحد
-          */
           .awd-features {
-            grid-template-columns:
-              repeat(3,1fr);
-            gap: 6px;
-          }
-
-          .awd-feature {
-            padding: 9px 5px;
-            font-size: 11px;
+            grid-template-columns: 1fr;
           }
 
           .awd-tools-head {
@@ -707,20 +558,13 @@ export default function Home() {
           }
 
           .awd-tools-grid {
-            grid-template-columns:
-              repeat(2,1fr);
+            grid-template-columns: repeat(2,1fr);
             gap: 10px;
           }
 
           .awd-tool {
             padding: 14px;
             min-height: 180px;
-          }
-
-          .awd-icon {
-            width: 38px;
-            height: 38px;
-            font-size: 21px;
           }
 
           .awd-tool h3 {
@@ -743,58 +587,30 @@ export default function Home() {
 
         @media(max-width:480px) {
           .awd-tools-grid {
-            grid-template-columns:
-              1fr 1fr;
+            grid-template-columns: 1fr 1fr;
           }
 
           .awd-tool {
             min-height: 175px;
           }
 
-          .awd-icon {
-            width: 34px;
-            height: 34px;
-            font-size: 18px;
-          }
-
           .awd-brand p {
             display: none;
+          }
+
+          .awd-actions .lang {
+            font-size: 12px;
           }
 
           .awd-hero h2 {
             font-size: 28px;
           }
-
-          .awd-feature {
-            font-size: 10px;
-            padding: 8px 3px;
-          }
-
-          .awd-workspace {
-            padding: 12px;
-            border-radius: 17px;
-          }
-
-          .awd-workspace-head h2 {
-            font-size: 19px;
-          }
-
-          .awd-workspace-head p {
-            font-size: 11px;
-          }
-
-          .awd-workspace-body {
-            padding: 2px;
-          }
         }
       `}</style>
 
       <div className="awd-shell">
-
         <header className="awd-header">
-
           <div className="awd-brand">
-
             <img
               className="awd-logo"
               src="/logov3.png"
@@ -804,17 +620,12 @@ export default function Home() {
             <div>
               <h1>AllWDbook</h1>
               <p>
-                KDP Tools &
-                Digital Publishing
+                KDP Tools & Digital Publishing
               </p>
             </div>
-
           </div>
 
           <div className="awd-actions">
-
-            <AccountMenu />
-
             <button
               className="awd-lang"
               type="button"
@@ -835,13 +646,10 @@ export default function Home() {
                 ? "🇺🇸 English"
                 : "🇩🇿 العربية"}
             </button>
-
           </div>
-
         </header>
 
         <div className="awd-market">
-
           <label
             className="mut"
             htmlFor="marketplace"
@@ -858,35 +666,29 @@ export default function Home() {
               )
             }
           >
-            {DOMAINS.map(
-              (item) => (
-                <option
-                  key={item}
-                  value={item}
-                >
-                  {item}
-                </option>
-              )
-            )}
+            {DOMAINS.map((item) => (
+              <option
+                key={item}
+                value={item}
+              >
+                {item}
+              </option>
+            ))}
           </select>
-
         </div>
 
         <section className="awd-hero">
-
           <div>
-
             <h2>
               {lang === "en" ? (
                 <>
-                  Everything you need
-                  to succeed with{" "}
+                  Everything you need to
+                  succeed with{" "}
                   <span>KDP</span>
                 </>
               ) : (
                 <>
-                  كل ما تحتاجه للنجاح
-                  في{" "}
+                  كل ما تحتاجه للنجاح في{" "}
                   <span>KDP</span>
                 </>
               )}
@@ -899,12 +701,11 @@ export default function Home() {
             </p>
 
             <div className="awd-cta">
-
               <button
                 className="awd-primary"
                 type="button"
                 onClick={() =>
-                  openTool(1)
+                  setTab(1)
                 }
               >
                 {lang === "en"
@@ -923,7 +724,6 @@ export default function Home() {
                     ?.scrollIntoView({
                       behavior:
                         "smooth",
-                      block: "start",
                     })
                 }
               >
@@ -931,11 +731,9 @@ export default function Home() {
                   ? "Explore Tools ▦"
                   : "استكشف الأدوات ▦"}
               </button>
-
             </div>
 
             <div className="awd-features">
-
               <div className="awd-feature">
                 🛡️{" "}
                 {lang === "en"
@@ -947,7 +745,7 @@ export default function Home() {
                 ⚡{" "}
                 {lang === "en"
                   ? "Fast Results"
-                  : "نتائج سريعة"}
+                  : "نتائج دقيقة وسريعة"}
               </div>
 
               <div className="awd-feature">
@@ -956,19 +754,13 @@ export default function Home() {
                   ? "Professional Tools"
                   : "أدوات احترافية"}
               </div>
-
             </div>
-
           </div>
-
         </section>
 
         <section id="awd-tools">
-
           <div className="awd-tools-head">
-
             <div>
-
               <h2>
                 {lang === "en"
                   ? "Professional KDP Tools"
@@ -977,142 +769,56 @@ export default function Home() {
 
               <p>
                 {lang === "en"
-                  ? "Choose the tool you need. Its workspace will open below without changing the existing tool logic."
-                  : "اختر الأداة التي تحتاجها، وسيظهر مكان العمل الخاص بها أسفل الأدوات مباشرة دون تغيير الأكواد الحالية."}
+                  ? "Choose a tool and continue using the existing powerful workflow."
+                  : "اختر الأداة التي تحتاجها واستمر باستخدام الأكواد الحالية القوية."}
               </p>
-
             </div>
-
           </div>
 
           <div className="awd-tools-grid">
-
-            {tools.map(
-              (tool) => (
-                <article
-                  className="awd-tool"
-                  key={tool.id}
-                >
-
-                  <div>
-
-                    <div className="awd-icon">
-                      {tool.icon}
-                    </div>
-
-                    <h3>
-                      {tool.title}
-                    </h3>
-
-                    <p>
-                      {tool.text}
-                    </p>
-
+            {tools.map((tool) => (
+              <article
+                className="awd-tool"
+                key={tool.id}
+              >
+                <div>
+                  <div className="awd-icon">
+                    {tool.icon}
                   </div>
 
-                  <button
-                    className="awd-use"
-                    type="button"
-                    onClick={() =>
-                      openTool(
-                        tool.id
-                      )
-                    }
-                  >
-                    {lang === "en"
-                      ? "Use Tool"
-                      : "استخدم الأداة"}
-                  </button>
+                  <h3>
+                    {tool.title}
+                  </h3>
 
-                </article>
-              )
-            )}
+                  <p>
+                    {tool.text}
+                  </p>
+                </div>
 
+                <button
+                  className="awd-use"
+                  type="button"
+                  onClick={() => {
+                    setTab(tool.id);
+
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    });
+                  }}
+                >
+                  {lang === "en"
+                    ? "Use Tool"
+                    : "استخدم الأداة"}
+                </button>
+              </article>
+            ))}
           </div>
-
-        </section>
-
-        <section
-          id="awd-workspace"
-          className="awd-workspace"
-        >
-
-          <div className="awd-workspace-head">
-
-            <div>
-
-              <span className="awd-workspace-kicker">
-                {lang === "en"
-                  ? "WORKSPACE"
-                  : "مكان العمل"}
-              </span>
-
-              <h2>
-                {lang === "en"
-                  ? "Your selected tool"
-                  : "الأداة التي اخترتها"}
-              </h2>
-
-              <p>
-                {lang === "en"
-                  ? "The selected tool appears here. Your existing functionality remains unchanged."
-                  : "ستظهر هنا الأداة التي اخترتها مع جميع وظائفها الحالية، بدون تغيير منطقها أو أدائها."}
-              </p>
-
-            </div>
-
-          </div>
-
-          <div className="awd-workspace-body">
-
-            {tab === 6 && (
-              <CoverTool
-                lang={lang}
-              />
-            )}
-
-            {tab === 1 && (
-              <Niches
-                t={t}
-                lang={lang}
-                domain={domain}
-                onAnalyze={
-                  sendToKeywords
-                }
-              />
-            )}
-
-            {tab === 0 && (
-              <KeywordsPanel
-                t={t}
-                domain={domain}
-                seed={seedKw}
-              />
-            )}
-
-            {tab === 5 && (
-              <Calc
-                t={t}
-                domain={domain}
-              />
-            )}
-
-            {tab === 4 && (
-              <Formatter
-                t={t}
-              />
-            )}
-
-          </div>
-
         </section>
 
         <section className="awd-sub">
-
           <div className="awd-sub-row">
-
             <div>
-
               <strong
                 style={{
                   fontSize: 18,
@@ -1133,28 +839,25 @@ export default function Home() {
                   ? "Your usage and plan will continue using the current system."
                   : "سيستمر نظام الاستخدام والاشتراك الحالي كما هو."}
               </div>
-
             </div>
 
             <button
               className="awd-upgrade"
               type="button"
               onClick={() =>
-                window.location.href =
-                  "/upgrade"
+                (window.location.href =
+                  "/upgrade")
               }
             >
               {lang === "en"
                 ? "Upgrade ⚡"
                 : "ترقية الخطة ⚡"}
             </button>
-
           </div>
 
           <div className="awd-progress">
             <span />
           </div>
-
         </section>
 
         <div className="awd-disclaimer">
@@ -1163,8 +866,39 @@ export default function Home() {
             : "AllWDbook أداة مستقلة وليست تابعة لشركة Amazon.com, Inc. أو معتمدة أو مدعومة من طرفها."}
         </div>
 
-        <footer className="awd-footer">
+        {tab === 6 && (
+          <CoverTool lang={lang} />
+        )}
 
+        {tab === 1 && (
+          <Niches
+            t={t}
+            lang={lang}
+            domain={domain}
+            onAnalyze={sendToKeywords}
+          />
+        )}
+
+        {tab === 0 && (
+          <KeywordsPanel
+            t={t}
+            domain={domain}
+            seed={seedKw}
+          />
+        )}
+
+        {tab === 5 && (
+          <Calc
+            t={t}
+            domain={domain}
+          />
+        )}
+
+        {tab === 4 && (
+          <Formatter t={t} />
+        )}
+
+        <footer className="awd-footer">
           <img
             src="/logov3.png"
             alt="AllWDbook"
@@ -1172,18 +906,12 @@ export default function Home() {
 
           <span>
             {t.by}{" "}
-            <b>
-              All World Digital
-            </b>{" "}
-            ©{" "}
-            {new Date().getFullYear()}{" "}
-            · {t.rights}
+            <b>All World Digital</b>{" "}
+            © {new Date().getFullYear()} ·{" "}
+            {t.rights}
           </span>
-
         </footer>
-
       </div>
-
     </div>
   );
 }
@@ -1225,7 +953,6 @@ function Niches({
   ] = useState(false);
 
   async function canUseMicroNiche() {
-
     const supabase =
       getSupabase();
 
@@ -1237,16 +964,13 @@ function Niches({
       await supabase.auth.getSession();
 
     if (!session?.access_token) {
-
       const {
         data,
         error,
       } =
-        await supabase.auth
-          .signInAnonymously();
+        await supabase.auth.signInAnonymously();
 
       if (error) {
-
         console.error(
           "Anonymous sign-in failed:",
           error
@@ -1256,8 +980,7 @@ function Niches({
       }
 
       session =
-        data?.session ||
-        null;
+        data?.session || null;
     }
 
     if (!session?.access_token) {
@@ -1275,43 +998,36 @@ function Niches({
       return false;
     }
 
-    const response =
-      await fetch(
-        "/api/usage/consume",
-        {
-          method: "POST",
+    const response = await fetch(
+      "/api/usage/consume",
+      {
+        method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
+        headers: {
+          "Content-Type":
+            "application/json",
 
-            Authorization:
-              `Bearer ${session.access_token}`,
-          },
+          Authorization:
+            `Bearer ${session.access_token}`,
+        },
 
-          body:
-            JSON.stringify({
-              toolId:
-                "microNiche",
-            }),
-        }
-      );
+        body: JSON.stringify({
+          toolId: "microNiche",
+        }),
+      }
+    );
 
     const data =
       await response
         .json()
-        .catch(
-          () => ({})
-        );
+        .catch(() => ({}));
 
     if (
       !response.ok &&
       data?.error ===
         "DAILY_LIMIT_REACHED"
     ) {
-
       setUpgradeOpen(true);
-
       return false;
     }
 
@@ -1319,14 +1035,13 @@ function Niches({
   }
 
   async function load() {
-
     setBusy(true);
 
-    const seed =
-      String(Date.now());
+    const seed = String(
+      Date.now()
+    );
 
     try {
-
       const allowed =
         await canUseMicroNiche();
 
@@ -1349,27 +1064,18 @@ function Niches({
       const data =
         await response.json();
 
-      setRows(
-        data.rows || []
-      );
-
+      setRows(data.rows || []);
     } catch {
-
       setRows([]);
-
     } finally {
-
       setBusy(false);
-
     }
   }
 
   async function validateCurrent() {
-
     setBusy(true);
 
     try {
-
       const allowed =
         await canUseMicroNiche();
 
@@ -1391,23 +1097,15 @@ function Niches({
       const data =
         await response.json();
 
-      setRows(
-        data.rows || []
-      );
-
+      setRows(data.rows || []);
     } catch {
-
       setRows([]);
-
     } finally {
-
       setBusy(false);
-
     }
   }
 
   function copyAll() {
-
     navigator.clipboard.writeText(
       rows
         .map(
@@ -1419,31 +1117,21 @@ function Niches({
 
     setCopied(true);
 
-    setTimeout(
-      () =>
-        setCopied(false),
-      1800
-    );
+    setTimeout(() => {
+      setCopied(false);
+    }, 1800);
   }
 
   function categoryLabel(key) {
-
     return lang === "ar"
-      ? NICHE_CATEGORIES[
-          key
-        ].ar
-      : NICHE_CATEGORIES[
-          key
-        ].en;
+      ? NICHE_CATEGORIES[key].ar
+      : NICHE_CATEGORIES[key].en;
   }
 
   return (
     <div className="card">
-
       <div className="trustNote">
-        <p>
-          {t.nicheNote}
-        </p>
+        <p>{t.nicheNote}</p>
       </div>
 
       <label className="mut">
@@ -1460,18 +1148,14 @@ function Niches({
       >
         {Object.keys(
           NICHE_CATEGORIES
-        ).map(
-          (key) => (
-            <option
-              key={key}
-              value={key}
-            >
-              {categoryLabel(
-                key
-              )}
-            </option>
-          )
-        )}
+        ).map((key) => (
+          <option
+            key={key}
+            value={key}
+          >
+            {categoryLabel(key)}
+          </option>
+        ))}
       </select>
 
       <label className="mut">
@@ -1488,7 +1172,7 @@ function Niches({
           )
         }
       >
-        {[12,24,40,60].map(
+        {[12, 24, 40, 60].map(
           (number) => (
             <option
               key={number}
@@ -1514,9 +1198,7 @@ function Niches({
 
       {rows.length > 0 && (
         <>
-
           <div className="actionRow">
-
             <button
               className="mini"
               onClick={
@@ -1535,83 +1217,63 @@ function Niches({
                 ? t.copied
                 : t.copy}
             </button>
-
           </div>
 
-          {rows.map(
-            (row) => (
-              <div
-                key={
-                  row.keyword
-                }
-                className="nrow"
-              >
+          {rows.map((row) => (
+            <div
+              key={row.keyword}
+              className="nrow"
+            >
+              <span className="nicheText">
+                {row.keyword}
 
-                <span className="nicheText">
+                {row.longTail && (
+                  <small className="mut">
+                    {" "}
+                    · {t.longTail}
+                  </small>
+                )}
+              </span>
 
-                  {row.keyword}
-
-                  {row.longTail && (
-                    <small className="mut">
-                      {" "}
-                      ·{" "}
-                      {t.longTail}
-                    </small>
-                  )}
-
+              <span className="nicheActions">
+                <span
+                  className={
+                    "badge " +
+                    (row.demand
+                      ? "b-" +
+                        row.demand
+                      : "b-none")
+                  }
+                >
+                  {row.demand
+                    ? t[row.demand] ||
+                      row.demand
+                    : t.untested}
                 </span>
 
-                <span className="nicheActions">
-
-                  <span
-                    className={
-                      "badge " +
-                      (
-                        row.demand
-                          ? "b-" +
-                            row.demand
-                          : "b-none"
-                      )
-                    }
-                  >
-                    {row.demand
-                      ? t[
-                          row.demand
-                        ] ||
-                        row.demand
-                      : t.untested}
-                  </span>
-
-                  <button
-                    className="mini"
-                    onClick={() =>
-                      onAnalyze(
-                        row.keyword
-                      )
-                    }
-                  >
-                    {t.analyzeThis}
-                  </button>
-
-                </span>
-
-              </div>
-            )
-          )}
-
+                <button
+                  className="mini"
+                  onClick={() =>
+                    onAnalyze(
+                      row.keyword
+                    )
+                  }
+                >
+                  {t.analyzeThis}
+                </button>
+              </span>
+            </div>
+          ))}
         </>
       )}
 
       <UpgradePrompt
-        open={
-          upgradeOpen
-        }
+        open={upgradeOpen}
         toolId="microNiche"
         onClose={() =>
           setUpgradeOpen(false)
         }
       />
-
     </div>
   );
 }
@@ -1640,93 +1302,72 @@ function escapeHtml(value) {
     );
 }
 
-function formatDescription(
-  value
-) {
-
+function formatDescription(value) {
   return value
-    .slice(0,4000)
+    .slice(0, 4000)
     .split("\n\n")
-    .map(
-      (paragraph) =>
-        paragraph.trim()
+    .map((paragraph) =>
+      paragraph.trim()
     )
     .filter(Boolean)
-    .map(
-      (paragraph) => {
+    .map((paragraph) => {
+      if (
+        paragraph.startsWith("- ")
+      ) {
+        const list =
+          paragraph
+            .split("\n")
+            .filter(Boolean)
+            .map((line) => {
+              const cleanLine =
+                line.startsWith("- ")
+                  ? line.slice(2)
+                  : line;
 
-        if (
-          paragraph.startsWith(
-            "- "
-          )
-        ) {
-
-          const list =
-            paragraph
-              .split("\n")
-              .filter(Boolean)
-              .map(
-                (line) => {
-
-                  const cleanLine =
-                    line.startsWith(
-                      "- "
-                    )
-                      ? line.slice(2)
-                      : line;
-
-                  return (
-                    "<li>" +
-                    escapeHtml(
-                      cleanLine
-                    ) +
-                    "</li>"
-                  );
-                }
-              )
-              .join("");
-
-          return (
-            "<ul>" +
-            list +
-            "</ul>"
-          );
-        }
-
-        if (
-          paragraph.startsWith(
-            "# "
-          )
-        ) {
-
-          return (
-            "<h4>" +
-            escapeHtml(
-              paragraph.slice(2)
-            ) +
-            "</h4>"
-          );
-        }
+              return (
+                "<li>" +
+                escapeHtml(
+                  cleanLine
+                ) +
+                "</li>"
+              );
+            })
+            .join("");
 
         return (
-          "<p>" +
-          escapeHtml(
-            paragraph
-          ).replaceAll(
-            "\n",
-            "\u0001NLBR\u0001"
-          ) +
-          "</p>"
+          "<ul>" +
+          list +
+          "</ul>"
         );
       }
-    )
+
+      if (
+        paragraph.startsWith("# ")
+      ) {
+        return (
+          "<h4>" +
+          escapeHtml(
+            paragraph.slice(2)
+          ) +
+          "</h4>"
+        );
+      }
+
+      return (
+        "<p>" +
+        escapeHtml(
+          paragraph
+        ).replaceAll(
+          "\n",
+          "NLBR"
+        ) +
+        "</p>"
+      );
+    })
     .join("");
 }
 
-function Formatter({
-  t,
-}) {
-
+function Formatter({ t }) {
   const [
     value,
     setValue,
@@ -1738,28 +1379,22 @@ function Formatter({
   ] = useState(false);
 
   const html =
-    formatDescription(
-      value
-    );
+    formatDescription(value);
 
   async function copyHtml() {
-
     await navigator.clipboard.writeText(
       html
     );
 
     setCopied(true);
 
-    setTimeout(
-      () =>
-        setCopied(false),
-      1600
-    );
+    setTimeout(() => {
+      setCopied(false);
+    }, 1600);
   }
 
   return (
     <div className="card">
-
       <p className="mut">
         {t.fmtNote}
       </p>
@@ -1775,9 +1410,7 @@ function Formatter({
         }
       />
 
-      <h3>
-        {t.preview}
-      </h3>
+      <h3>{t.preview}</h3>
 
       <div
         className="prev"
@@ -1787,10 +1420,7 @@ function Formatter({
       />
 
       <div className="formatterHead">
-
-        <h3>
-          {t.htmlCode}
-        </h3>
+        <h3>{t.htmlCode}</h3>
 
         <button
           className="mini"
@@ -1800,7 +1430,6 @@ function Formatter({
             ? t.copied
             : t.copyHtml}
         </button>
-
       </div>
 
       <textarea
@@ -1810,10 +1439,9 @@ function Formatter({
       />
 
       <p className="mut">
-        {t.chars}:{" "}
-        {value.length}/4000
+        {t.chars}: {value.length}
+        /4000
       </p>
-
     </div>
   );
 }
@@ -1822,7 +1450,6 @@ function Calc({
   t,
   domain,
 }) {
-
   const [
     price,
     setPrice,
@@ -1836,9 +1463,7 @@ function Calc({
   const [
     ink,
     setInk,
-  ] = useState(
-    "black"
-  );
+  ] = useState("black");
 
   const [
     large,
@@ -1846,9 +1471,7 @@ function Calc({
   ] = useState(false);
 
   const market =
-    marketInfo(
-      domain
-    );
+    marketInfo(domain);
 
   const options = {
     domain,
@@ -1856,17 +1479,15 @@ function Calc({
     large,
   };
 
-  const cost =
-    printCost(
-      pages,
-      options
-    );
+  const cost = printCost(
+    pages,
+    options
+  );
 
-  const rate =
-    royaltyRate(
-      price,
-      domain
-    );
+  const rate = royaltyRate(
+    price,
+    domain
+  );
 
   const royalty =
     royaltyPerUnit(
@@ -1877,9 +1498,7 @@ function Calc({
 
   return (
     <div className="card">
-
       <div className="trustNote">
-
         <p>
           <b>
             {t.marketplace}:
@@ -1891,7 +1510,6 @@ function Calc({
         <small>
           {t.calcNote}
         </small>
-
       </div>
 
       <label className="mut">
@@ -1942,7 +1560,6 @@ function Calc({
           )
         }
       >
-
         <option value="black">
           {t.blackInk}
         </option>
@@ -1954,7 +1571,6 @@ function Calc({
         <option value="standard">
           {t.standardColor}
         </option>
-
       </select>
 
       <label className="mut">
@@ -1974,7 +1590,6 @@ function Calc({
           )
         }
       >
-
         <option value="regular">
           {t.regularTrim}
         </option>
@@ -1982,26 +1597,18 @@ function Calc({
         <option value="large">
           {t.largeTrim}
         </option>
-
       </select>
 
       {cost === null ? (
-
         <div className="trustNote warnNote">
-
           <p>
             ⚠️{" "}
             {t.invalidPrint}
           </p>
-
         </div>
-
       ) : (
-
         <div className="grid resultSection">
-
           <div className="kpi">
-
             <b>
               {market.symbol}
               {cost.toFixed(2)}
@@ -2010,11 +1617,9 @@ function Calc({
             <span>
               {t.printCost}
             </span>
-
           </div>
 
           <div className="kpi">
-
             <b>
               {rate
                 ? Math.round(
@@ -2026,11 +1631,9 @@ function Calc({
             <span>
               {t.royaltyRate}
             </span>
-
           </div>
 
           <div className="kpi fullKpi">
-
             <b>
               {royalty === null
                 ? "—"
@@ -2041,18 +1644,13 @@ function Calc({
             <span>
               {t.royaltyUnit}
             </span>
-
           </div>
-
         </div>
-
       )}
 
       <p className="mut disclaimer">
-        ⚖️{" "}
-        {t.notAdvice}
+        ⚖️ {t.notAdvice}
       </p>
-
     </div>
   );
 }
