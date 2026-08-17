@@ -27,9 +27,12 @@ export const dynamic =
   "force-dynamic";
 
 
-/* =========================================================
-   CONFIG
-   ========================================================= */
+const TEST_SOURCE =
+  "admin";
+
+const TEST_NOTE =
+  "Temporary AllWDbook recovery-flow test key";
+
 
 const ALLOWED_TEST_PLANS =
   new Set([
@@ -68,7 +71,7 @@ function json(
 
 
 /* =========================================================
-   BEARER TOKEN
+   TOKEN
    ========================================================= */
 
 function bearerToken(
@@ -94,7 +97,7 @@ function bearerToken(
 
 
 /* =========================================================
-   SAFE SECRET COMPARE
+   SAFE SECRET
    ========================================================= */
 
 function safeEqual(
@@ -103,17 +106,13 @@ function safeEqual(
 ) {
   const left =
     Buffer.from(
-      String(
-        first || "",
-      ),
+      String(first || ""),
       "utf8",
     );
 
   const right =
     Buffer.from(
-      String(
-        second || "",
-      ),
+      String(second || ""),
       "utf8",
     );
 
@@ -132,7 +131,7 @@ function safeEqual(
 
 
 /* =========================================================
-   TEST MODE ENABLED?
+   CONFIG
    ========================================================= */
 
 function testGrantEnabled() {
@@ -144,10 +143,6 @@ function testGrantEnabled() {
 }
 
 
-/* =========================================================
-   EXPECTED SECRET
-   ========================================================= */
-
 function expectedSecret() {
   return String(
     process.env
@@ -158,7 +153,7 @@ function expectedSecret() {
 
 
 /* =========================================================
-   AUTHENTICATE CURRENT DEVICE
+   AUTH
    ========================================================= */
 
 async function authenticate(
@@ -166,9 +161,7 @@ async function authenticate(
   supabase,
 ) {
   const token =
-    bearerToken(
-      request,
-    );
+    bearerToken(request);
 
   if (!token) {
     return {
@@ -227,32 +220,20 @@ async function authenticate(
 
 
 /* =========================================================
-   DEVICE NAME
+   DEVICE
    ========================================================= */
 
 function safeDeviceName(
   value,
 ) {
-  const clean =
-    String(
-      value || "",
-    )
-      .trim()
-      .slice(
-        0,
-        100,
-      );
-
   return (
-    clean ||
+    String(value || "")
+      .trim()
+      .slice(0, 100) ||
     "AllWDbook Test Device"
   );
 }
 
-
-/* =========================================================
-   DEVICE INFO
-   ========================================================= */
 
 function safeDeviceInfo(
   value,
@@ -265,7 +246,7 @@ function safeDeviceInfo(
   ) {
     return {
       source:
-        "manual_test_grant",
+        "test_access",
     };
   }
 
@@ -273,103 +254,25 @@ function safeDeviceInfo(
   return {
     platform:
       String(
-        value.platform ||
-          "",
-      ).slice(
-        0,
-        120,
-      ),
+        value.platform || "",
+      ).slice(0, 120),
 
     language:
       String(
-        value.language ||
-          "",
-      ).slice(
-        0,
-        50,
-      ),
+        value.language || "",
+      ).slice(0, 50),
 
     mobile:
-      Boolean(
-        value.mobile,
-      ),
+      Boolean(value.mobile),
 
     source:
-      "manual_test_grant",
+      "test_access",
   };
 }
 
 
 /* =========================================================
-   EXTRACT CREATED ACCESS KEY
-   =========================================================
-   نجعله مرنًا حتى لو كانت createAccessKey
-   ترجع accessKey مباشرة أو داخل object.
-   ========================================================= */
-
-function extractAccessKey(
-  created,
-) {
-  if (!created) {
-    return null;
-  }
-
-  return (
-    created.accessKey ||
-    created.key ||
-    created.row ||
-    created.data ||
-    created
-  );
-}
-
-
-/* =========================================================
-   EXTRACT CODE
-   ========================================================= */
-
-function extractCode(
-  created,
-  accessKey,
-) {
-  const direct =
-    String(
-      created?.code ||
-      created?.accessKeyCode ||
-      "",
-    ).trim();
-
-  if (direct) {
-    return direct;
-  }
-
-
-  if (
-    accessKey
-      ?.code_ciphertext
-  ) {
-    try {
-      return revealAccessKeyCode(
-        accessKey,
-      );
-    } catch (error) {
-      console.error(
-        "Test access key reveal failed:",
-        error,
-      );
-    }
-  }
-
-
-  return "";
-}
-
-
-/* =========================================================
-   FIND EXISTING TEST KEY
-   =========================================================
-   حتى لا ننشئ مفتاحًا جديدًا كل مرة
-   يضغط فيها المستخدم زر الاختبار.
+   EXISTING TEST KEY
    ========================================================= */
 
 async function findExistingTestKey(
@@ -396,7 +299,11 @@ async function findExistingTestKey(
       )
       .eq(
         "source",
-        "manual_test",
+        TEST_SOURCE,
+      )
+      .eq(
+        "note",
+        TEST_NOTE,
       )
       .is(
         "revoked_at",
@@ -435,7 +342,7 @@ async function findExistingTestKey(
 
 
 /* =========================================================
-   ACTIVATE ON CURRENT DEVICE
+   ACTIVATE
    ========================================================= */
 
 async function activateForUser(
@@ -467,10 +374,17 @@ async function activateForUser(
     result?.allowed ===
     false
   ) {
-    throw new Error(
+    const error =
+      new Error(
+        result.reason ||
+          "TEST_ACTIVATION_FAILED",
+      );
+
+    error.code =
       result.reason ||
-      "TEST_ACTIVATION_FAILED",
-    );
+      "TEST_ACTIVATION_FAILED";
+
+    throw error;
   }
 
 
@@ -486,7 +400,7 @@ export async function POST(
   request,
 ) {
   /* =======================================================
-     1. FEATURE SWITCH
+     ENABLED
      ======================================================= */
 
   if (
@@ -495,7 +409,6 @@ export async function POST(
     return json(
       {
         ok: false,
-
         error:
           "TEST_GRANT_DISABLED",
       },
@@ -505,7 +418,7 @@ export async function POST(
 
 
   /* =======================================================
-     2. RATE LIMIT
+     RATE LIMIT
      ======================================================= */
 
   const rate =
@@ -542,7 +455,7 @@ export async function POST(
 
 
   /* =======================================================
-     3. BODY
+     BODY
      ======================================================= */
 
   let body;
@@ -555,7 +468,6 @@ export async function POST(
     return json(
       {
         ok: false,
-
         error:
           "INVALID_JSON",
       },
@@ -565,7 +477,7 @@ export async function POST(
 
 
   /* =======================================================
-     4. SECRET
+     SECRET
      ======================================================= */
 
   const secret =
@@ -582,19 +494,12 @@ export async function POST(
     expectedSecret();
 
 
-  /*
-   * نرفض تشغيل النظام إذا كان Secret
-   * غير مضبوط أو قصيرًا.
-   */
-
   if (
-    expected.length <
-    32
+    expected.length < 32
   ) {
     return json(
       {
         ok: false,
-
         error:
           "TEST_SECRET_NOT_CONFIGURED",
       },
@@ -613,7 +518,6 @@ export async function POST(
     return json(
       {
         ok: false,
-
         error:
           "INVALID_TEST_SECRET",
       },
@@ -623,7 +527,7 @@ export async function POST(
 
 
   /* =======================================================
-     5. PLAN
+     PLAN
      ======================================================= */
 
   const planId =
@@ -656,7 +560,7 @@ export async function POST(
 
 
   /* =======================================================
-     6. SUPABASE + CURRENT USER
+     SUPABASE
      ======================================================= */
 
   const supabase =
@@ -679,20 +583,54 @@ export async function POST(
   }
 
 
-  try {
-    /* =====================================================
-       7. REUSE EXISTING TEST KEY
-       ===================================================== */
+  /* =======================================================
+     EXISTING
+     ======================================================= */
 
-    const existing =
+  let existing;
+
+
+  try {
+    existing =
       await findExistingTestKey(
         supabase,
         user.id,
         planId,
       );
+  } catch (error) {
+    console.error(
+      "Test key lookup failed:",
+      error,
+    );
 
 
-    if (existing) {
+    return json(
+      {
+        ok: false,
+
+        error:
+          "TEST_KEY_LOOKUP_FAILED",
+
+        detail:
+          String(
+            error?.message ||
+            "",
+          ).slice(
+            0,
+            220,
+          ),
+      },
+      500,
+    );
+  }
+
+
+  /* =======================================================
+     REUSE
+     ======================================================= */
+
+  if (existing) {
+    try {
       await activateForUser(
         supabase,
         existing,
@@ -710,10 +648,12 @@ export async function POST(
           revealAccessKeyCode(
             existing,
           );
-      } catch (error) {
+      } catch (
+        revealError
+      ) {
         console.error(
           "Existing test key reveal failed:",
-          error,
+          revealError,
         );
       }
 
@@ -739,30 +679,75 @@ export async function POST(
         message:
           "TEST_ACCESS_GRANTED",
       });
+    } catch (error) {
+      console.error(
+        "Existing test key activation failed:",
+        error,
+      );
+
+
+      if (
+        String(
+          error?.message ||
+          "",
+        ).includes(
+          "ACTIVATION_LIMIT_REACHED",
+        )
+      ) {
+        return json(
+          {
+            ok: false,
+
+            error:
+              "ACTIVATION_LIMIT_REACHED",
+          },
+          409,
+        );
+      }
+
+
+      return json(
+        {
+          ok: false,
+
+          error:
+            "TEST_ACTIVATION_FAILED",
+
+          detail:
+            String(
+              error?.message ||
+              "",
+            ).slice(
+              0,
+              220,
+            ),
+        },
+        500,
+      );
     }
+  }
 
 
-    /* =====================================================
-       8. CREATE TEST AWD-KEY
-       =====================================================
-       مهم:
-       testMode = false هنا عمدًا.
+  /* =======================================================
+     CREATE
+     ======================================================= */
 
-       هذا ليس Lemon Squeezy Test Order.
-       هو مفتاح داخلي مؤقت لاختبار واجهة
-       الوصول والاستعادة فقط.
+  let created;
 
-       سنلغيه بعد انتهاء الاختبار.
-       ===================================================== */
 
-    const created =
+  try {
+    created =
       await createAccessKey(
         supabase,
         {
           planId,
 
+          /*
+           * نستخدم المصدر المدعوم رسميًا
+           * في محرك AllWDbook.
+           */
           source:
-            "manual_test",
+            TEST_SOURCE,
 
           purchasedByUserId:
             user.id,
@@ -774,7 +759,7 @@ export async function POST(
             false,
 
           note:
-            "Temporary AllWDbook recovery-flow test key",
+            TEST_NOTE,
 
           metadata: {
             purpose:
@@ -783,106 +768,131 @@ export async function POST(
             temporary:
               true,
 
+            testAccess:
+              true,
+
             createdForUserId:
               user.id,
           },
         },
       );
+  } catch (error) {
+    console.error(
+      "Test key create failed:",
+      error,
+    );
 
 
-    const accessKey =
-      extractAccessKey(
-        created,
+    const detail =
+      String(
+        error?.message ||
+        "",
+      ).slice(
+        0,
+        220,
       );
 
 
     if (
-      !accessKey?.id
+      detail.includes(
+        "PLAN_NOT_FOUND",
+      )
     ) {
-      console.error(
-        "Unexpected createAccessKey result:",
-        created,
-      );
-
       return json(
         {
           ok: false,
-
           error:
-            "TEST_KEY_CREATE_FAILED",
+            "TEST_PLAN_NOT_FOUND",
+          detail,
         },
-        500,
+        400,
       );
     }
 
 
-    /* =====================================================
-       9. ACTIVATE ON THIS DEVICE
-       ===================================================== */
+    if (
+      detail.includes(
+        "PLAN_NOT_ACTIVE",
+      )
+    ) {
+      return json(
+        {
+          ok: false,
+          error:
+            "TEST_PLAN_NOT_ACTIVE",
+          detail,
+        },
+        400,
+      );
+    }
 
+
+    return json(
+      {
+        ok: false,
+
+        error:
+          "TEST_KEY_CREATE_FAILED",
+
+        detail,
+      },
+      500,
+    );
+  }
+
+
+  const accessKey =
+    created?.accessKey ||
+    null;
+
+
+  if (
+    !accessKey?.id
+  ) {
+    return json(
+      {
+        ok: false,
+
+        error:
+          "TEST_KEY_CREATE_FAILED",
+
+        detail:
+          "ACCESS_KEY_RESULT_MISSING",
+      },
+      500,
+    );
+  }
+
+
+  /* =======================================================
+     ACTIVATE
+     ======================================================= */
+
+  try {
     await activateForUser(
       supabase,
       accessKey,
       user.id,
       body,
     );
-
-
-    /* =====================================================
-       10. REVEAL CODE TO OWNER DEVICE
-       ===================================================== */
-
-    const code =
-      extractCode(
-        created,
-        accessKey,
-      );
-
-
-    return json({
-      ok: true,
-
-      test: true,
-
-      reused: false,
-
-      planId,
-
-      accessKeyId:
-        accessKey.id,
-
-      code,
-
-      codeHint:
-        accessKey.code_hint ||
-        "",
-
-      message:
-        "TEST_ACCESS_GRANTED",
-    });
   } catch (error) {
     console.error(
-      "Test access grant failed:",
+      "New test key activation failed:",
       error,
     );
 
 
-    const message =
+    if (
       String(
         error?.message ||
         "",
-      );
-
-
-    if (
-      message.includes(
+      ).includes(
         "ACTIVATION_LIMIT_REACHED",
       )
     ) {
       return json(
         {
           ok: false,
-
           error:
             "ACTIVATION_LIMIT_REACHED",
         },
@@ -896,16 +906,54 @@ export async function POST(
         ok: false,
 
         error:
-          "TEST_GRANT_FAILED",
+          "TEST_ACTIVATION_FAILED",
+
+        detail:
+          String(
+            error?.message ||
+            "",
+          ).slice(
+            0,
+            220,
+          ),
       },
       500,
     );
   }
+
+
+  /* =======================================================
+     SUCCESS
+     ======================================================= */
+
+  return json({
+    ok: true,
+
+    test: true,
+
+    reused: false,
+
+    planId,
+
+    accessKeyId:
+      accessKey.id,
+
+    code:
+      created?.code ||
+      "",
+
+    codeHint:
+      accessKey.code_hint ||
+      "",
+
+    message:
+      "TEST_ACCESS_GRANTED",
+  });
 }
 
 
 /* =========================================================
-   GET — HEALTH CHECK ONLY
+   GET
    ========================================================= */
 
 export async function GET() {
@@ -924,6 +972,9 @@ export async function GET() {
 
     defaultPlan:
       "pro_monthly",
+
+    source:
+      TEST_SOURCE,
 
     note:
       "POST only for creating test access",
