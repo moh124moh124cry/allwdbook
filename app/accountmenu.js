@@ -1,27 +1,16 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  createPortal,
-} from "react-dom";
-
-import {
-  useAccess,
-} from "../lib/useAccess";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { useAccess } from "../lib/useAccess";
 
 
 /* =========================================================
-   CHECKOUT
+   CHECKOUT CONFIG
    ========================================================= */
 
 const LIFETIME_CHECKOUT_URL =
-  process.env
-    .NEXT_PUBLIC_LEMON_LIFETIME_CHECKOUT_URL ||
-  "";
+  process.env.NEXT_PUBLIC_LEMON_LIFETIME_CHECKOUT_URL || "";
 
 
 const PACKAGES = [
@@ -36,7 +25,6 @@ const PACKAGES = [
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/a40b815f-2b2c-4086-b8b8-3afcd0bf7a4d",
   },
-
   {
     id: "micro_niche",
     ar: "Micro-Niche",
@@ -48,7 +36,6 @@ const PACKAGES = [
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/c205aef7-1c77-4711-9fba-ee2b9a81153b",
   },
-
   {
     id: "keywords",
     ar: "الكلمات المفتاحية",
@@ -60,7 +47,6 @@ const PACKAGES = [
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/9a058282-b97a-4f49-bd27-c31aefab98d9",
   },
-
   {
     id: "pro_monthly",
     ar: "AllWDbook Pro",
@@ -73,7 +59,6 @@ const PACKAGES = [
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/00e64ca6-4e8c-42c2-aa44-e9667d745524",
   },
-
   {
     id: "pro_yearly",
     ar: "Pro السنوي",
@@ -94,119 +79,51 @@ const PACKAGES = [
 
 const TEXT = {
   ar: {
-    account:
-      "الحساب والوصول",
+    account: "الحساب والوصول",
+    accountSubtitle: "إدارة خطتك واستعادتها بدون تسجيل دخول",
+    openAccount: "فتح الحساب",
+    currentAccess: "وصولك الحالي",
+    loading: "جارٍ التحقق...",
+    free: "الخطة المجانية",
+    lifetime: "Lifetime — وصول مدى الحياة",
 
-    accountSubtitle:
-      "إدارة خطتك واستعادتها بدون تسجيل دخول",
-
-    openAccount:
-      "فتح الحساب",
-
-    currentAccess:
-      "وصولك الحالي",
-
-    loading:
-      "جارٍ التحقق...",
-
-    free:
-      "الخطة المجانية",
-
-    lifetime:
-      "Lifetime — وصول مدى الحياة",
-
-    showPlans:
-      "عرض الباقات",
-
-    hidePlans:
-      "إخفاء الباقات",
-
-    active:
-      "مفعلة",
-
-    included:
-      "مشمولة",
-
-    lifetimeTitle:
-      "Lifetime",
-
-    lifetimeSub:
-      "وصول دائم لجميع الأدوات",
-
-    lifetimePrice:
-      "$125 دفعة واحدة",
-
-    buyLifetime:
-      "شراء Lifetime",
-
-    restore:
-      "استعادة خطتي",
-
-    restoreSub:
-      "استخدم رمز AWD-KEY على جهاز جديد",
-
-    restoreTitle:
-      "استعادة خطة AllWDbook",
-
+    restore: "استعادة خطتي",
+    restoreSub: "استخدم رمز AWD-KEY على جهاز جديد",
+    restoreTitle: "استعادة خطة AllWDbook",
     restoreDescription:
       "أدخل رمز الوصول الذي حصلت عليه بعد الدفع. يمكنك أيضًا استخدام رمز AWD-LIFE القديم إذا كنت من مستخدمي Lifetime السابقين.",
-
-    codePlaceholder:
-      "AWD-KEY-XXXX-XXXX-XXXX-XXXX-XXXX",
-
-    activate:
-      "استعادة الخطة",
-
-    processing:
-      "جارٍ التحقق...",
-
-    restoreSuccess:
-      "تمت استعادة خطتك بنجاح",
-
+    codePlaceholder: "AWD-KEY-XXXX-XXXX-XXXX-XXXX-XXXX",
+    activate: "استعادة الخطة",
+    restoreSuccess: "تمت استعادة خطتك بنجاح",
     restoreSuccessNote:
       "هذا الجهاز أصبح مرتبطًا بخطتك ويمكنك استخدام المزايا المدفوعة الآن.",
+    restoredPlan: "الخطة",
+    devices: "الأجهزة",
 
-    restoredPlan:
-      "الخطة",
-
-    devices:
-      "الأجهزة",
-
-    close:
-      "إغلاق",
-
-    recoveryCode:
-      "رمز استعادة خطتي",
-
-    recoveryCodeSub:
-      "عرض رمز استعادة الخطة",
-
-    codeTitle:
-      "رمز استعادة خطتك",
-
+    recoveryCode: "رمز استعادة خطتي",
+    recoveryCodeSub: "عرض رمز استعادة الخطة",
+    codeTitle: "رمز استعادة خطتك",
     codeWarning:
       "احتفظ بهذا الرمز في مكان آمن ولا تشاركه مع أي شخص. يمكنك استخدامه لاستعادة خطتك على جهاز جديد.",
-
-    copy:
-      "نسخ الرمز",
-
-    copied:
-      "تم النسخ ✓",
-
+    copy: "نسخ الرمز",
+    copied: "تم النسخ ✓",
     codeUnavailable:
       "لحماية خطتك، الرمز الكامل يظهر فقط على جهاز الشراء الأصلي. هذا الجهاز يرى نسخة مخفية فقط.",
+    ownerDevice: "جهاز الشراء الأصلي",
+    noCode: "لم نجد رمز استعادة مرتبطًا بهذا الجهاز.",
 
-    securityEmail:
-      "بريد الحماية",
-
+    securityEmail: "بريد الحماية",
     securityEmailSub:
       "اختياري — يحمي حقك إذا فقدت رمز الاستعادة",
+    securityEmailFreeSub:
+      "متاح بعد شراء أو تفعيل أي خطة",
 
-    emailTitle:
-      "حماية خطتك بالبريد",
-
+    emailTitle: "حماية خطتك بالبريد",
     emailDescription:
       "أضف بريدًا إلكترونيًا اختياريًا لحماية خطتك. لن نطلب منك تسجيل الدخول بهذا البريد.",
+
+    emailFreeMessage:
+      "بريد الحماية متاح بعد شراء أو تفعيل أي خطة. بعد حصولك على AWD-KEY يمكنك ربط بريدك اختياريًا لحماية حقك واستعادة الخطة إذا فقدت الرمز.",
 
     emailOwnerOnly:
       "بريد الحماية يمكن تغييره فقط من جهاز الشراء الأصلي حفاظًا على حق صاحب الخطة.",
@@ -214,200 +131,101 @@ const TEXT = {
     emailUnavailable:
       "لم نجد خطة يمكن ربط بريد الحماية بها على هذا الجهاز.",
 
-    emailPlaceholder:
-      "name@example.com",
-
-    sendCode:
-      "إرسال رمز التحقق",
-
-    codeSent:
-      "أرسلنا رمز تحقق من 6 أرقام إلى بريدك.",
-
-    otpPlaceholder:
-      "رمز التحقق من 6 أرقام",
-
-    verify:
-      "تأكيد البريد",
-
-    verified:
-      "بريد الحماية موثّق",
-
+    emailPlaceholder: "name@example.com",
+    sendCode: "إرسال رمز التحقق",
+    codeSent: "أرسلنا رمز تحقق من 6 أرقام إلى بريدك.",
+    otpPlaceholder: "رمز التحقق من 6 أرقام",
+    verify: "تأكيد البريد",
+    verified: "بريد الحماية موثّق",
     verifiedDescription:
       "تم ربط البريد بخططك بنجاح. لن تحتاج إلى تسجيل الدخول به.",
+    protectedPlans: "الخطط المحمية",
+    changeEmail: "تغيير بريد الحماية",
+    resend: "إرسال رمز جديد",
 
-    protectedPlans:
-      "الخطط المحمية",
+    lifetimeTitle: "Lifetime",
+    lifetimeSub: "وصول دائم لجميع الأدوات",
+    lifetimePrice: "$125 دفعة واحدة",
+    buyLifetime: "شراء Lifetime",
 
-    changeEmail:
-      "تغيير بريد الحماية",
+    goPlans: "فتح صفحة الاشتراك",
+    showPlans: "عرض الباقات",
+    hidePlans: "إخفاء الباقات",
+    active: "مفعلة",
+    included: "مشمولة",
+    billing: "إدارة الاشتراك والفواتير",
 
-    resend:
-      "إرسال رمز جديد",
+    close: "إغلاق",
+    processing: "جارٍ التحقق...",
 
-    billing:
-      "إدارة الاشتراك والفواتير",
-
-    genericError:
-      "تعذر تنفيذ العملية. حاول مرة أخرى.",
-
-    badCode:
-      "رمز الوصول غير صحيح أو غير فعال.",
-
-    activationLimit:
-      "وصل هذا الرمز إلى الحد الأقصى للأجهزة.",
-
+    genericError: "تعذر تنفيذ العملية. حاول مرة أخرى.",
+    badCode: "رمز الوصول غير صحيح أو غير فعال.",
+    activationLimit: "وصل هذا الرمز إلى الحد الأقصى للأجهزة.",
     rateLimited:
       "تمت محاولات كثيرة. انتظر قليلًا ثم حاول مرة أخرى.",
-
-    invalidEmail:
-      "أدخل بريدًا إلكترونيًا صحيحًا.",
-
-    invalidOtp:
-      "أدخل رمز تحقق صحيحًا من 6 أرقام.",
-
+    invalidEmail: "أدخل بريدًا إلكترونيًا صحيحًا.",
+    invalidOtp: "أدخل رمز تحقق صحيحًا من 6 أرقام.",
     otpExpired:
       "انتهت صلاحية رمز التحقق. أرسل رمزًا جديدًا.",
-
-    otpWrong:
-      "رمز التحقق غير صحيح.",
-
+    otpWrong: "رمز التحقق غير صحيح.",
     tooManyOtp:
       "تم إدخال رمز خاطئ عدة مرات. أرسل رمزًا جديدًا.",
-
     emailSendFailed:
-      "تعذر إرسال البريد. تأكد من إعداد خدمة البريد ثم حاول مرة أخرى.",
-
+      "تعذر إرسال بريد التحقق. حاول مرة أخرى.",
     missingCheckout:
       "رابط الدفع لهذه الخطة غير مضبوط.",
-
     copyFailed:
       "تعذر نسخ الرمز تلقائيًا.",
-
-    ownerDevice:
-      "جهاز الشراء الأصلي",
-
-    noCode:
-      "لم نجد رمز استعادة مرتبطًا بهذا الجهاز.",
-
-    goPlans:
-      "فتح صفحة الاشتراك",
   },
 
-
   en: {
-    account:
-      "Account & Access",
-
+    account: "Account & Access",
     accountSubtitle:
       "Manage and recover your plan without signing in",
+    openAccount: "Open account",
+    currentAccess: "Current access",
+    loading: "Checking...",
+    free: "Free Plan",
+    lifetime: "Lifetime Access",
 
-    openAccount:
-      "Open account",
-
-    currentAccess:
-      "Current access",
-
-    loading:
-      "Checking...",
-
-    free:
-      "Free Plan",
-
-    lifetime:
-      "Lifetime Access",
-
-    showPlans:
-      "View plans",
-
-    hidePlans:
-      "Hide plans",
-
-    active:
-      "Active",
-
-    included:
-      "Included",
-
-    lifetimeTitle:
-      "Lifetime",
-
-    lifetimeSub:
-      "Permanent access to all tools",
-
-    lifetimePrice:
-      "$125 one-time",
-
-    buyLifetime:
-      "Buy Lifetime",
-
-    restore:
-      "Recover my plan",
-
-    restoreSub:
-      "Use your AWD-KEY on a new device",
-
-    restoreTitle:
-      "Recover AllWDbook Access",
-
+    restore: "Recover my plan",
+    restoreSub: "Use your AWD-KEY on a new device",
+    restoreTitle: "Recover AllWDbook Access",
     restoreDescription:
       "Enter the access key you received after payment. Legacy AWD-LIFE codes are also supported.",
-
     codePlaceholder:
       "AWD-KEY-XXXX-XXXX-XXXX-XXXX-XXXX",
-
-    activate:
-      "Recover Plan",
-
-    processing:
-      "Checking...",
-
-    restoreSuccess:
-      "Your plan has been recovered",
-
+    activate: "Recover Plan",
+    restoreSuccess: "Your plan has been recovered",
     restoreSuccessNote:
       "This device is now linked to your plan and your paid features are available.",
+    restoredPlan: "Plan",
+    devices: "Devices",
 
-    restoredPlan:
-      "Plan",
-
-    devices:
-      "Devices",
-
-    close:
-      "Close",
-
-    recoveryCode:
-      "My recovery key",
-
-    recoveryCodeSub:
-      "View your plan recovery key",
-
-    codeTitle:
-      "Your Plan Recovery Key",
-
+    recoveryCode: "My recovery key",
+    recoveryCodeSub: "View your plan recovery key",
+    codeTitle: "Your Plan Recovery Key",
     codeWarning:
       "Store this key safely and do not share it. You can use it to recover your plan on a new device.",
-
-    copy:
-      "Copy key",
-
-    copied:
-      "Copied ✓",
-
+    copy: "Copy key",
+    copied: "Copied ✓",
     codeUnavailable:
       "For security, the full key is only shown on the original purchase device. This device only sees a masked version.",
+    ownerDevice: "Original purchase device",
+    noCode: "No recovery key was found for this device.",
 
-    securityEmail:
-      "Security email",
-
+    securityEmail: "Security email",
     securityEmailSub:
       "Optional — protects your access if you lose your key",
+    securityEmailFreeSub:
+      "Available after activating any paid plan",
 
-    emailTitle:
-      "Protect your plan with email",
-
+    emailTitle: "Protect your plan with email",
     emailDescription:
       "Add an optional security email to protect your plan. You will not need to sign in with this email.",
+
+    emailFreeMessage:
+      "Security email becomes available after purchasing or activating a plan. Once you have an AWD-KEY, you can optionally protect your access with email.",
 
     emailOwnerOnly:
       "For security, the recovery email can only be changed from the original purchase device.",
@@ -415,83 +233,58 @@ const TEXT = {
     emailUnavailable:
       "No eligible plan was found for security email protection on this device.",
 
-    emailPlaceholder:
-      "name@example.com",
-
-    sendCode:
-      "Send verification code",
-
+    emailPlaceholder: "name@example.com",
+    sendCode: "Send verification code",
     codeSent:
       "We sent a 6-digit verification code to your email.",
-
-    otpPlaceholder:
-      "6-digit verification code",
-
-    verify:
-      "Verify email",
-
-    verified:
-      "Security email verified",
-
+    otpPlaceholder: "6-digit verification code",
+    verify: "Verify email",
+    verified: "Security email verified",
     verifiedDescription:
       "Your email is now linked to your plans. No email sign-in is required.",
+    protectedPlans: "Protected plans",
+    changeEmail: "Change security email",
+    resend: "Send a new code",
 
-    protectedPlans:
-      "Protected plans",
+    lifetimeTitle: "Lifetime",
+    lifetimeSub: "Permanent access to all tools",
+    lifetimePrice: "$125 one-time",
+    buyLifetime: "Buy Lifetime",
 
-    changeEmail:
-      "Change security email",
+    goPlans: "Open subscription page",
+    showPlans: "View plans",
+    hidePlans: "Hide plans",
+    active: "Active",
+    included: "Included",
+    billing: "Manage subscription & billing",
 
-    resend:
-      "Send a new code",
-
-    billing:
-      "Manage subscription & billing",
+    close: "Close",
+    processing: "Checking...",
 
     genericError:
       "Unable to complete the request. Try again.",
-
     badCode:
       "This access key is invalid or inactive.",
-
     activationLimit:
       "This key has reached its device limit.",
-
     rateLimited:
       "Too many attempts. Please wait before trying again.",
-
     invalidEmail:
       "Enter a valid email address.",
-
     invalidOtp:
       "Enter a valid 6-digit verification code.",
-
     otpExpired:
       "The verification code has expired. Send a new code.",
-
     otpWrong:
       "The verification code is incorrect.",
-
     tooManyOtp:
       "Too many incorrect attempts. Send a new code.",
-
     emailSendFailed:
-      "Unable to send the email. Check the email service configuration and try again.",
-
+      "Unable to send the verification email. Try again.",
     missingCheckout:
       "Checkout URL is not configured.",
-
     copyFailed:
       "Automatic copy failed.",
-
-    ownerDevice:
-      "Original purchase device",
-
-    noCode:
-      "No recovery key was found for this device.",
-
-    goPlans:
-      "Open subscription page",
   },
 };
 
@@ -500,51 +293,31 @@ const TEXT = {
    HELPERS
    ========================================================= */
 
-function getBillingUrl(
-  subscriptions,
-) {
-  if (
-    !Array.isArray(
-      subscriptions,
-    )
-  ) {
+function getBillingUrl(subscriptions) {
+  if (!Array.isArray(subscriptions)) {
     return "";
   }
 
   return (
     subscriptions.find(
-      (item) =>
-        item?.customer_portal_url,
-    )
-      ?.customer_portal_url ||
-    ""
+      (item) => item?.customer_portal_url,
+    )?.customer_portal_url || ""
   );
 }
 
 
-function getPlanLabel(
-  planId,
-  isEnglish,
-) {
-  if (
-    planId ===
-    "lifetime"
-  ) {
+function getPlanLabel(planId, isEnglish) {
+  if (planId === "lifetime") {
     return "Lifetime";
   }
 
   const plan =
     PACKAGES.find(
-      (item) =>
-        item.id ===
-        planId,
+      (item) => item.id === planId,
     );
 
   if (!plan) {
-    return (
-      planId ||
-      ""
-    );
+    return planId || "";
   }
 
   return isEnglish
@@ -553,88 +326,51 @@ function getPlanLabel(
 }
 
 
-function normalizeTypedCode(
-  value,
-) {
-  return String(
-    value || "",
-  )
+function normalizeTypedCode(value) {
+  return String(value || "")
     .trim()
     .toUpperCase()
-    .replace(
-      /\s+/g,
-      "",
-    );
+    .replace(/\s+/g, "");
 }
 
 
-function isUniversalKey(
-  code,
-) {
+function isUniversalKey(code) {
   const compact =
-    String(
-      code || "",
-    )
+    String(code || "")
       .toUpperCase()
-      .replace(
-        /[^A-Z0-9]/g,
-        "",
-      );
+      .replace(/[^A-Z0-9]/g, "");
 
-  return compact.startsWith(
-    "AWDKEY",
-  );
+  return compact.startsWith("AWDKEY");
 }
 
 
-function isLegacyLifetimeKey(
-  code,
-) {
+function isLegacyLifetimeKey(code) {
   const compact =
-    String(
-      code || "",
-    )
+    String(code || "")
       .toUpperCase()
-      .replace(
-        /[^A-Z0-9]/g,
-        "",
-      );
+      .replace(/[^A-Z0-9]/g, "");
 
-  return compact.startsWith(
-    "AWDLIFE",
-  );
+  return compact.startsWith("AWDLIFE");
 }
 
 
-function normalizeEmail(
-  value,
-) {
-  return String(
-    value || "",
-  )
+function normalizeEmail(value) {
+  return String(value || "")
     .trim()
     .toLowerCase();
 }
 
 
-function validEmail(
-  value,
-) {
+function validEmail(value) {
   return /^\S+@\S+\.\S+$/.test(
-    normalizeEmail(
-      value,
-    ),
+    normalizeEmail(value),
   );
 }
 
 
-function maskEmail(
-  value,
-) {
+function maskEmail(value) {
   const clean =
-    normalizeEmail(
-      value,
-    );
+    normalizeEmail(value);
 
   if (
     !clean ||
@@ -643,12 +379,8 @@ function maskEmail(
     return "";
   }
 
-  const [
-    local,
-    domain,
-  ] =
+  const [local, domain] =
     clean.split("@");
-
 
   if (
     !local ||
@@ -657,26 +389,15 @@ function maskEmail(
     return "";
   }
 
-
-  if (
-    local.length === 1
-  ) {
+  if (local.length === 1) {
     return `${local}***@${domain}`;
   }
 
-
-  if (
-    local.length === 2
-  ) {
+  if (local.length === 2) {
     return `${local[0]}***${local[1]}@${domain}`;
   }
 
-
-  return (
-    `${local[0]}***` +
-    `${local[local.length - 1]}` +
-    `@${domain}`
-  );
+  return `${local[0]}***${local[local.length - 1]}@${domain}`;
 }
 
 
@@ -688,62 +409,29 @@ export default function AccountMenu() {
   const access =
     useAccess();
 
-
-  const [
-    mounted,
-    setMounted,
-  ] =
+  const [mounted, setMounted] =
     useState(false);
 
-
-  const [
-    open,
-    setOpen,
-  ] =
+  const [open, setOpen] =
     useState(false);
 
-
-  const [
-    showPlans,
-    setShowPlans,
-  ] =
+  const [showPlans, setShowPlans] =
     useState(false);
 
-
-  const [
-    language,
-    setLanguage,
-  ] =
+  const [language, setLanguage] =
     useState("ar");
 
-
-  const [
-    dialog,
-    setDialog,
-  ] =
+  const [dialog, setDialog] =
     useState("");
 
-
-  const [
-    busy,
-    setBusy,
-  ] =
+  const [busy, setBusy] =
     useState(false);
 
-
-  const [
-    error,
-    setError,
-  ] =
+  const [error, setError] =
     useState("");
 
-
-  const [
-    accessCode,
-    setAccessCode,
-  ] =
+  const [accessCode, setAccessCode] =
     useState("");
-
 
   const [
     restoreResult,
@@ -751,13 +439,11 @@ export default function AccountMenu() {
   ] =
     useState(null);
 
-
   const [
     revealedCode,
     setRevealedCode,
   ] =
     useState("");
-
 
   const [
     revealedCodeHint,
@@ -765,18 +451,13 @@ export default function AccountMenu() {
   ] =
     useState("");
 
-
   const [
     revealedCodePlan,
     setRevealedCodePlan,
   ] =
     useState("");
 
-
-  const [
-    copied,
-    setCopied,
-  ] =
+  const [copied, setCopied] =
     useState(false);
 
 
@@ -784,19 +465,11 @@ export default function AccountMenu() {
      SECURITY EMAIL STATE
      ======================================================= */
 
-  const [
-    email,
-    setEmail,
-  ] =
+  const [email, setEmail] =
     useState("");
 
-
-  const [
-    otp,
-    setOtp,
-  ] =
+  const [otp, setOtp] =
     useState("");
-
 
   const [
     emailStep,
@@ -804,13 +477,11 @@ export default function AccountMenu() {
   ] =
     useState("email");
 
-
   const [
     emailSystem,
     setEmailSystem,
   ] =
     useState("");
-
 
   const [
     challengeId,
@@ -818,20 +489,17 @@ export default function AccountMenu() {
   ] =
     useState("");
 
-
   const [
     protectedEmail,
     setProtectedEmail,
   ] =
     useState("");
 
-
   const [
     protectedKeys,
     setProtectedKeys,
   ] =
     useState(0);
-
 
   const [
     securityKey,
@@ -843,20 +511,20 @@ export default function AccountMenu() {
   const isEnglish =
     language === "en";
 
-
   const text =
     isEnglish
       ? TEXT.en
       : TEXT.ar;
 
+  const arrow =
+    isEnglish
+      ? "›"
+      : "‹";
 
   const activePlans =
-    Array.isArray(
-      access.plans,
-    )
+    Array.isArray(access.plans)
       ? access.plans
       : [];
-
 
   const billingUrl =
     getBillingUrl(
@@ -878,65 +546,45 @@ export default function AccountMenu() {
      ======================================================= */
 
   useEffect(() => {
-    function detectLanguage(
-      event,
-    ) {
+    function detectLanguage(event) {
       const eventLanguage =
         event?.detail;
-
 
       const savedLanguage =
         window.localStorage.getItem(
           "awd_lang",
         );
 
-
       if (
-        eventLanguage ===
-          "en" ||
-        eventLanguage ===
-          "ar"
+        eventLanguage === "en" ||
+        eventLanguage === "ar"
       ) {
-        setLanguage(
-          eventLanguage,
-        );
-
+        setLanguage(eventLanguage);
         return;
       }
 
-
       if (
-        savedLanguage ===
-          "en" ||
-        savedLanguage ===
-          "ar"
+        savedLanguage === "en" ||
+        savedLanguage === "ar"
       ) {
-        setLanguage(
-          savedLanguage,
-        );
-
+        setLanguage(savedLanguage);
         return;
       }
-
 
       setLanguage(
-        document
-          .documentElement
-          .lang === "en"
+        document.documentElement.lang ===
+          "en"
           ? "en"
           : "ar",
       );
     }
 
-
     detectLanguage();
-
 
     window.addEventListener(
       "awd-language-change",
       detectLanguage,
     );
-
 
     return () => {
       window.removeEventListener(
@@ -959,41 +607,27 @@ export default function AccountMenu() {
       return;
     }
 
-
     const oldOverflow =
-      document.body.style
-        .overflow;
-
+      document.body.style.overflow;
 
     const oldOverscroll =
       document.body.style
         .overscrollBehavior;
 
-
-    document.body.style
-      .overflow =
+    document.body.style.overflow =
       "hidden";
 
-
-    document.body.style
-      .overscrollBehavior =
+    document.body.style.overscrollBehavior =
       "none";
 
-
     return () => {
-      document.body.style
-        .overflow =
+      document.body.style.overflow =
         oldOverflow;
 
-
-      document.body.style
-        .overscrollBehavior =
+      document.body.style.overscrollBehavior =
         oldOverscroll;
     };
-  }, [
-    open,
-    dialog,
-  ]);
+  }, [open, dialog]);
 
 
   /* =======================================================
@@ -1001,16 +635,12 @@ export default function AccountMenu() {
      ======================================================= */
 
   useEffect(() => {
-    function handleEscape(
-      event,
-    ) {
+    function handleEscape(event) {
       if (
-        event.key !==
-        "Escape"
+        event.key !== "Escape"
       ) {
         return;
       }
-
 
       if (dialog) {
         closeDialog();
@@ -1019,12 +649,10 @@ export default function AccountMenu() {
       }
     }
 
-
     document.addEventListener(
       "keydown",
       handleEscape,
     );
-
 
     return () => {
       document.removeEventListener(
@@ -1032,13 +660,11 @@ export default function AccountMenu() {
         handleEscape,
       );
     };
-  }, [
-    dialog,
-  ]);
+  }, [dialog]);
 
 
   /* =======================================================
-     CURRENT PLAN
+     CURRENT PLAN LABEL
      ======================================================= */
 
   const currentPlanLabel =
@@ -1048,12 +674,11 @@ export default function AccountMenu() {
         ? text.lifetime
         : activePlans.length
           ? activePlans
-              .map(
-                (plan) =>
-                  getPlanLabel(
-                    plan,
-                    isEnglish,
-                  ),
+              .map((plan) =>
+                getPlanLabel(
+                  plan,
+                  isEnglish,
+                ),
               )
               .join(" · ")
           : text.free;
@@ -1067,19 +692,14 @@ export default function AccountMenu() {
     const session =
       await access.ensureSession();
 
-
     if (
-      !session
-        ?.access_token ||
-      !session
-        ?.user
-        ?.id
+      !session?.access_token ||
+      !session?.user?.id
     ) {
       throw new Error(
         "SESSION_MISSING",
       );
     }
-
 
     return session;
   }
@@ -1089,74 +709,53 @@ export default function AccountMenu() {
      CHECKOUT
      ======================================================= */
 
-  async function openCheckout(
-    plan,
-  ) {
+  async function openCheckout(plan) {
     if (busy) {
       return;
     }
 
-
     setBusy(true);
-
     setError("");
 
-
     try {
-      if (
-        !plan?.checkoutUrl
-      ) {
+      if (!plan?.checkoutUrl) {
         setError(
           text.missingCheckout,
         );
-
         return;
       }
-
 
       const session =
         await getSession();
 
-
       const checkout =
-        new URL(
-          plan.checkoutUrl,
-        );
-
+        new URL(plan.checkoutUrl);
 
       checkout.searchParams.set(
         "checkout[custom][user_id]",
         session.user.id,
       );
 
-
       checkout.searchParams.set(
         "checkout[custom][plan_id]",
         plan.id,
       );
 
-
-      if (
-        session.user.email
-      ) {
+      if (session.user.email) {
         checkout.searchParams.set(
           "checkout[email]",
           session.user.email,
         );
       }
 
-
       window.location.assign(
         checkout.toString(),
       );
-    } catch (
-      checkoutError
-    ) {
+    } catch (checkoutError) {
       console.error(
         "Checkout error:",
         checkoutError,
       );
-
 
       setError(
         text.genericError,
@@ -1169,9 +768,7 @@ export default function AccountMenu() {
 
   function buyLifetime() {
     openCheckout({
-      id:
-        "lifetime",
-
+      id: "lifetime",
       checkoutUrl:
         LIFETIME_CHECKOUT_URL,
     });
@@ -1179,79 +776,54 @@ export default function AccountMenu() {
 
 
   /* =======================================================
-     RESTORE
+     OPEN RESTORE DIALOG
      ======================================================= */
 
   function openRestoreDialog() {
     setOpen(false);
-
-    setDialog(
-      "restore",
-    );
-
+    setDialog("restore");
     setAccessCode("");
-
-    setRestoreResult(
-      null,
-    );
-
+    setRestoreResult(null);
     setError("");
   }
 
 
-  async function activateCode(
-    event,
-  ) {
-    event.preventDefault();
+  /* =======================================================
+     ACTIVATE AWD-KEY / AWD-LIFE
+     ======================================================= */
 
+  async function activateCode(event) {
+    event.preventDefault();
 
     const cleanCode =
       normalizeTypedCode(
         accessCode,
       );
 
-
     if (!cleanCode) {
-      setError(
-        text.badCode,
-      );
-
+      setError(text.badCode);
       return;
     }
 
-
     const universal =
-      isUniversalKey(
-        cleanCode,
-      );
-
+      isUniversalKey(cleanCode);
 
     const legacy =
       isLegacyLifetimeKey(
         cleanCode,
       );
 
-
     if (
       !universal &&
       !legacy
     ) {
-      setError(
-        text.badCode,
-      );
-
+      setError(text.badCode);
       return;
     }
 
-
     setBusy(true);
-
     setError("");
-
-    setRestoreResult(
-      null,
-    );
-
+    setRestoreResult(null);
 
     try {
       const session =
@@ -1267,8 +839,7 @@ export default function AccountMenu() {
           await fetch(
             "/api/access-key/activate",
             {
-              method:
-                "POST",
+              method: "POST",
 
               headers: {
                 "Content-Type":
@@ -1280,8 +851,7 @@ export default function AccountMenu() {
 
               body:
                 JSON.stringify({
-                  code:
-                    cleanCode,
+                  code: cleanCode,
 
                   deviceName:
                     isEnglish
@@ -1307,18 +877,12 @@ export default function AccountMenu() {
             },
           );
 
-
         const data =
           await response
             .json()
-            .catch(
-              () => ({}),
-            );
+            .catch(() => ({}));
 
-
-        if (
-          !response.ok
-        ) {
+        if (!response.ok) {
           if (
             data?.error ===
             "ACTIVATION_LIMIT_REACHED"
@@ -1342,24 +906,20 @@ export default function AccountMenu() {
           return;
         }
 
-
         setRestoreResult({
-          type:
-            "universal",
+          type: "universal",
 
           planId:
             data.planId,
 
           planName:
             isEnglish
-              ? data.plan
-                  ?.nameEn ||
+              ? data.plan?.nameEn ||
                 getPlanLabel(
                   data.planId,
                   true,
                 )
-              : data.plan
-                  ?.nameAr ||
+              : data.plan?.nameAr ||
                 getPlanLabel(
                   data.planId,
                   false,
@@ -1375,19 +935,15 @@ export default function AccountMenu() {
             data.maxActivations,
         });
 
-
         setAccessCode("");
 
-
         await access.refresh();
-
 
         window.dispatchEvent(
           new Event(
             "allwdbook-access-refresh",
           ),
         );
-
 
         return;
       }
@@ -1401,8 +957,7 @@ export default function AccountMenu() {
         await fetch(
           "/api/license/activate",
           {
-            method:
-              "POST",
+            method: "POST",
 
             headers: {
               "Content-Type":
@@ -1414,24 +969,17 @@ export default function AccountMenu() {
 
             body:
               JSON.stringify({
-                code:
-                  cleanCode,
+                code: cleanCode,
               }),
           },
         );
 
-
       const data =
         await response
           .json()
-          .catch(
-            () => ({}),
-          );
+          .catch(() => ({}));
 
-
-      if (
-        !response.ok
-      ) {
+      if (!response.ok) {
         if (
           data?.error ===
           "ACTIVATION_LIMIT_REACHED"
@@ -1448,45 +996,33 @@ export default function AccountMenu() {
         return;
       }
 
-
       setRestoreResult({
-        type:
-          "legacy",
-
-        planName:
-          "Lifetime",
+        type: "legacy",
+        planName: "Lifetime",
 
         activeDevices:
-          data
-            ?.activeActivations ||
+          data?.activeActivations ||
           null,
 
         maxActivations:
-          data
-            ?.maxActivations ||
+          data?.maxActivations ||
           null,
       });
 
-
       setAccessCode("");
 
-
       await access.refresh();
-
 
       window.dispatchEvent(
         new Event(
           "allwdbook-access-refresh",
         ),
       );
-    } catch (
-      activationError
-    ) {
+    } catch (activationError) {
       console.error(
         "Plan activation failed:",
         activationError,
       );
-
 
       setError(
         text.genericError,
@@ -1498,59 +1034,49 @@ export default function AccountMenu() {
 
 
   /* =======================================================
-     RECOVERY KEY
+     RECOVERY CODE
      ======================================================= */
 
   async function revealCode() {
     setOpen(false);
-
-    setDialog(
-      "code",
-    );
+    setDialog("code");
 
     setRevealedCode("");
-
     setRevealedCodeHint("");
-
     setRevealedCodePlan("");
-
     setCopied(false);
 
     setBusy(true);
-
     setError("");
-
 
     try {
       const session =
         await getSession();
 
 
+      /* ===================================================
+         AWD-KEY
+         =================================================== */
+
       const keyResponse =
         await fetch(
           "/api/access-key/me",
           {
-            method:
-              "GET",
+            method: "GET",
 
             headers: {
               Authorization:
                 `Bearer ${session.access_token}`,
             },
 
-            cache:
-              "no-store",
+            cache: "no-store",
           },
         );
-
 
       const keyData =
         await keyResponse
           .json()
-          .catch(
-            () => ({}),
-          );
-
+          .catch(() => ({}));
 
       if (
         keyResponse.ok &&
@@ -1565,55 +1091,40 @@ export default function AccountMenu() {
               item?.usable,
           );
 
-
         const ownerKey =
           usableKeys.find(
             (item) =>
-              item
-                ?.canRevealCode &&
+              item?.canRevealCode &&
               item?.code,
           );
-
 
         const anyKey =
           ownerKey ||
           usableKeys[0] ||
           null;
 
-
         if (anyKey) {
           setRevealedCode(
-            ownerKey?.code ||
-              "",
+            ownerKey?.code || "",
           );
-
 
           setRevealedCodeHint(
-            anyKey?.codeHint ||
-              "",
+            anyKey?.codeHint || "",
           );
-
 
           setRevealedCodePlan(
             isEnglish
-              ? anyKey
-                  ?.plan
-                  ?.nameEn ||
+              ? anyKey?.plan?.nameEn ||
                 getPlanLabel(
-                  anyKey
-                    ?.planId,
+                  anyKey?.planId,
                   true,
                 )
-              : anyKey
-                  ?.plan
-                  ?.nameAr ||
+              : anyKey?.plan?.nameAr ||
                 getPlanLabel(
-                  anyKey
-                    ?.planId,
+                  anyKey?.planId,
                   false,
                 ),
           );
-
 
           return;
         }
@@ -1628,27 +1139,21 @@ export default function AccountMenu() {
         await fetch(
           "/api/license/code",
           {
-            method:
-              "GET",
+            method: "GET",
 
             headers: {
               Authorization:
                 `Bearer ${session.access_token}`,
             },
 
-            cache:
-              "no-store",
+            cache: "no-store",
           },
         );
-
 
       const legacyData =
         await legacyResponse
           .json()
-          .catch(
-            () => ({}),
-          );
-
+          .catch(() => ({}));
 
       if (
         legacyResponse.ok &&
@@ -1658,34 +1163,24 @@ export default function AccountMenu() {
           legacyData.code,
         );
 
-
         setRevealedCodeHint(
-          legacyData
-            ?.codeHint ||
-          "",
+          legacyData?.codeHint ||
+            "",
         );
-
 
         setRevealedCodePlan(
           "Lifetime",
         );
 
-
         return;
       }
 
-
-      setError(
-        text.noCode,
-      );
-    } catch (
-      codeError
-    ) {
+      setError(text.noCode);
+    } catch (codeError) {
       console.error(
         "Recovery code lookup failed:",
         codeError,
       );
-
 
       setError(
         text.genericError,
@@ -1697,40 +1192,25 @@ export default function AccountMenu() {
 
 
   async function copyCode() {
-    if (
-      !revealedCode
-    ) {
+    if (!revealedCode) {
       return;
     }
 
-
     try {
-      await navigator
-        .clipboard
-        .writeText(
-          revealedCode,
-        );
-
+      await navigator.clipboard.writeText(
+        revealedCode,
+      );
 
       setCopied(true);
 
-
-      window.setTimeout(
-        () => {
-          setCopied(
-            false,
-          );
-        },
-        1600,
-      );
-    } catch (
-      clipboardError
-    ) {
+      window.setTimeout(() => {
+        setCopied(false);
+      }, 1600);
+    } catch (clipboardError) {
       console.error(
         "Copy failed:",
         clipboardError,
       );
-
 
       setError(
         text.copyFailed,
@@ -1739,9 +1219,9 @@ export default function AccountMenu() {
   }
 
 
-  /* =========================================================
-     AWD-KEY SECURITY LOOKUP
-     ========================================================= */
+  /* =======================================================
+     FIND OWNER AWD-KEY
+     ======================================================= */
 
   async function getOwnerSecurityKey(
     session,
@@ -1750,27 +1230,21 @@ export default function AccountMenu() {
       await fetch(
         "/api/access-key/me",
         {
-          method:
-            "GET",
+          method: "GET",
 
           headers: {
             Authorization:
               `Bearer ${session.access_token}`,
           },
 
-          cache:
-            "no-store",
+          cache: "no-store",
         },
       );
-
 
     const data =
       await response
         .json()
-        .catch(
-          () => ({}),
-        );
-
+        .catch(() => ({}));
 
     if (
       !response.ok ||
@@ -1781,59 +1255,47 @@ export default function AccountMenu() {
       return null;
     }
 
-
-    /*
-     * الـ API مرتب من الأحدث إلى الأقدم.
-     *
-     * نبحث عن أحدث كود:
-     * - صالح
-     * - الجهاز الحالي هو جهاز الشراء الأصلي
-     */
-
     return (
       data.keys.find(
         (item) =>
           item?.usable &&
           item?.ownerDevice,
-      ) ||
-      null
+      ) || null
     );
   }
 
 
-  /* =========================================================
+  /* =======================================================
      OPEN SECURITY EMAIL
-     ========================================================= */
+     ======================================================= */
 
   async function openEmailSecurity() {
     setOpen(false);
+    setDialog("email");
 
-    setDialog(
-      "email",
-    );
-
-    setBusy(true);
-
+    setBusy(false);
     setError("");
 
     setEmail("");
-
     setOtp("");
-
     setChallengeId("");
-
     setProtectedEmail("");
-
     setProtectedKeys(0);
-
     setSecurityKey(null);
-
     setEmailSystem("");
 
-    setEmailStep(
-      "loading",
-    );
+    /*
+     * FREE USER:
+     * الزر يظهر لكن لا نرسل أي طلب بلا داعٍ.
+     */
 
+    if (!access.paid) {
+      setEmailStep("free");
+      return;
+    }
+
+    setBusy(true);
+    setEmailStep("loading");
 
     try {
       const session =
@@ -1841,7 +1303,7 @@ export default function AccountMenu() {
 
 
       /* ===================================================
-         1. AWD-KEY NEW SYSTEM
+         AWD-KEY OWNER DEVICE
          =================================================== */
 
       const ownerKey =
@@ -1849,27 +1311,17 @@ export default function AccountMenu() {
           session,
         );
 
-
       if (ownerKey) {
-        setSecurityKey(
-          ownerKey,
-        );
-
+        setSecurityKey(ownerKey);
         setEmailSystem(
           "access_key",
         );
 
-
         const existingEmail =
-          ownerKey
-            ?.recoveryEmail ||
+          ownerKey?.recoveryEmail ||
           "";
 
-
-        setEmail(
-          existingEmail,
-        );
-
+        setEmail(existingEmail);
 
         setProtectedEmail(
           existingEmail
@@ -1878,7 +1330,6 @@ export default function AccountMenu() {
               )
             : "",
         );
-
 
         if (
           ownerKey
@@ -1893,39 +1344,30 @@ export default function AccountMenu() {
           );
         }
 
-
         return;
       }
 
 
       /* ===================================================
-         2. LEGACY LIFETIME
+         LEGACY LIFETIME
          =================================================== */
 
       if (
         access.lifetime &&
-        access
-          .lifetimeLicense
-          ?.system ===
-          "legacy"
+        access.lifetimeLicense
+          ?.system === "legacy"
       ) {
         setEmailSystem(
           "legacy",
         );
 
-
         const existingEmail =
-          access
-            .lifetimeLicense
+          access.lifetimeLicense
             ?.recoveryEmail ||
           access.email ||
           "";
 
-
-        setEmail(
-          existingEmail,
-        );
-
+        setEmail(existingEmail);
 
         setProtectedEmail(
           existingEmail
@@ -1935,10 +1377,8 @@ export default function AccountMenu() {
             : "",
         );
 
-
         if (
-          access
-            .lifetimeLicense
+          access.lifetimeLicense
             ?.recoveryEmailVerified
         ) {
           setEmailStep(
@@ -1950,38 +1390,30 @@ export default function AccountMenu() {
           );
         }
 
-
         return;
       }
 
 
       /* ===================================================
-         SECONDARY DEVICE / NO OWNER KEY
+         PAID BUT NOT ORIGINAL DEVICE
          =================================================== */
 
       setEmailStep(
         "unavailable",
       );
 
-
       setError(
-        access.paid
-          ? text.emailOwnerOnly
-          : text.emailUnavailable,
+        text.emailOwnerOnly,
       );
-    } catch (
-      securityError
-    ) {
+    } catch (securityError) {
       console.error(
         "Security email setup failed:",
         securityError,
       );
 
-
       setEmailStep(
         "unavailable",
       );
-
 
       setError(
         text.genericError,
@@ -1992,16 +1424,13 @@ export default function AccountMenu() {
   }
 
 
-  /* =========================================================
+  /* =======================================================
      SEND SECURITY EMAIL OTP
-     ========================================================= */
+     ======================================================= */
 
   async function sendEmailCode() {
     const normalizedEmail =
-      normalizeEmail(
-        email,
-      );
-
+      normalizeEmail(email);
 
     if (
       !validEmail(
@@ -2011,26 +1440,18 @@ export default function AccountMenu() {
       setError(
         text.invalidEmail,
       );
-
       return;
     }
 
-
-    if (
-      !emailSystem
-    ) {
+    if (!emailSystem) {
       setError(
         text.emailUnavailable,
       );
-
       return;
     }
 
-
     setBusy(true);
-
     setError("");
-
 
     try {
       const session =
@@ -2049,8 +1470,7 @@ export default function AccountMenu() {
           await fetch(
             "/api/access-key/email",
             {
-              method:
-                "POST",
+              method: "POST",
 
               headers: {
                 "Content-Type":
@@ -2062,27 +1482,19 @@ export default function AccountMenu() {
 
               body:
                 JSON.stringify({
-                  action:
-                    "send",
-
+                  action: "send",
                   email:
                     normalizedEmail,
                 }),
             },
           );
 
-
         const data =
           await response
             .json()
-            .catch(
-              () => ({}),
-            );
+            .catch(() => ({}));
 
-
-        if (
-          !response.ok
-        ) {
+        if (!response.ok) {
           if (
             data?.error ===
             "RATE_LIMITED"
@@ -2092,7 +1504,7 @@ export default function AccountMenu() {
             );
           } else if (
             data?.error ===
-              "NO_OWNER_ACCESS_KEY"
+            "NO_OWNER_ACCESS_KEY"
           ) {
             setError(
               text.emailOwnerOnly,
@@ -2101,7 +1513,9 @@ export default function AccountMenu() {
             data?.error ===
               "EMAIL_NOT_CONFIGURED" ||
             data?.error ===
-              "EMAIL_SEND_FAILED"
+              "EMAIL_SEND_FAILED" ||
+            data?.error ===
+              "RECOVERY_EMAIL_SEND_FAILED"
           ) {
             setError(
               text.emailSendFailed,
@@ -2112,22 +1526,17 @@ export default function AccountMenu() {
             );
           }
 
-
           return;
         }
-
 
         setEmail(
           normalizedEmail,
         );
 
-
         setChallengeId(
-          data
-            ?.challengeId ||
+          data?.challengeId ||
             "",
         );
-
 
         setProtectedEmail(
           data?.email ||
@@ -2136,12 +1545,7 @@ export default function AccountMenu() {
             ),
         );
 
-
-        setEmailStep(
-          "otp",
-        );
-
-
+        setEmailStep("otp");
         return;
       }
 
@@ -2154,8 +1558,7 @@ export default function AccountMenu() {
         await fetch(
           "/api/license/email",
           {
-            method:
-              "POST",
+            method: "POST",
 
             headers: {
               "Content-Type":
@@ -2167,27 +1570,19 @@ export default function AccountMenu() {
 
             body:
               JSON.stringify({
-                action:
-                  "send",
-
+                action: "send",
                 email:
                   normalizedEmail,
               }),
           },
         );
 
-
       const data =
         await response
           .json()
-          .catch(
-            () => ({}),
-          );
+          .catch(() => ({}));
 
-
-      if (
-        !response.ok
-      ) {
+      if (!response.ok) {
         if (
           data?.error ===
           "RATE_LIMITED"
@@ -2201,15 +1596,12 @@ export default function AccountMenu() {
           );
         }
 
-
         return;
       }
-
 
       setEmail(
         normalizedEmail,
       );
-
 
       setProtectedEmail(
         maskEmail(
@@ -2217,18 +1609,12 @@ export default function AccountMenu() {
         ),
       );
 
-
-      setEmailStep(
-        "otp",
-      );
-    } catch (
-      emailError
-    ) {
+      setEmailStep("otp");
+    } catch (emailError) {
       console.error(
         "Security email send failed:",
         emailError,
       );
-
 
       setError(
         text.genericError,
@@ -2239,21 +1625,15 @@ export default function AccountMenu() {
   }
 
 
-  /* =========================================================
-     VERIFY SECURITY EMAIL
-     ========================================================= */
+  /* =======================================================
+     VERIFY SECURITY EMAIL OTP
+     ======================================================= */
 
   async function verifyEmailCode() {
     const cleanOtp =
-      String(
-        otp || "",
-      )
+      String(otp || "")
         .trim()
-        .replace(
-          /\D/g,
-          "",
-        );
-
+        .replace(/\D/g, "");
 
     if (
       !/^\d{6}$/.test(
@@ -2263,15 +1643,11 @@ export default function AccountMenu() {
       setError(
         text.invalidOtp,
       );
-
       return;
     }
 
-
     setBusy(true);
-
     setError("");
-
 
     try {
       const session =
@@ -2286,23 +1662,18 @@ export default function AccountMenu() {
         emailSystem ===
         "access_key"
       ) {
-        if (
-          !challengeId
-        ) {
+        if (!challengeId) {
           setError(
             text.otpExpired,
           );
-
           return;
         }
-
 
         const response =
           await fetch(
             "/api/access-key/email",
             {
-              method:
-                "POST",
+              method: "POST",
 
               headers: {
                 "Content-Type":
@@ -2314,8 +1685,7 @@ export default function AccountMenu() {
 
               body:
                 JSON.stringify({
-                  action:
-                    "verify",
+                  action: "verify",
 
                   email:
                     normalizeEmail(
@@ -2324,27 +1694,20 @@ export default function AccountMenu() {
 
                   challengeId,
 
-                  otp:
-                    cleanOtp,
+                  otp: cleanOtp,
                 }),
             },
           );
 
-
         const data =
           await response
             .json()
-            .catch(
-              () => ({}),
-            );
+            .catch(() => ({}));
 
-
-        if (
-          !response.ok
-        ) {
+        if (!response.ok) {
           if (
             data?.error ===
-              "INVALID_OTP"
+            "INVALID_OTP"
           ) {
             setError(
               text.otpWrong,
@@ -2360,14 +1723,14 @@ export default function AccountMenu() {
             );
           } else if (
             data?.error ===
-              "TOO_MANY_ATTEMPTS"
+            "TOO_MANY_ATTEMPTS"
           ) {
             setError(
               text.tooManyOtp,
             );
           } else if (
             data?.error ===
-              "RATE_LIMITED"
+            "RATE_LIMITED"
           ) {
             setError(
               text.rateLimited,
@@ -2378,46 +1741,34 @@ export default function AccountMenu() {
             );
           }
 
-
           return;
         }
 
-
         setProtectedEmail(
           data?.email ||
-            maskEmail(
-              email,
-            ),
+            maskEmail(email),
         );
-
 
         setProtectedKeys(
           Number(
-            data
-              ?.protectedKeys ||
+            data?.protectedKeys ||
               0,
           ),
         );
 
-
         setOtp("");
-
         setChallengeId("");
-
         setEmailStep(
           "verified",
         );
 
-
         await access.refresh();
-
 
         window.dispatchEvent(
           new Event(
             "allwdbook-access-refresh",
           ),
         );
-
 
         return;
       }
@@ -2431,8 +1782,7 @@ export default function AccountMenu() {
         await fetch(
           "/api/license/email",
           {
-            method:
-              "POST",
+            method: "POST",
 
             headers: {
               "Content-Type":
@@ -2444,32 +1794,24 @@ export default function AccountMenu() {
 
             body:
               JSON.stringify({
-                action:
-                  "verify",
+                action: "verify",
 
                 email:
                   normalizeEmail(
                     email,
                   ),
 
-                otp:
-                  cleanOtp,
+                otp: cleanOtp,
               }),
           },
         );
 
-
       const data =
         await response
           .json()
-          .catch(
-            () => ({}),
-          );
+          .catch(() => ({}));
 
-
-      if (
-        !response.ok
-      ) {
+      if (!response.ok) {
         setError(
           data?.error ===
             "INVALID_OTP"
@@ -2477,17 +1819,12 @@ export default function AccountMenu() {
             : text.genericError,
         );
 
-
         return;
       }
 
-
       setProtectedEmail(
-        maskEmail(
-          email,
-        ),
+        maskEmail(email),
       );
-
 
       setOtp("");
 
@@ -2495,16 +1832,12 @@ export default function AccountMenu() {
         "verified",
       );
 
-
       await access.refresh();
-    } catch (
-      verifyError
-    ) {
+    } catch (verifyError) {
       console.error(
         "Security email verification failed:",
         verifyError,
       );
-
 
       setError(
         text.genericError,
@@ -2515,37 +1848,23 @@ export default function AccountMenu() {
   }
 
 
-  /* =========================================================
-     CHANGE SECURITY EMAIL
-     ========================================================= */
+  /* =======================================================
+     EMAIL HELPERS
+     ======================================================= */
 
   function changeSecurityEmail() {
-    setEmailStep(
-      "email",
-    );
-
+    setEmailStep("email");
     setOtp("");
-
     setChallengeId("");
-
     setError("");
   }
 
 
-  /* =========================================================
-     RESEND OTP
-     ========================================================= */
-
   function resendSecurityOtp() {
     setOtp("");
-
     setChallengeId("");
-
     setError("");
-
-    setEmailStep(
-      "email",
-    );
+    setEmailStep("email");
   }
 
 
@@ -2555,23 +1874,16 @@ export default function AccountMenu() {
 
   function closeDialog() {
     setDialog("");
-
     setError("");
-
     setBusy(false);
-
-    setRestoreResult(
-      null,
-    );
-
+    setRestoreResult(null);
     setOtp("");
-
     setChallengeId("");
   }
 
 
   /* =======================================================
-     PORTAL CONTENT
+     PORTAL
      ======================================================= */
 
   const portalContent =
@@ -2593,15 +1905,14 @@ export default function AccountMenu() {
               >
                 <button
                   type="button"
+                  className="awd-account-backdrop"
                   aria-label={
                     text.close
                   }
-                  className="awd-account-backdrop"
                   onClick={() =>
                     setOpen(false)
                   }
                 />
-
 
                 <section
                   className="awd-account-sheet"
@@ -2610,14 +1921,12 @@ export default function AccountMenu() {
                 >
                   <span className="awd-sheet-handle" />
 
-
                   <header className="awd-account-head">
                     <img
                       className="awd-account-avatar"
                       src="/logov3.png"
                       alt="AllWDbook"
                     />
-
 
                     <div className="awd-account-head-copy">
                       <h3>
@@ -2630,7 +1939,6 @@ export default function AccountMenu() {
                         }
                       </p>
                     </div>
-
 
                     <button
                       type="button"
@@ -2647,9 +1955,7 @@ export default function AccountMenu() {
                   </header>
 
 
-                  {/* ===========================================
-                      CURRENT ACCESS
-                      =========================================== */}
+                  {/* CURRENT ACCESS */}
 
                   <div className="awd-access-card">
                     <span className="awd-access-label">
@@ -2657,7 +1963,6 @@ export default function AccountMenu() {
                         text.currentAccess
                       }
                     </span>
-
 
                     <div className="awd-access-value">
                       <span
@@ -2672,7 +1977,6 @@ export default function AccountMenu() {
                         }
                       />
 
-
                       <span>
                         {
                           currentPlanLabel
@@ -2682,9 +1986,7 @@ export default function AccountMenu() {
                   </div>
 
 
-                  {/* ===========================================
-                      RESTORE PLAN
-                      =========================================== */}
+                  {/* RESTORE */}
 
                   <button
                     type="button"
@@ -2698,10 +2000,11 @@ export default function AccountMenu() {
                         🔑
                       </span>
 
-
                       <span className="awd-button-copy">
                         <strong>
-                          {text.restore}
+                          {
+                            text.restore
+                          }
                         </strong>
 
                         <small>
@@ -2712,16 +2015,13 @@ export default function AccountMenu() {
                       </span>
                     </span>
 
-
                     <span className="awd-button-arrow">
-                      ‹
+                      {arrow}
                     </span>
                   </button>
 
 
-                  {/* ===========================================
-                      RECOVERY CODE
-                      =========================================== */}
+                  {/* RECOVERY CODE */}
 
                   {access.paid && (
                     <button
@@ -2739,7 +2039,6 @@ export default function AccountMenu() {
                           🛡️
                         </span>
 
-
                         <span className="awd-button-copy">
                           <strong>
                             {
@@ -2755,9 +2054,8 @@ export default function AccountMenu() {
                         </span>
                       </span>
 
-
                       <span className="awd-button-arrow">
-                        ‹
+                        {arrow}
                       </span>
                     </button>
                   )}
@@ -2765,51 +2063,46 @@ export default function AccountMenu() {
 
                   {/* ===========================================
                       SECURITY EMAIL
+                      يظهر الآن حتى للخطة المجانية
                       =========================================== */}
 
-                  {access.paid && (
-                    <button
-                      type="button"
-                      className="awd-account-button security"
-                      onClick={
-                        openEmailSecurity
-                      }
-                      disabled={
-                        busy
-                      }
-                    >
-                      <span className="awd-button-left">
-                        <span className="awd-button-icon">
-                          ✉️
-                        </span>
-
-
-                        <span className="awd-button-copy">
-                          <strong>
-                            {
-                              text.securityEmail
-                            }
-                          </strong>
-
-                          <small>
-                            {
-                              text.securityEmailSub
-                            }
-                          </small>
-                        </span>
+                  <button
+                    type="button"
+                    className="awd-account-button security"
+                    onClick={
+                      openEmailSecurity
+                    }
+                    disabled={
+                      busy
+                    }
+                  >
+                    <span className="awd-button-left">
+                      <span className="awd-button-icon">
+                        ✉️
                       </span>
 
+                      <span className="awd-button-copy">
+                        <strong>
+                          {
+                            text.securityEmail
+                          }
+                        </strong>
 
-                      <span className="awd-button-arrow">
-                        ‹
+                        <small>
+                          {access.paid
+                            ? text.securityEmailSub
+                            : text.securityEmailFreeSub}
+                        </small>
                       </span>
-                    </button>
-                  )}
+                    </span>
+
+                    <span className="awd-button-arrow">
+                      {arrow}
+                    </span>
+                  </button>
 
 
-                  {/* ===========================================
-                      LIFETIME
-                      =========================================== */}
+                  {/* LIFETIME */}
 
                   {!access.lifetime && (
                     <div className="awd-lifetime-card">
@@ -2817,7 +2110,6 @@ export default function AccountMenu() {
                         <div className="awd-lifetime-icon">
                           👑
                         </div>
-
 
                         <div className="awd-lifetime-copy">
                           <span className="awd-lifetime-title">
@@ -2840,7 +2132,6 @@ export default function AccountMenu() {
                         </div>
                       </div>
 
-
                       <button
                         type="button"
                         className="awd-account-button primary"
@@ -2861,18 +2152,15 @@ export default function AccountMenu() {
                           }
                         </span>
 
-
                         <span className="awd-button-arrow">
-                          ‹
+                          {arrow}
                         </span>
                       </button>
                     </div>
                   )}
 
 
-                  {/* ===========================================
-                      SUBSCRIPTION PAGE
-                      =========================================== */}
+                  {/* SUBSCRIPTION PAGE */}
 
                   <a
                     href="/subscription"
@@ -2888,16 +2176,13 @@ export default function AccountMenu() {
                       }
                     </span>
 
-
                     <span className="awd-button-arrow">
-                      ‹
+                      {arrow}
                     </span>
                   </a>
 
 
-                  {/* ===========================================
-                      PACKAGES
-                      =========================================== */}
+                  {/* PACKAGES */}
 
                   <button
                     type="button"
@@ -2919,7 +2204,6 @@ export default function AccountMenu() {
                         : text.showPlans}
                     </span>
 
-
                     <span className="awd-button-arrow">
                       {showPlans
                         ? "⌃"
@@ -2937,7 +2221,6 @@ export default function AccountMenu() {
                             activePlans.includes(
                               plan.id,
                             );
-
 
                           return (
                             <button
@@ -2974,14 +2257,12 @@ export default function AccountMenu() {
                                 }
                               </span>
 
-
                               <span className="awd-plan-middle">
                                 <span className="awd-plan-name">
                                   {isEnglish
                                     ? plan.en
                                     : plan.ar}
                                 </span>
-
 
                                 {current && (
                                   <small className="awd-plan-state">
@@ -2992,7 +2273,6 @@ export default function AccountMenu() {
                                   </small>
                                 )}
                               </span>
-
 
                               <span className="awd-plan-price">
                                 {
@@ -3013,9 +2293,7 @@ export default function AccountMenu() {
                   )}
 
 
-                  {/* ===========================================
-                      BILLING
-                      =========================================== */}
+                  {/* BILLING */}
 
                   {billingUrl && (
                     <a
@@ -3036,21 +2314,10 @@ export default function AccountMenu() {
                         }
                       </span>
 
-
                       <span className="awd-button-arrow">
                         ↗
                       </span>
                     </a>
-                  )}
-
-
-                  {error && (
-                    <div
-                      className="awd-account-error"
-                      role="alert"
-                    >
-                      {error}
-                    </div>
                   )}
                 </section>
               </div>
@@ -3058,7 +2325,7 @@ export default function AccountMenu() {
 
 
             {/* =================================================
-                DIALOGS
+                DIALOG
                 ================================================= */}
 
             {dialog && (
@@ -3072,15 +2339,14 @@ export default function AccountMenu() {
               >
                 <button
                   type="button"
+                  className="awd-dialog-backdrop"
                   aria-label={
                     text.close
                   }
-                  className="awd-dialog-backdrop"
                   onClick={
                     closeDialog
                   }
                 />
-
 
                 <section
                   className="awd-dialog"
@@ -3090,9 +2356,7 @@ export default function AccountMenu() {
                   <span className="awd-dialog-handle" />
 
 
-                  {/* ===========================================
-                      RESTORE
-                      =========================================== */}
+                  {/* RESTORE */}
 
                   {dialog ===
                     "restore" && (
@@ -3103,7 +2367,6 @@ export default function AccountMenu() {
                           text.restoreTitle
                         }
                       </h2>
-
 
                       <p className="awd-dialog-description">
                         {
@@ -3134,9 +2397,7 @@ export default function AccountMenu() {
                               event,
                             ) =>
                               setAccessCode(
-                                event
-                                  .target
-                                  .value,
+                                event.target.value,
                               )
                             }
                           />
@@ -3164,7 +2425,6 @@ export default function AccountMenu() {
                                 ? text.processing
                                 : text.activate}
                             </button>
-
 
                             <button
                               type="button"
@@ -3211,7 +2471,6 @@ export default function AccountMenu() {
                               </strong>
                             </div>
 
-
                             <div className="awd-result-box">
                               <small>
                                 {
@@ -3219,9 +2478,7 @@ export default function AccountMenu() {
                                 }
                               </small>
 
-                              <strong
-                                dir="ltr"
-                              >
+                              <strong dir="ltr">
                                 {restoreResult
                                   .activeDevices ??
                                   "—"}
@@ -3265,9 +2522,7 @@ export default function AccountMenu() {
                   )}
 
 
-                  {/* ===========================================
-                      RECOVERY CODE
-                      =========================================== */}
+                  {/* RECOVERY CODE */}
 
                   {dialog ===
                     "code" && (
@@ -3278,7 +2533,6 @@ export default function AccountMenu() {
                           text.codeTitle
                         }
                       </h2>
-
 
                       <p className="awd-dialog-description">
                         {
@@ -3322,7 +2576,6 @@ export default function AccountMenu() {
                             }
                           </div>
 
-
                           <p className="awd-code-warning">
                             🔒{" "}
                             {
@@ -3343,7 +2596,6 @@ export default function AccountMenu() {
                                 ? text.copied
                                 : text.copy}
                             </button>
-
 
                             <button
                               type="button"
@@ -3376,13 +2628,11 @@ export default function AccountMenu() {
                             </div>
                           )}
 
-
                           <div className="awd-code-box awd-code-space">
                             {
                               revealedCodeHint
                             }
                           </div>
-
 
                           <p className="awd-code-warning">
                             🔐{" "}
@@ -3390,7 +2640,6 @@ export default function AccountMenu() {
                               text.codeUnavailable
                             }
                           </p>
-
 
                           <div className="awd-dialog-actions">
                             <button
@@ -3435,7 +2684,6 @@ export default function AccountMenu() {
                         }
                       </h2>
 
-
                       <p className="awd-dialog-description">
                         {
                           text.emailDescription
@@ -3443,13 +2691,60 @@ export default function AccountMenu() {
                       </p>
 
 
+                      {/* FREE USER */}
+
+                      {emailStep ===
+                        "free" && (
+                        <>
+                          <div className="awd-free-security-box">
+                            <div className="awd-free-security-icon">
+                              🔒
+                            </div>
+
+                            <h3>
+                              {
+                                text.securityEmail
+                              }
+                            </h3>
+
+                            <p>
+                              {
+                                text.emailFreeMessage
+                              }
+                            </p>
+                          </div>
+
+                          <div className="awd-dialog-actions">
+                            <a
+                              href="/subscription"
+                              className="awd-dialog-primary awd-dialog-link"
+                            >
+                              👑{" "}
+                              {
+                                text.goPlans
+                              }
+                            </a>
+
+                            <button
+                              type="button"
+                              className="awd-dialog-secondary"
+                              onClick={
+                                closeDialog
+                              }
+                            >
+                              {
+                                text.close
+                              }
+                            </button>
+                          </div>
+                        </>
+                      )}
+
+
                       {/* LOADING */}
 
-                      {(emailStep ===
-                        "loading" ||
-                        busy &&
-                          emailStep ===
-                            "loading") && (
+                      {emailStep ===
+                        "loading" && (
                         <div className="awd-loading-box">
                           <div className="awd-loader" />
 
@@ -3462,7 +2757,7 @@ export default function AccountMenu() {
                       )}
 
 
-                      {/* EMAIL INPUT */}
+                      {/* EMAIL */}
 
                       {emailStep ===
                         "email" && (
@@ -3521,9 +2816,7 @@ export default function AccountMenu() {
                               event,
                             ) =>
                               setEmail(
-                                event
-                                  .target
-                                  .value,
+                                event.target.value,
                               )
                             }
                           />
@@ -3554,7 +2847,6 @@ export default function AccountMenu() {
                                 ? text.processing
                                 : `✉️ ${text.sendCode}`}
                             </button>
-
 
                             <button
                               type="button"
@@ -3590,9 +2882,7 @@ export default function AccountMenu() {
                               </strong>
 
                               {protectedEmail && (
-                                <small
-                                  dir="ltr"
-                                >
+                                <small dir="ltr">
                                   {
                                     protectedEmail
                                   }
@@ -3607,9 +2897,7 @@ export default function AccountMenu() {
                             dir="ltr"
                             inputMode="numeric"
                             autoComplete="one-time-code"
-                            maxLength={
-                              6
-                            }
+                            maxLength={6}
                             placeholder={
                               text.otpPlaceholder
                             }
@@ -3620,9 +2908,7 @@ export default function AccountMenu() {
                               event,
                             ) =>
                               setOtp(
-                                event
-                                  .target
-                                  .value
+                                event.target.value
                                   .replace(
                                     /\D/g,
                                     "",
@@ -3662,7 +2948,6 @@ export default function AccountMenu() {
                                 : `✓ ${text.verify}`}
                             </button>
 
-
                             <button
                               type="button"
                               className="awd-dialog-secondary"
@@ -3678,7 +2963,6 @@ export default function AccountMenu() {
                                 text.resend
                               }
                             </button>
-
 
                             <button
                               type="button"
@@ -3718,7 +3002,6 @@ export default function AccountMenu() {
                               }
                             </p>
 
-
                             {(protectedEmail ||
                               email) && (
                               <div
@@ -3733,7 +3016,6 @@ export default function AccountMenu() {
                                 }
                               </div>
                             )}
-
 
                             {protectedKeys >
                               0 && (
@@ -3768,7 +3050,6 @@ export default function AccountMenu() {
                               }
                             </button>
 
-
                             <button
                               type="button"
                               className="awd-dialog-primary"
@@ -3792,7 +3073,7 @@ export default function AccountMenu() {
                         "unavailable" && (
                         <>
                           <div className="awd-security-unavailable">
-                            <div>
+                            <div className="awd-free-security-icon">
                               🔒
                             </div>
 
@@ -3801,7 +3082,6 @@ export default function AccountMenu() {
                                 text.emailUnavailable}
                             </p>
                           </div>
-
 
                           <div className="awd-dialog-actions">
                             <button
@@ -3836,14 +3116,14 @@ export default function AccountMenu() {
   return (
     <>
       <style jsx global>{`
+
         .awd-account-root,
         .awd-account-root *,
         .awd-account-portal,
         .awd-account-portal *,
         .awd-dialog-portal,
         .awd-dialog-portal * {
-          box-sizing:
-            border-box;
+          box-sizing: border-box;
         }
 
 
@@ -3854,12 +3134,8 @@ export default function AccountMenu() {
         .awd-account-trigger {
           width: 46px;
           height: 46px;
-
           display: grid;
-
-          place-items:
-            center;
-
+          place-items: center;
           padding: 2px;
 
           border:
@@ -3871,28 +3147,17 @@ export default function AccountMenu() {
               0.11
             );
 
-          border-radius:
-            15px;
-
-          background:
-            #0d1929;
-
-          cursor:
-            pointer;
+          border-radius: 15px;
+          background: #0d1929;
+          cursor: pointer;
         }
-
 
         .awd-account-trigger img {
           width: 38px;
           height: 38px;
-
           display: block;
-
-          object-fit:
-            cover;
-
-          border-radius:
-            12px;
+          object-fit: cover;
+          border-radius: 12px;
         }
 
 
@@ -3903,7 +3168,6 @@ export default function AccountMenu() {
         .awd-account-portal,
         .awd-dialog-portal {
           position: fixed;
-
           inset: 0;
 
           width: 100vw;
@@ -3912,38 +3176,28 @@ export default function AccountMenu() {
           margin: 0;
           padding: 0;
 
-          transform:
-            none !important;
+          transform: none !important;
+          isolation: isolate;
 
-          isolation:
-            isolate;
-
-          pointer-events:
-            none;
+          pointer-events: none;
         }
-
 
         .awd-account-portal {
-          z-index:
-            2147483000;
+          z-index: 2147483000;
         }
 
-
         .awd-dialog-portal {
-          z-index:
-            2147483100;
+          z-index: 2147483100;
         }
 
 
         /* ===============================================
-           BACKDROPS
+           BACKDROP
            =============================================== */
 
         .awd-account-backdrop,
         .awd-dialog-backdrop {
-          position:
-            absolute;
-
+          position: absolute;
           inset: 0;
 
           width: 100%;
@@ -3951,14 +3205,10 @@ export default function AccountMenu() {
 
           margin: 0;
           padding: 0;
-
           border: 0;
 
-          pointer-events:
-            auto;
-
-          cursor:
-            default;
+          pointer-events: auto;
+          cursor: default;
 
           background:
             rgba(
@@ -3974,7 +3224,6 @@ export default function AccountMenu() {
           -webkit-backdrop-filter:
             blur(7px);
         }
-
 
         .awd-dialog-backdrop {
           background:
@@ -3992,15 +3241,11 @@ export default function AccountMenu() {
            =============================================== */
 
         .awd-account-sheet {
-          position:
-            absolute;
-
+          position: absolute;
           z-index: 2;
 
           top: 82px;
-
-          inset-inline-end:
-            18px;
+          inset-inline-end: 18px;
 
           width:
             min(
@@ -4014,14 +3259,11 @@ export default function AccountMenu() {
           max-height:
             calc(
               100dvh -
-                102px
+              102px
             );
 
-          overflow-x:
-            hidden;
-
-          overflow-y:
-            auto;
+          overflow-x: hidden;
+          overflow-y: auto;
 
           overscroll-behavior:
             contain;
@@ -4035,16 +3277,14 @@ export default function AccountMenu() {
             1px solid
             #263650;
 
-          border-radius:
-            24px;
+          border-radius: 24px;
 
-          pointer-events:
-            auto;
+          pointer-events: auto;
 
           background:
             radial-gradient(
               circle at
-                90% 0%,
+              90% 0%,
               rgba(
                 255,
                 107,
@@ -4059,8 +3299,7 @@ export default function AccountMenu() {
               #071424
             );
 
-          color:
-            #f4f7fb;
+          color: #f4f7fb;
 
           box-shadow:
             0 30px 80px
@@ -4072,13 +3311,12 @@ export default function AccountMenu() {
             );
         }
 
-
         [dir="rtl"]
-          .awd-account-sheet {
+        .awd-account-sheet {
           background:
             radial-gradient(
               circle at
-                10% 0%,
+              10% 0%,
               rgba(
                 255,
                 107,
@@ -4093,7 +3331,6 @@ export default function AccountMenu() {
               #071424
             );
         }
-
 
         .awd-sheet-handle,
         .awd-dialog-handle {
@@ -4107,97 +3344,66 @@ export default function AccountMenu() {
 
         .awd-account-head {
           display: flex;
-
-          align-items:
-            center;
-
+          align-items: center;
           gap: 12px;
 
-          margin-bottom:
-            17px;
+          margin-bottom: 17px;
         }
-
 
         .awd-account-avatar {
           width: 54px;
           height: 54px;
 
-          flex:
-            0 0 54px;
+          flex: 0 0 54px;
 
-          border-radius:
-            16px;
-
-          object-fit:
-            cover;
+          border-radius: 16px;
+          object-fit: cover;
         }
-
 
         .awd-account-head-copy {
           flex: 1;
-
           min-width: 0;
         }
-
 
         .awd-account-head-copy h3 {
           margin: 0;
 
           color: white;
 
-          font-size:
-            18px;
-
-          font-weight:
-            900;
+          font-size: 18px;
+          font-weight: 900;
         }
-
 
         .awd-account-head-copy p {
-          margin:
-            4px 0 0;
+          margin: 4px 0 0;
 
-          color:
-            #8496ae;
+          color: #8496ae;
 
-          font-size:
-            11px;
-
-          line-height:
-            1.5;
+          font-size: 11px;
+          line-height: 1.5;
         }
-
 
         .awd-account-close {
           width: 40px;
           height: 40px;
 
-          flex:
-            0 0 40px;
+          flex: 0 0 40px;
 
           display: grid;
-
-          place-items:
-            center;
+          place-items: center;
 
           border:
             1px solid
             #29405d;
 
-          border-radius:
-            12px;
+          border-radius: 12px;
 
-          background:
-            #0c1d31;
+          background: #0c1d31;
 
-          color:
-            #dce6f1;
+          color: #dce6f1;
 
-          font-size:
-            18px;
-
-          cursor:
-            pointer;
+          font-size: 18px;
+          cursor: pointer;
         }
 
 
@@ -4212,8 +3418,7 @@ export default function AccountMenu() {
             1px solid
             #263650;
 
-          border-radius:
-            17px;
+          border-radius: 17px;
 
           background:
             rgba(
@@ -4224,54 +3429,36 @@ export default function AccountMenu() {
             );
         }
 
-
         .awd-access-label {
           display: block;
+          margin-bottom: 7px;
 
-          margin-bottom:
-            7px;
+          color: #8292aa;
 
-          color:
-            #8292aa;
-
-          font-size:
-            10px;
-
-          font-weight:
-            800;
+          font-size: 10px;
+          font-weight: 800;
         }
-
 
         .awd-access-value {
           display: flex;
-
-          align-items:
-            center;
-
+          align-items: center;
           gap: 9px;
 
           color: white;
 
-          font-size:
-            16px;
-
-          font-weight:
-            900;
+          font-size: 16px;
+          font-weight: 900;
         }
-
 
         .awd-access-dot {
           width: 9px;
           height: 9px;
 
-          flex:
-            0 0 9px;
+          flex: 0 0 9px;
 
-          border-radius:
-            999px;
+          border-radius: 999px;
 
-          background:
-            #ff6b00;
+          background: #ff6b00;
 
           box-shadow:
             0 0 0 5px
@@ -4283,10 +3470,8 @@ export default function AccountMenu() {
             );
         }
 
-
         .awd-access-dot.premium {
-          background:
-            #21c47b;
+          background: #21c47b;
 
           box-shadow:
             0 0 0 5px
@@ -4300,64 +3485,44 @@ export default function AccountMenu() {
 
 
         /* ===============================================
-           ACCOUNT BUTTONS
+           BUTTONS
            =============================================== */
 
         .awd-account-button {
           width: 100%;
-
-          min-height:
-            52px;
+          min-height: 52px;
 
           display: flex;
-
-          align-items:
-            center;
-
+          align-items: center;
           justify-content:
             space-between;
 
           gap: 10px;
 
-          margin-top:
-            10px;
-
-          padding:
-            10px 13px;
+          margin-top: 10px;
+          padding: 10px 13px;
 
           border:
             1px solid
             #283a52;
 
-          border-radius:
-            14px;
+          border-radius: 14px;
 
-          background:
-            #0c1b2e;
+          background: #0c1b2e;
 
-          color:
-            #eef3fb;
+          color: #eef3fb;
 
-          text-align:
-            inherit;
+          text-align: inherit;
+          text-decoration: none;
 
-          text-decoration:
-            none;
+          font-size: 13px;
+          font-weight: 800;
 
-          font-size:
-            13px;
-
-          font-weight:
-            800;
-
-          cursor:
-            pointer;
+          cursor: pointer;
         }
 
-
         .awd-account-button.primary {
-          border-color:
-            #ff6b00;
+          border-color: #ff6b00;
 
           background:
             linear-gradient(
@@ -4368,7 +3533,6 @@ export default function AccountMenu() {
 
           color: white;
         }
-
 
         .awd-account-button.green {
           border-color:
@@ -4396,10 +3560,8 @@ export default function AccountMenu() {
               )
             );
 
-          color:
-            #73e4ad;
+          color: #73e4ad;
         }
-
 
         .awd-account-button.security {
           border-color:
@@ -4407,7 +3569,7 @@ export default function AccountMenu() {
               77,
               156,
               255,
-              0.28
+              0.32
             );
 
           background:
@@ -4417,56 +3579,42 @@ export default function AccountMenu() {
                 31,
                 100,
                 177,
-                0.1
+                0.13
               ),
               rgba(
                 11,
                 41,
                 78,
-                0.22
+                0.24
               )
             );
 
-          color:
-            #dcecff;
+          color: #dcecff;
         }
-
 
         .awd-account-button:disabled {
-          opacity:
-            0.52;
-
-          cursor:
-            not-allowed;
+          opacity: 0.52;
+          cursor: not-allowed;
         }
-
 
         .awd-button-left {
           display: flex;
-
-          align-items:
-            center;
-
+          align-items: center;
           gap: 10px;
 
           min-width: 0;
         }
-
 
         .awd-button-icon {
           width: 34px;
           height: 34px;
 
           display: grid;
+          place-items: center;
 
-          place-items:
-            center;
+          flex: 0 0 34px;
 
-          flex:
-            0 0 34px;
-
-          border-radius:
-            10px;
+          border-radius: 10px;
 
           background:
             rgba(
@@ -4476,55 +3624,40 @@ export default function AccountMenu() {
               0.055
             );
 
-          font-size:
-            17px;
+          font-size: 17px;
         }
-
 
         .awd-button-copy {
           min-width: 0;
         }
-
 
         .awd-button-copy strong {
           display: block;
 
           color: inherit;
 
-          font-size:
-            13px;
+          font-size: 13px;
         }
-
 
         .awd-button-copy small {
           display: block;
 
-          margin-top:
-            3px;
+          margin-top: 3px;
 
-          color:
-            #71839d;
+          color: #71839d;
 
-          font-size:
-            9px;
+          font-size: 9px;
+          font-weight: 500;
 
-          font-weight:
-            500;
-
-          line-height:
-            1.45;
+          line-height: 1.45;
         }
 
-
         .awd-button-arrow {
-          flex:
-            0 0 auto;
+          flex: 0 0 auto;
 
-          color:
-            #657a96;
+          color: #657a96;
 
-          font-size:
-            20px;
+          font-size: 20px;
         }
 
 
@@ -4533,9 +3666,7 @@ export default function AccountMenu() {
            =============================================== */
 
         .awd-lifetime-card {
-          margin-top:
-            12px;
-
+          margin-top: 12px;
           padding: 15px;
 
           border:
@@ -4547,13 +3678,12 @@ export default function AccountMenu() {
               0.3
             );
 
-          border-radius:
-            18px;
+          border-radius: 18px;
 
           background:
             radial-gradient(
               circle at
-                85% 0%,
+              85% 0%,
               rgba(
                 255,
                 180,
@@ -4564,14 +3694,13 @@ export default function AccountMenu() {
             ),
             #0d1929;
         }
-
 
         [dir="rtl"]
-          .awd-lifetime-card {
+        .awd-lifetime-card {
           background:
             radial-gradient(
               circle at
-                15% 0%,
+              15% 0%,
               rgba(
                 255,
                 180,
@@ -4582,32 +3711,23 @@ export default function AccountMenu() {
             ),
             #0d1929;
         }
-
 
         .awd-lifetime-top {
           display: flex;
-
           gap: 12px;
-
-          align-items:
-            center;
+          align-items: center;
         }
-
 
         .awd-lifetime-icon {
           width: 50px;
           height: 50px;
 
           display: grid;
+          place-items: center;
 
-          place-items:
-            center;
+          flex: 0 0 50px;
 
-          flex:
-            0 0 50px;
-
-          border-radius:
-            15px;
+          border-radius: 15px;
 
           background:
             rgba(
@@ -4617,55 +3737,38 @@ export default function AccountMenu() {
               0.12
             );
 
-          font-size:
-            25px;
+          font-size: 25px;
         }
-
 
         .awd-lifetime-copy {
           flex: 1;
-
           min-width: 0;
         }
-
 
         .awd-lifetime-title {
           display: block;
 
-          font-size:
-            17px;
-
-          font-weight:
-            900;
+          font-size: 17px;
+          font-weight: 900;
         }
-
 
         .awd-lifetime-sub {
           display: block;
 
-          margin-top:
-            3px;
+          margin-top: 3px;
 
-          color:
-            #9aa8ba;
+          color: #9aa8ba;
 
-          font-size:
-            11px;
+          font-size: 11px;
         }
 
-
         .awd-lifetime-price {
-          margin-top:
-            5px;
+          margin-top: 5px;
 
-          color:
-            #ffc25a;
+          color: #ffc25a;
 
-          font-size:
-            12px;
-
-          font-weight:
-            900;
+          font-size: 12px;
+          font-weight: 900;
         }
 
 
@@ -4675,13 +3778,10 @@ export default function AccountMenu() {
 
         .awd-plans-wrap {
           display: grid;
-
           gap: 8px;
 
-          margin-top:
-            10px;
+          margin-top: 10px;
         }
-
 
         .awd-plan-option {
           width: 100%;
@@ -4696,9 +3796,7 @@ export default function AccountMenu() {
             )
             auto;
 
-          align-items:
-            center;
-
+          align-items: center;
           gap: 10px;
 
           padding: 12px;
@@ -4707,22 +3805,15 @@ export default function AccountMenu() {
             1px solid
             #283950;
 
-          border-radius:
-            14px;
+          border-radius: 14px;
 
-          background:
-            #0a1829;
+          background: #0a1829;
 
-          color:
-            #edf3fb;
+          color: #edf3fb;
 
-          text-align:
-            inherit;
-
-          cursor:
-            pointer;
+          text-align: inherit;
+          cursor: pointer;
         }
-
 
         .awd-plan-option.featured {
           border-color:
@@ -4742,7 +3833,6 @@ export default function AccountMenu() {
             );
         }
 
-
         .awd-plan-option.active {
           border-color:
             rgba(
@@ -4761,93 +3851,64 @@ export default function AccountMenu() {
             );
         }
 
-
         .awd-plan-option:disabled {
-          cursor:
-            default;
+          cursor: default;
         }
-
 
         .awd-plan-icon {
           width: 40px;
           height: 40px;
 
           display: grid;
+          place-items: center;
 
-          place-items:
-            center;
+          border-radius: 11px;
 
-          border-radius:
-            11px;
+          background: #15243a;
 
-          background:
-            #15243a;
-
-          font-size:
-            19px;
+          font-size: 19px;
         }
-
 
         .awd-plan-middle {
           min-width: 0;
         }
 
-
         .awd-plan-name {
           display: block;
 
-          overflow-wrap:
-            anywhere;
+          overflow-wrap: anywhere;
 
-          font-size:
-            13px;
-
-          font-weight:
-            900;
+          font-size: 13px;
+          font-weight: 900;
         }
-
 
         .awd-plan-state {
           display: block;
 
-          margin-top:
-            3px;
+          margin-top: 3px;
 
-          color:
-            #54d99a;
+          color: #54d99a;
 
-          font-size:
-            10px;
+          font-size: 10px;
         }
-
 
         .awd-plan-price {
           direction: ltr;
-
           text-align: end;
 
-          font-size:
-            13px;
-
-          font-weight:
-            900;
+          font-size: 13px;
+          font-weight: 900;
         }
-
 
         .awd-plan-price small {
           display: block;
 
-          margin-top:
-            2px;
+          margin-top: 2px;
 
-          color:
-            #788aa2;
+          color: #788aa2;
 
-          font-size:
-            9px;
-
-          font-weight:
-            500;
+          font-size: 9px;
+          font-weight: 500;
         }
 
 
@@ -4856,11 +3917,8 @@ export default function AccountMenu() {
            =============================================== */
 
         .awd-account-error {
-          margin:
-            12px 0 0;
-
-          padding:
-            11px 12px;
+          margin: 12px 0 0;
+          padding: 11px 12px;
 
           border:
             1px solid
@@ -4871,8 +3929,7 @@ export default function AccountMenu() {
               0.25
             );
 
-          border-radius:
-            12px;
+          border-radius: 12px;
 
           background:
             rgba(
@@ -4882,14 +3939,10 @@ export default function AccountMenu() {
               0.08
             );
 
-          color:
-            #ff9b9b;
+          color: #ff9b9b;
 
-          font-size:
-            11px;
-
-          line-height:
-            1.6;
+          font-size: 11px;
+          line-height: 1.6;
         }
 
 
@@ -4898,8 +3951,7 @@ export default function AccountMenu() {
            =============================================== */
 
         .awd-dialog {
-          position:
-            absolute;
+          position: absolute;
 
           z-index: 2;
 
@@ -4918,14 +3970,11 @@ export default function AccountMenu() {
           max-height:
             calc(
               100dvh -
-                36px
+              36px
             );
 
-          overflow-x:
-            hidden;
-
-          overflow-y:
-            auto;
+          overflow-x: hidden;
+          overflow-y: auto;
 
           overscroll-behavior:
             contain;
@@ -4939,11 +3988,9 @@ export default function AccountMenu() {
             1px solid
             #283950;
 
-          border-radius:
-            24px;
+          border-radius: 24px;
 
-          pointer-events:
-            auto;
+          pointer-events: auto;
 
           transform:
             translate(
@@ -4954,7 +4001,7 @@ export default function AccountMenu() {
           background:
             radial-gradient(
               circle at
-                90% 0%,
+              90% 0%,
               rgba(
                 255,
                 107,
@@ -4965,8 +4012,7 @@ export default function AccountMenu() {
             ),
             #08182a;
 
-          color:
-            #f4f7fb;
+          color: #f4f7fb;
 
           box-shadow:
             0 30px 90px
@@ -4978,13 +4024,12 @@ export default function AccountMenu() {
             );
         }
 
-
         [dir="rtl"]
-          .awd-dialog {
+        .awd-dialog {
           background:
             radial-gradient(
               circle at
-                10% 0%,
+              10% 0%,
               rgba(
                 255,
                 107,
@@ -4996,72 +4041,51 @@ export default function AccountMenu() {
             #08182a;
         }
 
-
         .awd-dialog h2 {
           margin: 0;
 
           color: white;
 
-          font-size:
-            21px;
-
-          line-height:
-            1.35;
+          font-size: 21px;
+          line-height: 1.35;
         }
-
 
         .awd-dialog-description {
-          margin:
-            9px 0 18px;
+          margin: 9px 0 18px;
 
-          color:
-            #8fa0b8;
+          color: #8fa0b8;
 
-          font-size:
-            12px;
-
-          line-height:
-            1.8;
+          font-size: 12px;
+          line-height: 1.8;
         }
-
 
         .awd-dialog-input {
           width: 100%;
+          min-height: 54px;
 
-          min-height:
-            54px;
-
-          padding:
-            11px 13px;
+          padding: 11px 13px;
 
           border:
             1px solid
             #2a3c55;
 
-          border-radius:
-            13px;
+          border-radius: 13px;
 
           outline: none;
 
-          background:
-            #04111f;
+          background: #04111f;
 
           color: white;
 
-          font-size:
-            14px;
+          font-size: 14px;
         }
-
 
         .awd-dialog-input::placeholder {
-          color:
-            #60718a;
+          color: #60718a;
         }
 
-
         .awd-dialog-input:focus {
-          border-color:
-            #ff6b00;
+          border-color: #ff6b00;
 
           box-shadow:
             0 0 0 3px
@@ -5073,53 +4097,38 @@ export default function AccountMenu() {
             );
         }
 
-
         .awd-otp-input {
-          margin-top:
-            12px;
+          margin-top: 12px;
 
-          text-align:
-            center;
+          text-align: center;
+          letter-spacing: 0.3em;
 
-          letter-spacing:
-            0.35em;
-
-          font-size:
-            20px;
-
-          font-weight:
-            900;
+          font-size: 20px;
+          font-weight: 900;
         }
 
 
         /* ===============================================
-           CODE
+           CODE BOX
            =============================================== */
 
         .awd-code-box {
-          padding:
-            15px 10px;
+          padding: 15px 10px;
 
           border:
             1px solid
             #293b54;
 
-          border-radius:
-            14px;
+          border-radius: 14px;
 
-          background:
-            #03101d;
+          background: #03101d;
 
-          color:
-            #ffc56d;
+          color: #ffc56d;
 
           direction: ltr;
+          text-align: center;
 
-          text-align:
-            center;
-
-          overflow-wrap:
-            anywhere;
+          overflow-wrap: anywhere;
 
           font-family:
             ui-monospace,
@@ -5129,35 +4138,23 @@ export default function AccountMenu() {
             Consolas,
             monospace;
 
-          font-size:
-            13px;
+          font-size: 13px;
+          line-height: 1.6;
 
-          line-height:
-            1.6;
-
-          user-select:
-            all;
+          user-select: all;
         }
-
 
         .awd-code-space {
-          margin-top:
-            10px;
+          margin-top: 10px;
         }
 
-
         .awd-code-warning {
-          margin:
-            12px 0 0;
+          margin: 12px 0 0;
 
-          color:
-            #9baabd;
+          color: #9baabd;
 
-          font-size:
-            11px;
-
-          line-height:
-            1.7;
+          font-size: 11px;
+          line-height: 1.7;
         }
 
 
@@ -5177,8 +4174,7 @@ export default function AccountMenu() {
               0.3
             );
 
-          border-radius:
-            14px;
+          border-radius: 14px;
 
           background:
             rgba(
@@ -5188,36 +4184,23 @@ export default function AccountMenu() {
               0.07
             );
 
-          color:
-            #72e5ad;
+          color: #72e5ad;
 
-          font-size:
-            12px;
-
-          font-weight:
-            800;
-
-          line-height:
-            1.65;
+          font-size: 12px;
+          font-weight: 800;
+          line-height: 1.65;
         }
-
 
         .awd-success-box small {
           display: block;
 
-          margin-top:
-            5px;
+          margin-top: 5px;
 
-          color:
-            #9db8aa;
+          color: #9db8aa;
 
-          font-size:
-            10px;
-
-          font-weight:
-            500;
+          font-size: 10px;
+          font-weight: 500;
         }
-
 
         .awd-result-grid {
           display: grid;
@@ -5232,11 +4215,8 @@ export default function AccountMenu() {
             );
 
           gap: 8px;
-
-          margin-top:
-            11px;
+          margin-top: 11px;
         }
-
 
         .awd-result-box {
           padding: 12px;
@@ -5245,38 +4225,28 @@ export default function AccountMenu() {
             1px solid
             #233a55;
 
-          border-radius:
-            13px;
+          border-radius: 13px;
 
-          background:
-            #051426;
+          background: #051426;
         }
-
 
         .awd-result-box small {
           display: block;
 
-          color:
-            #7588a2;
+          color: #7588a2;
 
-          font-size:
-            9px;
+          font-size: 9px;
         }
-
 
         .awd-result-box strong {
           display: block;
 
-          margin-top:
-            5px;
+          margin-top: 5px;
 
           color: white;
 
-          font-size:
-            12px;
-
-          overflow-wrap:
-            anywhere;
+          font-size: 12px;
+          overflow-wrap: anywhere;
         }
 
 
@@ -5286,43 +4256,31 @@ export default function AccountMenu() {
 
         .awd-security-plan {
           display: flex;
-
-          align-items:
-            center;
-
+          align-items: center;
           gap: 11px;
 
-          margin-bottom:
-            12px;
-
+          margin-bottom: 12px;
           padding: 12px;
 
           border:
             1px solid
             #25415f;
 
-          border-radius:
-            14px;
+          border-radius: 14px;
 
-          background:
-            #061729;
+          background: #061729;
         }
-
 
         .awd-security-plan-icon {
           width: 42px;
           height: 42px;
 
           display: grid;
+          place-items: center;
 
-          place-items:
-            center;
+          flex: 0 0 42px;
 
-          flex:
-            0 0 42px;
-
-          border-radius:
-            12px;
+          border-radius: 12px;
 
           background:
             rgba(
@@ -5332,46 +4290,31 @@ export default function AccountMenu() {
               0.11
             );
 
-          font-size:
-            20px;
+          font-size: 20px;
         }
-
 
         .awd-security-plan small {
           display: block;
 
-          color:
-            #7588a3;
-
-          font-size:
-            9px;
+          color: #7588a3;
+          font-size: 9px;
         }
-
 
         .awd-security-plan strong {
           display: block;
-
-          margin-top:
-            3px;
+          margin-top: 3px;
 
           color: white;
-
-          font-size:
-            13px;
+          font-size: 13px;
         }
-
 
         .awd-email-sent {
           display: flex;
-
-          align-items:
-            center;
+          align-items: center;
 
           gap: 12px;
 
-          margin-bottom:
-            12px;
-
+          margin-bottom: 12px;
           padding: 13px;
 
           border:
@@ -5383,8 +4326,7 @@ export default function AccountMenu() {
               0.25
             );
 
-          border-radius:
-            14px;
+          border-radius: 14px;
 
           background:
             rgba(
@@ -5395,64 +4337,59 @@ export default function AccountMenu() {
             );
         }
 
-
         .awd-email-sent > span {
           width: 40px;
           height: 40px;
 
           display: grid;
+          place-items: center;
 
-          place-items:
-            center;
+          flex: 0 0 40px;
 
-          flex:
-            0 0 40px;
+          border-radius: 12px;
 
-          border-radius:
-            12px;
+          background: #102842;
 
-          background:
-            #102842;
-
-          font-size:
-            19px;
+          font-size: 19px;
         }
-
 
         .awd-email-sent strong {
           display: block;
 
-          color:
-            #dcecff;
+          color: #dcecff;
 
-          font-size:
-            11px;
-
-          line-height:
-            1.55;
+          font-size: 11px;
+          line-height: 1.55;
         }
-
 
         .awd-email-sent small {
           display: block;
 
-          margin-top:
-            4px;
+          margin-top: 4px;
 
-          color:
-            #79a9dc;
-
-          font-size:
-            10px;
+          color: #79a9dc;
+          font-size: 10px;
         }
 
-
-        .awd-security-success {
-          padding:
-            20px 14px;
+        .awd-security-success,
+        .awd-free-security-box,
+        .awd-security-unavailable {
+          padding: 20px 14px;
 
           border:
             1px solid
+            #29425c;
+
+          border-radius: 18px;
+
+          background:
+            #06182a;
+
+          text-align: center;
+        }
+
+        .awd-security-success {
+          border-color:
             rgba(
               32,
               196,
@@ -5460,13 +4397,10 @@ export default function AccountMenu() {
               0.3
             );
 
-          border-radius:
-            18px;
-
           background:
             radial-gradient(
               circle at
-                50% 0%,
+              50% 0%,
               rgba(
                 32,
                 196,
@@ -5476,24 +4410,49 @@ export default function AccountMenu() {
               transparent 60%
             ),
             #06182a;
-
-          text-align:
-            center;
         }
 
+        .awd-free-security-box {
+          border-color:
+            rgba(
+              77,
+              156,
+              255,
+              0.25
+            );
 
-        .awd-security-success-icon {
+          background:
+            radial-gradient(
+              circle at
+              50% 0%,
+              rgba(
+                77,
+                156,
+                255,
+                0.1
+              ),
+              transparent 60%
+            ),
+            #06182a;
+        }
+
+        .awd-security-success-icon,
+        .awd-free-security-icon {
           width: 58px;
           height: 58px;
 
           display: grid;
+          place-items: center;
 
-          place-items:
-            center;
+          margin: 0 auto 12px;
 
-          margin:
-            0 auto 12px;
+          border-radius: 18px;
 
+          font-size: 27px;
+          font-weight: 900;
+        }
+
+        .awd-security-success-icon {
           border:
             1px solid
             rgba(
@@ -5503,9 +4462,6 @@ export default function AccountMenu() {
               0.32
             );
 
-          border-radius:
-            18px;
-
           background:
             rgba(
               33,
@@ -5514,64 +4470,63 @@ export default function AccountMenu() {
               0.1
             );
 
-          color:
-            #69e4ad;
-
-          font-size:
-            28px;
-
-          font-weight:
-            900;
+          color: #69e4ad;
         }
 
+        .awd-free-security-icon {
+          border:
+            1px solid
+            rgba(
+              76,
+              151,
+              239,
+              0.3
+            );
 
-        .awd-security-success h3 {
+          background:
+            rgba(
+              48,
+              124,
+              214,
+              0.1
+            );
+        }
+
+        .awd-security-success h3,
+        .awd-free-security-box h3 {
           margin: 0;
 
           color: white;
 
-          font-size:
-            18px;
+          font-size: 18px;
         }
 
+        .awd-security-success p,
+        .awd-free-security-box p,
+        .awd-security-unavailable p {
+          margin: 8px auto 0;
 
-        .awd-security-success p {
-          margin:
-            7px auto 0;
+          max-width: 360px;
 
-          max-width:
-            350px;
+          color: #8ca0b6;
 
-          color:
-            #8ca0b6;
-
-          font-size:
-            11px;
-
-          line-height:
-            1.7;
+          font-size: 11px;
+          line-height: 1.75;
         }
-
 
         .awd-protected-email {
-          margin-top:
-            14px;
-
-          padding:
-            12px;
+          margin-top: 14px;
+          padding: 12px;
 
           border:
             1px solid
             #25425f;
 
-          border-radius:
-            12px;
+          border-radius: 12px;
 
-          background:
-            #03101e;
+          background: #03101e;
 
-          color:
-            #cce3ff;
+          color: #cce3ff;
 
           font-family:
             ui-monospace,
@@ -5579,28 +4534,20 @@ export default function AccountMenu() {
             Menlo,
             monospace;
 
-          font-size:
-            12px;
+          font-size: 12px;
         }
 
-
         .awd-protected-count {
-          display:
-            inline-flex;
+          display: inline-flex;
 
-          align-items:
-            center;
+          align-items: center;
 
           gap: 9px;
 
-          margin-top:
-            11px;
+          margin-top: 11px;
+          padding: 7px 11px;
 
-          padding:
-            7px 11px;
-
-          border-radius:
-            999px;
+          border-radius: 999px;
 
           background:
             rgba(
@@ -5611,62 +4558,14 @@ export default function AccountMenu() {
             );
         }
 
-
         .awd-protected-count small {
-          color:
-            #90b3a2;
-
-          font-size:
-            9px;
+          color: #90b3a2;
+          font-size: 9px;
         }
-
 
         .awd-protected-count strong {
-          color:
-            #65dda8;
-
-          font-size:
-            12px;
-        }
-
-
-        .awd-security-unavailable {
-          padding:
-            19px 14px;
-
-          border:
-            1px solid
-            #293b52;
-
-          border-radius:
-            17px;
-
-          background:
-            #071627;
-
-          text-align:
-            center;
-        }
-
-
-        .awd-security-unavailable > div {
-          font-size:
-            30px;
-        }
-
-
-        .awd-security-unavailable p {
-          margin:
-            9px auto 0;
-
-          color:
-            #9cabbc;
-
-          font-size:
-            11px;
-
-          line-height:
-            1.7;
+          color: #65dda8;
+          font-size: 12px;
         }
 
 
@@ -5675,29 +4574,19 @@ export default function AccountMenu() {
            =============================================== */
 
         .awd-loading-box {
-          min-height:
-            110px;
+          min-height: 110px;
 
           display: flex;
-
-          flex-direction:
-            column;
-
-          align-items:
-            center;
-
-          justify-content:
-            center;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
 
           gap: 11px;
 
-          color:
-            #899db6;
+          color: #899db6;
 
-          font-size:
-            11px;
+          font-size: 11px;
         }
-
 
         .awd-loader {
           width: 29px;
@@ -5710,8 +4599,7 @@ export default function AccountMenu() {
           border-top-color:
             #ff6b00;
 
-          border-radius:
-            50%;
+          border-radius: 50%;
 
           animation:
             awdSpin
@@ -5719,9 +4607,7 @@ export default function AccountMenu() {
             infinite;
         }
 
-
-        @keyframes
-          awdSpin {
+        @keyframes awdSpin {
           to {
             transform:
               rotate(360deg);
@@ -5735,34 +4621,30 @@ export default function AccountMenu() {
 
         .awd-dialog-actions {
           display: grid;
-
           gap: 9px;
 
-          margin-top:
-            16px;
+          margin-top: 16px;
         }
-
 
         .awd-dialog-primary,
         .awd-dialog-secondary {
           width: 100%;
+          min-height: 50px;
 
-          min-height:
-            50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
 
-          border-radius:
-            13px;
+          border-radius: 13px;
 
-          font-size:
-            13px;
+          font-size: 13px;
+          font-weight: 900;
 
-          font-weight:
-            900;
+          text-align: center;
+          text-decoration: none;
 
-          cursor:
-            pointer;
+          cursor: pointer;
         }
-
 
         .awd-dialog-primary {
           border:
@@ -5788,76 +4670,63 @@ export default function AccountMenu() {
             );
         }
 
-
         .awd-dialog-secondary {
           border:
             1px solid
             #2a3c54;
 
-          background:
-            #0d1c30;
+          background: #0d1c30;
 
-          color:
-            #d9e2ef;
+          color: #d9e2ef;
         }
 
+        .awd-dialog-link {
+          text-decoration: none;
+        }
 
         .awd-dialog-primary:disabled,
         .awd-dialog-secondary:disabled {
-          opacity:
-            0.55;
-
-          cursor:
-            not-allowed;
+          opacity: 0.55;
+          cursor: not-allowed;
         }
 
 
         /* ===============================================
-           PHONE
+           MOBILE
            =============================================== */
 
         @media (
-          max-width:
-            620px
+          max-width: 620px
         ) {
           .awd-account-trigger {
             width: 43px;
             height: 43px;
 
-            border-radius:
-              13px;
+            border-radius: 13px;
           }
-
 
           .awd-account-trigger img {
             width: 35px;
             height: 35px;
 
-            border-radius:
-              11px;
+            border-radius: 11px;
           }
 
 
           .awd-account-sheet {
             top: auto;
-
             bottom: 0;
 
             left: 0;
             right: 0;
 
-            inset-inline-start:
-              0;
-
-            inset-inline-end:
-              0;
+            inset-inline-start: 0;
+            inset-inline-end: 0;
 
             width: 100vw;
-
             max-width: none;
 
-            max-height:
-              88dvh;
+            max-height: 88dvh;
 
             margin: 0;
 
@@ -5865,16 +4734,13 @@ export default function AccountMenu() {
               10px 17px
               calc(
                 18px +
-                  env(
-                    safe-area-inset-bottom
-                  )
+                env(
+                  safe-area-inset-bottom
+                )
               );
 
-            border-inline:
-              0;
-
-            border-bottom:
-              0;
+            border-inline: 0;
+            border-bottom: 0;
 
             border-radius:
               27px
@@ -5904,47 +4770,35 @@ export default function AccountMenu() {
               2px auto
               15px;
 
-            border-radius:
-              999px;
+            border-radius: 999px;
 
-            background:
-              #425570;
+            background: #425570;
           }
 
 
           .awd-account-head {
-            margin-bottom:
-              13px;
+            margin-bottom: 13px;
           }
-
 
           .awd-account-avatar {
             width: 49px;
             height: 49px;
 
-            flex-basis:
-              49px;
+            flex-basis: 49px;
 
-            border-radius:
-              14px;
+            border-radius: 14px;
           }
-
 
           .awd-account-head-copy h3 {
-            font-size:
-              20px;
+            font-size: 20px;
           }
-
 
           .awd-access-card {
-            padding:
-              16px;
+            padding: 16px;
           }
 
-
           .awd-account-button {
-            min-height:
-              56px;
+            min-height: 56px;
           }
 
 
@@ -5954,18 +4808,15 @@ export default function AccountMenu() {
 
           .awd-dialog {
             top: auto;
-
             bottom: 0;
 
             left: 0;
             right: 0;
 
             width: 100vw;
-
             max-width: none;
 
-            max-height:
-              90dvh;
+            max-height: 90dvh;
 
             margin: 0;
 
@@ -5973,16 +4824,13 @@ export default function AccountMenu() {
               10px 18px
               calc(
                 20px +
-                  env(
-                    safe-area-inset-bottom
-                  )
+                env(
+                  safe-area-inset-bottom
+                )
               );
 
-            border-inline:
-              0;
-
-            border-bottom:
-              0;
+            border-inline: 0;
+            border-bottom: 0;
 
             border-radius:
               27px
@@ -5990,8 +4838,7 @@ export default function AccountMenu() {
               0
               0;
 
-            transform:
-              none;
+            transform: none;
 
             box-shadow:
               0 -20px 70px
@@ -6003,62 +4850,48 @@ export default function AccountMenu() {
               );
           }
 
-
           .awd-dialog h2 {
-            font-size:
-              21px;
+            font-size: 21px;
           }
-
 
           .awd-dialog-description {
-            font-size:
-              12px;
+            font-size: 12px;
           }
-
 
           .awd-dialog-input {
-            min-height:
-              58px;
-
-            font-size:
-              14px;
+            min-height: 58px;
+            font-size: 14px;
           }
-
 
           .awd-dialog-primary,
           .awd-dialog-secondary {
-            min-height:
-              55px;
+            min-height: 55px;
           }
         }
 
 
         /* ===============================================
-           VERY SMALL PHONE
+           VERY SMALL MOBILE
            =============================================== */
 
         @media (
-          max-width:
-            360px
+          max-width: 360px
         ) {
           .awd-account-sheet,
           .awd-dialog {
-            padding-inline:
-              13px;
+            padding-inline: 13px;
           }
-
 
           .awd-account-head-copy h3 {
-            font-size:
-              18px;
+            font-size: 18px;
           }
-
 
           .awd-result-grid {
             grid-template-columns:
               1fr;
           }
         }
+
       `}</style>
 
 
@@ -6078,7 +4911,6 @@ export default function AccountMenu() {
           }
           onClick={() => {
             setOpen(true);
-
             setError("");
           }}
         >
