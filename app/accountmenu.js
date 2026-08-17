@@ -1,15 +1,18 @@
 "use client";
+
 import {
   useEffect,
   useRef,
   useState,
 } from "react";
-import { getSupabase } from "../lib/supabase";
+
 import { useAccess } from "../lib/useAccess";
+
 const LIFETIME_CHECKOUT_URL =
   process.env
     .NEXT_PUBLIC_LEMON_LIFETIME_CHECKOUT_URL ||
   "";
+
 const PACKAGES = [
   {
     id: "cover",
@@ -62,15 +65,17 @@ const PACKAGES = [
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/14a4b6b5-553f-4070-bd39-932ba2270aa5",
   },
 ];
+
 const TEXT = {
   ar: {
-    menu: "فتح قائمة الباقات والوصول",
+    menu: "فتح قائمة الحساب والباقات",
     status: "حالة الوصول",
+    loading: "جارٍ التحقق من الوصول...",
     free: "الخطة المجانية",
     lifetime: "مدى الحياة",
-    buyLifetime: "تفعيل مدى الحياة",
+    buyLifetime: "شراء وصول مدى الحياة",
     lifetimePrice: "$125 دفعة واحدة",
-    choose: "اختر باقتك",
+    choose: "عرض الباقات",
     restore: "تفعيل أو استعادة الوصول",
     showCode: "عرض رمز الاستعادة",
     secureEmail: "إضافة بريد الأمان",
@@ -102,17 +107,25 @@ const TEXT = {
       "الرمز غير صحيح أو غير فعال.",
     limit:
       "وصل الرمز إلى الحد الأقصى للأجهزة.",
+    invalidEmail:
+      "أدخل بريدًا إلكترونيًا صحيحًا.",
+    invalidOtp:
+      "أدخل رمز تحقق صحيحًا من 6 أرقام.",
     checkoutMissing:
-      "رابط شراء مدى الحياة غير موجود.",
+      "رابط الدفع لهذه الباقة غير مضبوط بعد.",
+    clipboardError:
+      "تعذر النسخ تلقائيًا. انسخ الرمز يدويًا.",
   },
+
   en: {
-    menu: "Open plans and access menu",
+    menu: "Open account and plans menu",
     status: "Access status",
+    loading: "Checking access...",
     free: "Free plan",
     lifetime: "Lifetime",
-    buyLifetime: "Activate Lifetime",
+    buyLifetime: "Buy Lifetime access",
     lifetimePrice: "$125 one-time payment",
-    choose: "Choose your plan",
+    choose: "View plans",
     restore: "Activate or restore access",
     showCode: "Show recovery code",
     secureEmail: "Add security email",
@@ -147,80 +160,191 @@ const TEXT = {
       "This code is invalid or inactive.",
     limit:
       "This code has reached its device limit.",
+    invalidEmail:
+      "Enter a valid email address.",
+    invalidOtp:
+      "Enter a valid 6-digit verification code.",
     checkoutMissing:
-      "The Lifetime checkout URL is missing.",
+      "The checkout URL for this plan is not configured yet.",
+    clipboardError:
+      "Automatic copy failed. Please copy the code manually.",
   },
 };
-const fullButton = {
-  width: "100%",
-  marginTop: 10,
-  padding: 12,
-  borderRadius: 11,
-  fontWeight: 900,
+
+const STYLES = {
+  fullButton: {
+    width: "100%",
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 11,
+    fontWeight: 900,
+    cursor: "pointer",
+  },
+
+  input: {
+    width: "100%",
+    minHeight: 46,
+    boxSizing: "border-box",
+    padding: "10px 12px",
+    border: "1px solid #cbd5e1",
+    borderRadius: 10,
+    background: "#ffffff",
+    color: "#172033",
+    fontSize: 15,
+    outline: "none",
+  },
+
+  primary: {
+    width: "100%",
+    minHeight: 46,
+    marginTop: 12,
+    padding: "10px 14px",
+    border: 0,
+    borderRadius: 10,
+    background: "#ff6b00",
+    color: "#ffffff",
+    fontWeight: 900,
+    cursor: "pointer",
+  },
+
+  close: {
+    width: "100%",
+    minHeight: 44,
+    marginTop: 14,
+    padding: 11,
+    borderRadius: 10,
+    border: "1px solid #cbd5e1",
+    background: "#ffffff",
+    color: "#4e5c70",
+    fontWeight: 800,
+    cursor: "pointer",
+  },
 };
+
+function getBillingUrl(subscriptions) {
+  if (!Array.isArray(subscriptions)) {
+    return "";
+  }
+
+  return (
+    subscriptions.find(
+      (item) =>
+        item?.customer_portal_url,
+    )?.customer_portal_url || ""
+  );
+}
+
 export default function AccountMenu() {
   const menuRef = useRef(null);
+
   const access = useAccess();
+
   const [open, setOpen] =
     useState(false);
+
   const [showPlans, setShowPlans] =
     useState(false);
+
   const [language, setLanguage] =
     useState("ar");
-  const [session, setSession] =
-    useState(null);
+
   const [dialog, setDialog] =
     useState("");
+
   const [busy, setBusy] =
     useState(false);
+
   const [error, setError] =
     useState("");
-  const [licenseCode, setLicenseCode] =
-    useState("");
-  const [revealedCode, setRevealedCode] =
-    useState("");
+
+  const [
+    licenseCode,
+    setLicenseCode,
+  ] = useState("");
+
+  const [
+    revealedCode,
+    setRevealedCode,
+  ] = useState("");
+
   const [copied, setCopied] =
     useState(false);
+
   const [email, setEmail] =
     useState("");
+
   const [otp, setOtp] =
     useState("");
-  const [emailStep, setEmailStep] =
-    useState("email");
+
+  const [
+    emailStep,
+    setEmailStep,
+  ] = useState("email");
+
   const isEnglish =
     language === "en";
+
   const text = isEnglish
     ? TEXT.en
     : TEXT.ar;
+
   const activePlans =
     Array.isArray(access.plans)
       ? access.plans
       : [];
-  const subscriptions =
-    Array.isArray(access.subscriptions)
-      ? access.subscriptions
-      : [];
+
   const billingUrl =
-    subscriptions.find(
-      (item) =>
-        item.customer_portal_url,
-    )?.customer_portal_url || "";
+    getBillingUrl(
+      access.subscriptions,
+    );
+
   useEffect(() => {
-    function detectLanguage() {
-      const nextLanguage =
-        document.documentElement.lang ===
-          "en" ||
-        document.documentElement.dir ===
-          "ltr"
-          ? "en"
-          : "ar";
-      setLanguage(nextLanguage);
+    function detectLanguage(
+      event,
+    ) {
+      const eventLanguage =
+        event?.detail;
+
+      const savedLanguage =
+        window.localStorage.getItem(
+          "awd_lang",
+        );
+
+      let nextLanguage = "ar";
+
+      if (
+        eventLanguage === "en" ||
+        eventLanguage === "ar"
+      ) {
+        nextLanguage =
+          eventLanguage;
+      } else if (
+        savedLanguage === "en" ||
+        savedLanguage === "ar"
+      ) {
+        nextLanguage =
+          savedLanguage;
+      } else if (
+        document.documentElement
+          .lang === "en" ||
+        document.documentElement
+          .dir === "ltr"
+      ) {
+        nextLanguage = "en";
+      }
+
+      setLanguage(
+        nextLanguage,
+      );
     }
+
     detectLanguage();
+
     const observer =
       new MutationObserver(
         detectLanguage,
       );
+
     observer.observe(
       document.documentElement,
       {
@@ -231,65 +355,26 @@ export default function AccountMenu() {
         ],
       },
     );
+
+    window.addEventListener(
+      "awd-language-change",
+      detectLanguage,
+    );
+
     return () => {
       observer.disconnect();
-    };
-  }, []);
-  useEffect(() => {
-    let mounted = true;
-    const supabase = getSupabase();
-    async function initialize() {
-      let {
-        data: {
-          session: currentSession,
-        },
-      } =
-        await supabase.auth.getSession();
-      if (!currentSession) {
-        const {
-          data,
-          error: signInError,
-        } =
-          await supabase.auth.signInAnonymously();
-        if (signInError) {
-          throw signInError;
-        }
-        currentSession =
-          data?.session || null;
-      }
-      if (mounted) {
-        setSession(currentSession);
-      }
-    }
-    initialize().catch(
-      (sessionError) => {
-        console.error(
-          "Account session error:",
-          sessionError,
-        );
-      },
-    );
-    const {
-      data: {
-        subscription,
-      },
-    } =
-      supabase.auth.onAuthStateChange(
-        (_event, nextSession) => {
-          if (mounted) {
-            setSession(
-              nextSession || null,
-            );
-          }
-        },
+
+      window.removeEventListener(
+        "awd-language-change",
+        detectLanguage,
       );
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
     };
   }, []);
+
   useEffect(() => {
-    function closeOutside(event) {
+    function closeOutside(
+      event,
+    ) {
       if (
         menuRef.current &&
         !menuRef.current.contains(
@@ -299,101 +384,144 @@ export default function AccountMenu() {
         setOpen(false);
       }
     }
-    function closeEscape(event) {
-      if (event.key === "Escape") {
-        if (dialog) {
-          setDialog("");
-        } else {
-          setOpen(false);
-        }
+
+    function closeEscape(
+      event,
+    ) {
+      if (
+        event.key !== "Escape"
+      ) {
+        return;
+      }
+
+      if (dialog) {
+        setDialog("");
+        setError("");
+      } else {
+        setOpen(false);
       }
     }
+
     document.addEventListener(
       "pointerdown",
       closeOutside,
     );
+
     document.addEventListener(
       "keydown",
       closeEscape,
     );
+
     return () => {
       document.removeEventListener(
         "pointerdown",
         closeOutside,
       );
+
       document.removeEventListener(
         "keydown",
         closeEscape,
       );
     };
   }, [dialog]);
-  async function getSession() {
-    if (session) {
-      return session;
-    }
-    const supabase = getSupabase();
-    const {
-      data,
-      error: signInError,
-    } =
-      await supabase.auth.signInAnonymously();
-    if (signInError) {
-      throw signInError;
-    }
-    const currentSession =
-      data?.session || null;
-    setSession(currentSession);
-    return currentSession;
+
+  function closeDialog() {
+    setDialog("");
+    setError("");
+    setBusy(false);
   }
-  async function openCheckout(plan) {
+
+  function planName(
+    planId,
+  ) {
+    const plan =
+      PACKAGES.find(
+        (item) =>
+          item.id === planId,
+      );
+
+    if (!plan) {
+      return planId;
+    }
+
+    return isEnglish
+      ? plan.en
+      : plan.ar;
+  }
+
+  async function getSession() {
+    const session =
+      await access.ensureSession();
+
+    if (
+      !session?.access_token ||
+      !session?.user?.id
+    ) {
+      throw new Error(
+        "SESSION_MISSING",
+      );
+    }
+
+    return session;
+  }
+
+  async function openCheckout(
+    plan,
+  ) {
     if (busy) {
       return;
     }
+
     setBusy(true);
     setError("");
+
     try {
-      const currentSession =
-        await getSession();
-      const userId =
-        currentSession?.user?.id;
-      if (!userId) {
-        throw new Error(
-          "NO_GUEST_SESSION",
-        );
-      }
-      if (!plan.checkoutUrl) {
+      if (!plan?.checkoutUrl) {
         setError(
           text.checkoutMissing,
         );
+
         return;
       }
-      const checkout = new URL(
-        plan.checkoutUrl,
-      );
+
+      const session =
+        await getSession();
+
+      const checkout =
+        new URL(
+          plan.checkoutUrl,
+        );
+
       checkout.searchParams.set(
         "checkout[custom][user_id]",
-        userId,
+        session.user.id,
       );
+
       checkout.searchParams.set(
         "checkout[custom][plan_id]",
         plan.id,
       );
+
       if (
-        currentSession.user?.email
+        session.user.email
       ) {
         checkout.searchParams.set(
           "checkout[email]",
-          currentSession.user.email,
+          session.user.email,
         );
       }
+
       window.location.assign(
         checkout.toString(),
       );
-    } catch (checkoutError) {
+    } catch (
+      checkoutError
+    ) {
       console.error(
         "Checkout error:",
         checkoutError,
       );
+
       setError(
         text.genericError,
       );
@@ -401,6 +529,7 @@ export default function AccountMenu() {
       setBusy(false);
     }
   }
+
   function buyLifetime() {
     return openCheckout({
       id: "lifetime",
@@ -408,94 +537,87 @@ export default function AccountMenu() {
         LIFETIME_CHECKOUT_URL,
     });
   }
-  async function activateCode(event) {
+
+  async function activateCode(
+    event,
+  ) {
     event.preventDefault();
+
+    const cleanCode =
+      String(
+        licenseCode || "",
+      )
+        .trim()
+        .toUpperCase();
+
+    if (!cleanCode) {
+      setError(text.badCode);
+
+      return;
+    }
+
     setBusy(true);
     setError("");
+
     try {
-      const currentSession =
+      const session =
         await getSession();
-      const response = await fetch(
-        "/api/license/activate",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-            Authorization:
-              `Bearer ${currentSession.access_token}`,
+
+      const response =
+        await fetch(
+          "/api/license/activate",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${session.access_token}`,
+            },
+
+            body: JSON.stringify({
+              code: cleanCode,
+            }),
           },
-          body: JSON.stringify({
-            code: licenseCode,
-          }),
-        },
-      );
+        );
+
       const data =
         await response
           .json()
           .catch(() => ({}));
+
       if (!response.ok) {
         if (
-          data.error ===
+          data?.error ===
           "ACTIVATION_LIMIT_REACHED"
         ) {
-          throw new Error("LIMIT");
+          setError(
+            text.limit,
+          );
+        } else {
+          setError(
+            text.badCode,
+          );
         }
-        throw new Error("BAD_CODE");
+
+        return;
       }
-      window.dispatchEvent(
-        new Event(
-          "allwdbook-access-refresh",
-        ),
-      );
-            window.location.reload();
-    } catch (activationError) {
-      setError(
-        activationError.message ===
-          "LIMIT"
-          ? text.limit
-          : text.badCode,
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function revealCode() {
-    setDialog("code");
-    setBusy(true);
-    setError("");
-    try {
-      const currentSession =
-        await getSession();
-      const response = await fetch(
-        "/api/license/code",
-        {
-          headers: {
-            Authorization:
-              `Bearer ${currentSession.access_token}`,
-          },
-          cache: "no-store",
-        },
-      );
-      const data =
-        await response.json();
-      if (!response.ok) {
-        throw new Error(
-          data?.error ||
-            "CODE_FAILED",
-        );
-      }
-      setRevealedCode(
-        data.code || "",
-      );
-      setEmail(
-        data.recoveryEmail || "",
-      );
-    } catch (codeError) {
+
+      setLicenseCode("");
+      setDialog("");
+      setOpen(false);
+
+      await access.refresh();
+    } catch (
+      activationError
+    ) {
       console.error(
-        "License reveal failed:",
-        codeError,
+        "License activation failed:",
+        activationError,
       );
+
       setError(
         text.genericError,
       );
@@ -503,63 +625,193 @@ export default function AccountMenu() {
       setBusy(false);
     }
   }
-  async function copyCode() {
-    await navigator.clipboard.writeText(
-      revealedCode,
-    );
-    setCopied(true);
-    window.setTimeout(() => {
-      setCopied(false);
-    }, 1500);
-  }
-  function openEmailSecurity() {
-    setDialog("email");
-    setEmail(
-      access.lifetimeLicense
-        ?.recoveryEmail || "",
-    );
-    setEmailStep("email");
-    setOtp("");
-    setError("");
-  }
-  async function sendEmailCode() {
+
+  async function revealCode() {
+    setOpen(false);
+    setDialog("code");
+    setRevealedCode("");
+    setCopied(false);
     setBusy(true);
     setError("");
+
     try {
-      const currentSession =
+      const session =
         await getSession();
-      const response = await fetch(
-        "/api/license/email",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-            Authorization:
-              `Bearer ${currentSession.access_token}`,
+
+      const response =
+        await fetch(
+          "/api/license/code",
+          {
+            method: "GET",
+
+            headers: {
+              Authorization:
+                `Bearer ${session.access_token}`,
+            },
+
+            cache: "no-store",
           },
-          body: JSON.stringify({
-            action: "send",
-            email,
-          }),
-        },
-      );
+        );
+
       const data =
         await response
           .json()
           .catch(() => ({}));
+
+      if (
+        !response.ok ||
+        !data?.code
+      ) {
+        throw new Error(
+          data?.error ||
+            "CODE_FAILED",
+        );
+      }
+
+      setRevealedCode(
+        data.code,
+      );
+
+      if (
+        data.recoveryEmail
+      ) {
+        setEmail(
+          data.recoveryEmail,
+        );
+      }
+    } catch (codeError) {
+      console.error(
+        "License reveal failed:",
+        codeError,
+      );
+
+      setError(
+        text.genericError,
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyCode() {
+    if (!revealedCode) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard
+        .writeText(
+          revealedCode,
+        );
+
+      setCopied(true);
+
+      window.setTimeout(
+        () => {
+          setCopied(false);
+        },
+        1500,
+      );
+    } catch (
+      clipboardError
+    ) {
+      console.error(
+        "Clipboard copy failed:",
+        clipboardError,
+      );
+
+      setError(
+        text.clipboardError,
+      );
+    }
+  }
+
+  function openEmailSecurity() {
+    setOpen(false);
+    setDialog("email");
+
+    setEmail(
+      access.lifetimeLicense
+        ?.recoveryEmail ||
+        access.email ||
+        "",
+    );
+
+    setEmailStep("email");
+    setOtp("");
+    setError("");
+  }
+
+  async function sendEmailCode() {
+    const normalizedEmail =
+      String(email || "")
+        .trim()
+        .toLowerCase();
+
+    if (
+      !/^\S+@\S+\.\S+$/.test(
+        normalizedEmail,
+      )
+    ) {
+      setError(
+        text.invalidEmail,
+      );
+
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+
+    try {
+      const session =
+        await getSession();
+
+      const response =
+        await fetch(
+          "/api/license/email",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${session.access_token}`,
+            },
+
+            body: JSON.stringify({
+              action: "send",
+              email:
+                normalizedEmail,
+            }),
+          },
+        );
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
       if (!response.ok) {
         throw new Error(
           data?.error ||
             "SEND_FAILED",
         );
       }
+
+      setEmail(
+        normalizedEmail,
+      );
+
       setEmailStep("otp");
     } catch (emailError) {
       console.error(
         "Security email send failed:",
         emailError,
       );
+
       setError(
         text.genericError,
       );
@@ -567,50 +819,77 @@ export default function AccountMenu() {
       setBusy(false);
     }
   }
+
   async function verifyEmailCode() {
+    const cleanOtp =
+      String(otp || "").trim();
+
+    if (
+      !/^\d{6}$/.test(
+        cleanOtp,
+      )
+    ) {
+      setError(
+        text.invalidOtp,
+      );
+
+      return;
+    }
+
     setBusy(true);
     setError("");
+
     try {
-      const currentSession =
+      const session =
         await getSession();
-      const response = await fetch(
-        "/api/license/email",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-            Authorization:
-              `Bearer ${currentSession.access_token}`,
+
+      const response =
+        await fetch(
+          "/api/license/email",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${session.access_token}`,
+            },
+
+            body: JSON.stringify({
+              action: "verify",
+              email,
+              otp: cleanOtp,
+            }),
           },
-          body: JSON.stringify({
-            action: "verify",
-            email,
-            otp,
-          }),
-        },
-      );
+        );
+
       const data =
         await response
           .json()
           .catch(() => ({}));
+
       if (!response.ok) {
         throw new Error(
           data?.error ||
             "VERIFY_FAILED",
         );
       }
-      setEmailStep("verified");
-      window.dispatchEvent(
-        new Event(
-          "allwdbook-access-refresh",
-        ),
+
+      setEmailStep(
+        "verified",
       );
+
+      setOtp("");
+
+      await access.refresh();
     } catch (verifyError) {
       console.error(
         "Security email verification failed:",
         verifyError,
       );
+
       setError(
         text.genericError,
       );
@@ -618,17 +897,7 @@ export default function AccountMenu() {
       setBusy(false);
     }
   }
-  function planName(planId) {
-    const plan = PACKAGES.find(
-      (item) =>
-        item.id === planId,
-    );
-    return plan
-      ? isEnglish
-        ? plan.en
-        : plan.ar
-      : planId;
-  }
+
   return (
     <>
       <div
@@ -642,11 +911,16 @@ export default function AccountMenu() {
         <button
           type="button"
           aria-label={text.menu}
-          onClick={() =>
+          aria-haspopup="menu"
+          aria-expanded={open}
+          onClick={() => {
             setOpen(
-              (current) => !current,
-            )
-          }
+              (current) =>
+                !current,
+            );
+
+            setError("");
+          }}
           style={{
             width: 50,
             height: 50,
@@ -654,10 +928,15 @@ export default function AccountMenu() {
             display: "grid",
             placeItems: "center",
             borderRadius: "50%",
+
             border: open
               ? "2px solid #f59e0b"
               : "2px solid transparent",
-            background: "transparent",
+
+            background:
+              "transparent",
+
+            cursor: "pointer",
           }}
         >
           <img
@@ -669,40 +948,59 @@ export default function AccountMenu() {
               width: 44,
               height: 44,
               borderRadius: "50%",
+              objectFit: "cover",
             }}
           />
         </button>
+
         {open && (
           <div
             role="menu"
+            aria-label={text.menu}
             style={{
               position: "absolute",
               top: 58,
+
               right: isEnglish
                 ? "auto"
                 : 0,
+
               left: isEnglish
                 ? 0
                 : "auto",
+
               width:
                 "min(370px, calc(100vw - 24px))",
+
               maxHeight:
-                "min(720px, calc(100vh - 92px))",
+                "min(720px, calc(100dvh - 92px))",
+
               overflowY: "auto",
+
               padding: 14,
+
               borderRadius: 16,
-              background: "#ffffff",
+
+              background:
+                "#ffffff",
+
               color: "#172033",
+
               border:
                 "2px solid #d9e2ef",
+
               boxShadow:
                 "0 22px 60px rgba(0,0,0,.42)",
-              direction: isEnglish
-                ? "ltr"
-                : "rtl",
-              textAlign: isEnglish
-                ? "left"
-                : "right",
+
+              direction:
+                isEnglish
+                  ? "ltr"
+                  : "rtl",
+
+              textAlign:
+                isEnglish
+                  ? "left"
+                  : "right",
             }}
           >
             <div
@@ -712,55 +1010,83 @@ export default function AccountMenu() {
             >
               {text.status}
             </div>
+
             <div
               style={{
                 marginTop: 8,
                 padding: 10,
                 borderRadius: 10,
+
                 background:
                   access.lifetime
                     ? "#eafaf1"
                     : "#f2f4f7",
+
                 color:
                   access.lifetime
                     ? "#15733d"
                     : "#4e5c70",
+
                 fontWeight: 900,
               }}
             >
-              {access.lifetime
-                ? `♾️ ${text.lifetime}`
-                : activePlans.length
-                  ? activePlans
-                      .map(planName)
-                      .join(" · ")
-                  : text.free}
+              {access.loading
+                ? text.loading
+                : access.lifetime
+                  ? `♾️ ${text.lifetime}`
+                  : activePlans.length
+                    ? activePlans
+                        .map(
+                          planName,
+                        )
+                        .join(
+                          " · ",
+                        )
+                    : text.free}
             </div>
+
             {!access.lifetime && (
               <button
                 type="button"
-                onClick={buyLifetime}
+                onClick={
+                  buyLifetime
+                }
                 disabled={busy}
                 style={{
-                  ...fullButton,
+                  ...STYLES.fullButton,
+
                   border:
                     "2px solid #d99a20",
+
                   background:
                     "linear-gradient(135deg,#fff8df,#ffe7a3)",
-                  color: "#744700",
+
+                  color:
+                    "#744700",
+
+                  opacity: busy
+                    ? 0.65
+                    : 1,
                 }}
               >
-                ♾️ {text.buyLifetime}
+                ♾️{" "}
+                {text.buyLifetime}
+
                 <small
                   style={{
-                    display: "block",
+                    display:
+                      "block",
+
                     marginTop: 4,
                   }}
                 >
-                  {text.lifetimePrice}
+                  {
+                    text.lifetimePrice
+                  }
                 </small>
               </button>
             )}
+
             <button
               type="button"
               onClick={() =>
@@ -769,16 +1095,25 @@ export default function AccountMenu() {
                     !current,
                 )
               }
+              aria-expanded={
+                showPlans
+              }
               style={{
-                ...fullButton,
+                ...STYLES.fullButton,
+
                 border:
                   "1px solid #2776d2",
-                background: "#eaf3ff",
-                color: "#1459a6",
+
+                background:
+                  "#eaf3ff",
+
+                color:
+                  "#1459a6",
               }}
             >
               🧾 {text.choose}
             </button>
+
             {showPlans && (
               <div
                 style={{
@@ -794,9 +1129,12 @@ export default function AccountMenu() {
                       activePlans.includes(
                         plan.id,
                       );
+
                     return (
                       <button
-                        key={plan.id}
+                        key={
+                          plan.id
+                        }
                         type="button"
                         disabled={
                           current ||
@@ -810,20 +1148,45 @@ export default function AccountMenu() {
                         style={{
                           display:
                             "flex",
+
+                          alignItems:
+                            "center",
+
                           justifyContent:
                             "space-between",
+
                           gap: 10,
+
                           padding: 11,
+
                           borderRadius: 10,
-                          border: current
-                            ? "2px solid #3ea968"
-                            : "1px solid #d9e2ef",
+
+                          border:
+                            current
+                              ? "2px solid #3ea968"
+                              : "1px solid #d9e2ef",
+
                           background:
                             current
                               ? "#eafaf1"
                               : "#f7f9fc",
+
                           color:
                             "#172033",
+
+                          textAlign:
+                            "inherit",
+
+                          cursor:
+                            current
+                              ? "default"
+                              : "pointer",
+
+                          opacity:
+                            busy &&
+                            !current
+                              ? 0.7
+                              : 1,
                         }}
                       >
                         <span>
@@ -832,13 +1195,21 @@ export default function AccountMenu() {
                               ? plan.en
                               : plan.ar}
                           </strong>
+
                           {current && (
                             <small
                               style={{
                                 display:
                                   "block",
+
+                                marginTop:
+                                  3,
+
                                 color:
                                   "#16864a",
+
+                                fontWeight:
+                                  800,
                               }}
                             >
                               ✓{" "}
@@ -848,10 +1219,20 @@ export default function AccountMenu() {
                             </small>
                           )}
                         </span>
-                        <span dir="ltr">
+
+                        <span
+                          dir="ltr"
+                          style={{
+                            flex:
+                              "0 0 auto",
+                          }}
+                        >
                           <strong>
-                            {plan.price}
+                            {
+                              plan.price
+                            }
                           </strong>{" "}
+
                           <small>
                             {isEnglish
                               ? plan.periodEn
@@ -864,57 +1245,87 @@ export default function AccountMenu() {
                 )}
               </div>
             )}
+
             <button
               type="button"
               onClick={() => {
                 setOpen(false);
-                setDialog("restore");
+                setDialog(
+                  "restore",
+                );
+                setLicenseCode(
+                  "",
+                );
                 setError("");
               }}
               style={{
-                ...fullButton,
+                ...STYLES.fullButton,
+
                 border:
                   "1px solid #6f56c9",
-                background: "#f2efff",
-                color: "#4f36a5",
+
+                background:
+                  "#f2efff",
+
+                color:
+                  "#4f36a5",
               }}
             >
               🔑 {text.restore}
             </button>
+
             {access.lifetime && (
               <>
                 <button
                   type="button"
-                  onClick={revealCode}
+                  onClick={
+                    revealCode
+                  }
+                  disabled={busy}
                   style={{
-                    ...fullButton,
+                    ...STYLES.fullButton,
+
                     border:
                       "1px solid #16864a",
+
                     background:
                       "#eafaf1",
-                    color: "#15733d",
+
+                    color:
+                      "#15733d",
                   }}
                 >
-                  🛡️ {text.showCode}
+                  🛡️{" "}
+                  {text.showCode}
                 </button>
+
                 <button
                   type="button"
-                    onClick={
+                  onClick={
                     openEmailSecurity
                   }
+                  disabled={busy}
                   style={{
-                    ...fullButton,
+                    ...STYLES.fullButton,
+
                     border:
                       "1px solid #d99a20",
+
                     background:
                       "#fff8df",
-                    color: "#744700",
+
+                    color:
+                      "#744700",
                   }}
                 >
-                  ✉️ {text.secureEmail}
+                  ✉️{" "}
+                  {
+                    text.secureEmail
+                  }
                 </button>
               </>
             )}
+
             {billingUrl && (
               <a
                 href={billingUrl}
@@ -925,22 +1336,33 @@ export default function AccountMenu() {
                   marginTop: 10,
                   padding: 11,
                   borderRadius: 10,
-                  background: "#fff8e8",
-                  color: "#8a5700",
+
+                  background:
+                    "#fff8e8",
+
+                  color:
+                    "#8a5700",
+
                   textAlign:
                     "center",
+
                   textDecoration:
                     "none",
+
                   fontWeight: 900,
                 }}
               >
                 ⚙️ {text.manage}
               </a>
             )}
+
             {error && (
               <p
+                role="alert"
                 style={{
-                  color: "#b6322c",
+                  color:
+                    "#b6322c",
+
                   fontWeight: 700,
                 }}
               >
@@ -950,28 +1372,37 @@ export default function AccountMenu() {
           </div>
         )}
       </div>
+
       {dialog && (
         <div
-          onMouseDown={(event) => {
+          role="presentation"
+          onMouseDown={(
+            event,
+          ) => {
             if (
               event.target ===
               event.currentTarget
             ) {
-              setDialog("");
+              closeDialog();
             }
           }}
           style={{
             position: "fixed",
             inset: 0,
             zIndex: 25000,
+
             display: "grid",
             placeItems: "center",
+
             padding: 16,
+
             background:
               "rgba(3,10,22,.82)",
           }}
         >
           <section
+            role="dialog"
+            aria-modal="true"
             dir={
               isEnglish
                 ? "ltr"
@@ -980,26 +1411,52 @@ export default function AccountMenu() {
             style={{
               width:
                 "min(470px,100%)",
+
+              maxHeight:
+                "calc(100dvh - 32px)",
+
+              overflowY: "auto",
+
               boxSizing:
                 "border-box",
+
               padding: 22,
+
               borderRadius: 18,
-              background: "#ffffff",
+
+              background:
+                "#ffffff",
+
               color: "#172033",
+
+              boxShadow:
+                "0 24px 70px rgba(0,0,0,.35)",
             }}
           >
-            {dialog === "restore" && (
+            {dialog ===
+              "restore" && (
               <form
                 onSubmit={
                   activateCode
                 }
               >
-                <h2>
-                  {text.enterCode}
+                <h2
+                  style={{
+                    marginTop: 0,
+                  }}
+                >
+                  {
+                    text.enterCode
+                  }
                 </h2>
+
                 <input
-                  value={licenseCode}
-                  onChange={(event) =>
+                  value={
+                    licenseCode
+                  }
+                  onChange={(
+                    event,
+                  ) =>
                     setLicenseCode(
                       event.target
                         .value,
@@ -1009,19 +1466,22 @@ export default function AccountMenu() {
                     text.codePlaceholder
                   }
                   autoCapitalize="characters"
-                  style={{
-                    width: "100%",
-                    boxSizing:
-                      "border-box",
-                  }}
+                  autoComplete="off"
+                  dir="ltr"
+                  style={
+                    STYLES.input
+                  }
                 />
+
                 <button
-                  className="go"
                   type="submit"
                   disabled={busy}
                   style={{
-                    width: "100%",
-                    marginTop: 12,
+                    ...STYLES.primary,
+
+                    opacity: busy
+                      ? 0.65
+                      : 1,
                   }}
                 >
                   {busy
@@ -1030,64 +1490,104 @@ export default function AccountMenu() {
                 </button>
               </form>
             )}
+
             {dialog === "code" && (
               <div
                 style={{
-                  textAlign: "center",
+                  textAlign:
+                    "center",
                 }}
               >
-                <h2>
-                  {text.codeTitle}
+                <h2
+                  style={{
+                    marginTop: 0,
+                  }}
+                >
+                  {
+                    text.codeTitle
+                  }
                 </h2>
+
                 {busy ? (
                   <p>
-                    {text.activating}
+                    {
+                      text.activating
+                    }
                   </p>
-                ) : (
+                ) : revealedCode ? (
                   <>
                     <code
                       dir="ltr"
                       style={{
-                        display: "block",
+                        display:
+                          "block",
+
                         padding: 14,
+
                         borderRadius: 10,
+
                         background:
                           "#f1f5f9",
+
                         overflowWrap:
                           "anywhere",
+
+                        userSelect:
+                          "all",
                       }}
                     >
-                      {revealedCode}
+                      {
+                        revealedCode
+                      }
                     </code>
+
                     <p
                       style={{
                         color:
                           "#b45309",
                       }}
                     >
-                      {text.codeWarning}
+                      {
+                        text.codeWarning
+                      }
                     </p>
+
                     <button
-                      className="go"
                       type="button"
-                      onClick={copyCode}
+                      onClick={
+                        copyCode
+                      }
+                      style={
+                        STYLES.primary
+                      }
                     >
                       {copied
                         ? text.copied
                         : text.copy}
                     </button>
                   </>
-                )}
+                ) : null}
               </div>
             )}
+
             {dialog === "email" && (
               <div>
-                <h2>
-                  {text.emailTitle}
+                <h2
+                  style={{
+                    marginTop: 0,
+                  }}
+                >
+                  {
+                    text.emailTitle
+                  }
                 </h2>
+
                 <p>
-                  {text.emailNote}
+                  {
+                    text.emailNote
+                  }
                 </p>
+
                 {emailStep ===
                   "email" && (
                   <>
@@ -1103,29 +1603,37 @@ export default function AccountMenu() {
                         )
                       }
                       placeholder="name@example.com"
+                      autoComplete="email"
                       dir="ltr"
-                      style={{
-                        width: "100%",
-                        boxSizing:
-                          "border-box",
-                      }}
+                      style={
+                        STYLES.input
+                      }
                     />
+
                     <button
-                      className="go"
                       type="button"
                       onClick={
                         sendEmailCode
                       }
-                      disabled={busy}
+                      disabled={
+                        busy
+                      }
                       style={{
-                        width: "100%",
-                        marginTop: 12,
+                        ...STYLES.primary,
+
+                        opacity:
+                          busy
+                            ? 0.65
+                            : 1,
                       }}
                     >
-                      {text.send}
+                      {busy
+                        ? text.activating
+                        : text.send}
                     </button>
                   </>
                 )}
+
                 {emailStep ===
                   "otp" && (
                   <>
@@ -1137,7 +1645,15 @@ export default function AccountMenu() {
                       ) =>
                         setOtp(
                           event.target
-                            .value,
+                            .value
+                            .replace(
+                              /\D/g,
+                              "",
+                            )
+                            .slice(
+                              0,
+                              6,
+                            ),
                         )
                       }
                       placeholder={
@@ -1145,68 +1661,78 @@ export default function AccountMenu() {
                       }
                       dir="ltr"
                       maxLength={6}
-                      style={{
-                        width: "100%",
-                        boxSizing:
-                          "border-box",
-                      }}
+                      autoComplete="one-time-code"
+                      style={
+                        STYLES.input
+                      }
                     />
+
                     <button
-                      className="go"
                       type="button"
                       onClick={
                         verifyEmailCode
                       }
-                      disabled={busy}
+                      disabled={
+                        busy
+                      }
                       style={{
-                        width: "100%",
-                        marginTop: 12,
+                        ...STYLES.primary,
+
+                        opacity:
+                          busy
+                            ? 0.65
+                            : 1,
                       }}
                     >
-                      {text.verify}
+                      {busy
+                        ? text.activating
+                        : text.verify}
                     </button>
                   </>
                 )}
+
                 {emailStep ===
                   "verified" && (
                   <p
                     style={{
                       color:
                         "#15733d",
-                      fontWeight: 900,
+
+                      fontWeight:
+                        900,
                     }}
                   >
-                    ✅ {text.verified}
+                    ✅{" "}
+                    {
+                      text.verified
+                    }
                   </p>
                 )}
               </div>
             )}
+
             {error && (
               <p
+                role="alert"
                 style={{
-                  color: "#b6322c",
+                  color:
+                    "#b6322c",
+
                   fontWeight: 700,
                 }}
               >
                 {error}
               </p>
             )}
+
             <button
               type="button"
-              onClick={() =>
-                setDialog("")
+              onClick={
+                closeDialog
               }
-              style={{
-                width: "100%",
-                marginTop: 14,
-                padding: 11,
-                borderRadius: 10,
-                border:
-                  "1px solid #cbd5e1",
-                background: "#ffffff",
-                color: "#4e5c70",
-                fontWeight: 800,
-              }}
+              style={
+                STYLES.close
+              }
             >
               {text.close}
             </button>
@@ -1215,4 +1741,4 @@ export default function AccountMenu() {
       )}
     </>
   );
-}           
+}
