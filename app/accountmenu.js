@@ -6,12 +6,16 @@ import {
 } from "react";
 
 import {
+  createPortal,
+} from "react-dom";
+
+import {
   useAccess,
 } from "../lib/useAccess";
 
 
 /* =========================================================
-   CHECKOUT CONFIG
+   CHECKOUT
    ========================================================= */
 
 const LIFETIME_CHECKOUT_URL =
@@ -23,97 +27,61 @@ const LIFETIME_CHECKOUT_URL =
 const PACKAGES = [
   {
     id: "cover",
-
     ar: "مصمم الأغلفة",
-
     en: "Cover Designer",
-
     price: "$2.49",
-
     periodAr: "شهريًا",
-
     periodEn: "monthly",
-
     icon: "📐",
-
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/a40b815f-2b2c-4086-b8b8-3afcd0bf7a4d",
   },
 
   {
     id: "micro_niche",
-
     ar: "Micro-Niche",
-
     en: "Micro-Niche",
-
     price: "$2.49",
-
     periodAr: "شهريًا",
-
     periodEn: "monthly",
-
     icon: "🎯",
-
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/c205aef7-1c77-4711-9fba-ee2b9a81153b",
   },
 
   {
     id: "keywords",
-
     ar: "الكلمات المفتاحية",
-
     en: "Keyword Research",
-
     price: "$2.49",
-
     periodAr: "شهريًا",
-
     periodEn: "monthly",
-
     icon: "🔑",
-
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/9a058282-b97a-4f49-bd27-c31aefab98d9",
   },
 
   {
     id: "pro_monthly",
-
     ar: "AllWDbook Pro",
-
     en: "AllWDbook Pro",
-
     price: "$5.99",
-
     periodAr: "شهريًا",
-
     periodEn: "monthly",
-
     icon: "⚡",
-
     featured: true,
-
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/00e64ca6-4e8c-42c2-aa44-e9667d745524",
   },
 
   {
     id: "pro_yearly",
-
     ar: "Pro السنوي",
-
     en: "Pro Yearly",
-
     price: "$55",
-
     periodAr: "سنويًا",
-
     periodEn: "yearly",
-
     icon: "👑",
-
     checkoutUrl:
       "https://allworldfactures.lemonsqueezy.com/checkout/buy/14a4b6b5-553f-4070-bd39-932ba2270aa5",
   },
@@ -126,9 +94,7 @@ const PACKAGES = [
 
 const TEXT = {
   ar: {
-    account:
-      "الحساب والوصول",
-
+    account: "الحساب والوصول",
     accountSubtitle:
       "إدارة خطتك واستعادتها بدون تسجيل دخول",
 
@@ -146,9 +112,6 @@ const TEXT = {
 
     lifetime:
       "Lifetime — وصول مدى الحياة",
-
-    plans:
-      "الخطط والباقات",
 
     showPlans:
       "عرض الباقات",
@@ -214,7 +177,7 @@ const TEXT = {
       "رمز استعادة خطتي",
 
     recoveryCodeSub:
-      "عرض الرمز الخاص بهذا الجهاز",
+      "عرض رمز استعادة الخطة",
 
     codeTitle:
       "رمز استعادة خطتك",
@@ -229,7 +192,7 @@ const TEXT = {
       "تم النسخ ✓",
 
     codeUnavailable:
-      "الرمز الكامل لا يظهر على هذا الجهاز. يظهر الرمز الكامل فقط على جهاز الشراء الأصلي لحماية خطتك.",
+      "لحماية خطتك، الرمز الكامل يظهر فقط على جهاز الشراء الأصلي. هذا الجهاز يرى نسخة مخفية فقط.",
 
     securityEmail:
       "بريد الحماية",
@@ -241,7 +204,7 @@ const TEXT = {
       "حماية Lifetime بالبريد",
 
     emailDescription:
-      "هذه الخاصية حالياً خاصة بنظام Lifetime القديم. سنربط البريد بجميع خطط AWD-KEY في الخطوة القادمة.",
+      "هذه الخاصية حاليًا خاصة بنظام Lifetime القديم. سنربط بريد الحماية بجميع رموز AWD-KEY في المرحلة التالية.",
 
     emailPlaceholder:
       "name@example.com",
@@ -260,9 +223,6 @@ const TEXT = {
 
     billing:
       "إدارة الاشتراك والفواتير",
-
-    subscription:
-      "الاشتراك",
 
     genericError:
       "تعذر تنفيذ العملية. حاول مرة أخرى.",
@@ -288,17 +248,8 @@ const TEXT = {
     copyFailed:
       "تعذر نسخ الرمز تلقائيًا.",
 
-    legacy:
-      "Lifetime قديم",
-
-    universal:
-      "AllWDbook Access Key",
-
     ownerDevice:
       "جهاز الشراء الأصلي",
-
-    secondaryDevice:
-      "جهاز مستعاد",
 
     noCode:
       "لم نجد رمز استعادة مرتبطًا بهذا الجهاز.",
@@ -329,9 +280,6 @@ const TEXT = {
 
     lifetime:
       "Lifetime Access",
-
-    plans:
-      "Plans & Packages",
 
     showPlans:
       "View plans",
@@ -397,7 +345,7 @@ const TEXT = {
       "My recovery key",
 
     recoveryCodeSub:
-      "View the recovery key for this purchase",
+      "View your plan recovery key",
 
     codeTitle:
       "Your Plan Recovery Key",
@@ -412,7 +360,7 @@ const TEXT = {
       "Copied ✓",
 
     codeUnavailable:
-      "The full key is hidden on this device. For security, it is only revealed on the original purchase device.",
+      "For security, the full key is only shown on the original purchase device. This device only sees a masked version.",
 
     securityEmail:
       "Security email",
@@ -424,7 +372,7 @@ const TEXT = {
       "Protect Lifetime with email",
 
     emailDescription:
-      "This feature currently applies to the legacy Lifetime system. AWD-KEY email recovery will be connected next.",
+      "This feature currently applies to legacy Lifetime. AWD-KEY email protection will be connected next.",
 
     emailPlaceholder:
       "name@example.com",
@@ -443,9 +391,6 @@ const TEXT = {
 
     billing:
       "Manage subscription & billing",
-
-    subscription:
-      "Subscription",
 
     genericError:
       "Unable to complete the request. Try again.",
@@ -471,17 +416,8 @@ const TEXT = {
     copyFailed:
       "Automatic copy failed.",
 
-    legacy:
-      "Legacy Lifetime",
-
-    universal:
-      "AllWDbook Access Key",
-
     ownerDevice:
       "Original purchase device",
-
-    secondaryDevice:
-      "Recovered device",
 
     noCode:
       "No recovery key was found for this device.",
@@ -510,8 +446,7 @@ function getBillingUrl(
   return (
     subscriptions.find(
       (item) =>
-        item
-          ?.customer_portal_url,
+        item?.customer_portal_url,
     )
       ?.customer_portal_url ||
     ""
@@ -524,8 +459,7 @@ function getPlanLabel(
   isEnglish,
 ) {
   if (
-    planId ===
-    "lifetime"
+    planId === "lifetime"
   ) {
     return "Lifetime";
   }
@@ -610,6 +544,13 @@ export default function AccountMenu() {
 
 
   const [
+    mounted,
+    setMounted,
+  ] =
+    useState(false);
+
+
+  const [
     open,
     setOpen,
   ] =
@@ -687,13 +628,6 @@ export default function AccountMenu() {
 
 
   const [
-    codeOwnerDevice,
-    setCodeOwnerDevice,
-  ] =
-    useState(false);
-
-
-  const [
     copied,
     setCopied,
   ] =
@@ -746,6 +680,15 @@ export default function AccountMenu() {
 
 
   /* =======================================================
+     MOUNT
+     ======================================================= */
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+
+  /* =======================================================
      LANGUAGE
      ======================================================= */
 
@@ -756,7 +699,6 @@ export default function AccountMenu() {
       const eventLanguage =
         event?.detail;
 
-
       const savedLanguage =
         window.localStorage.getItem(
           "awd_lang",
@@ -764,10 +706,8 @@ export default function AccountMenu() {
 
 
       if (
-        eventLanguage ===
-          "en" ||
-        eventLanguage ===
-          "ar"
+        eventLanguage === "en" ||
+        eventLanguage === "ar"
       ) {
         setLanguage(
           eventLanguage,
@@ -778,10 +718,8 @@ export default function AccountMenu() {
 
 
       if (
-        savedLanguage ===
-          "en" ||
-        savedLanguage ===
-          "ar"
+        savedLanguage === "en" ||
+        savedLanguage === "ar"
       ) {
         setLanguage(
           savedLanguage,
@@ -837,15 +775,29 @@ export default function AccountMenu() {
         .overflow;
 
 
+    const oldOverscroll =
+      document.body.style
+        .overscrollBehavior;
+
+
     document.body.style
       .overflow =
       "hidden";
+
+
+    document.body.style
+      .overscrollBehavior =
+      "none";
 
 
     return () => {
       document.body.style
         .overflow =
         oldOverflow;
+
+      document.body.style
+        .overscrollBehavior =
+        oldOverscroll;
     };
   }, [
     open,
@@ -889,11 +841,13 @@ export default function AccountMenu() {
         handleEscape,
       );
     };
-  }, [dialog]);
+  }, [
+    dialog,
+  ]);
 
 
   /* =======================================================
-     CURRENT ACCESS LABEL
+     CURRENT PLAN
      ======================================================= */
 
   const currentPlanLabel =
@@ -959,8 +913,7 @@ export default function AccountMenu() {
 
     try {
       if (
-        !plan
-          ?.checkoutUrl
+        !plan?.checkoutUrl
       ) {
         setError(
           text.missingCheckout,
@@ -991,11 +944,6 @@ export default function AccountMenu() {
         plan.id,
       );
 
-
-      /*
-       * البريد ليس شرطاً.
-       * إذا كان موجوداً نرسله فقط.
-       */
 
       if (
         session.user.email
@@ -1029,7 +977,8 @@ export default function AccountMenu() {
 
   function buyLifetime() {
     openCheckout({
-      id: "lifetime",
+      id:
+        "lifetime",
 
       checkoutUrl:
         LIFETIME_CHECKOUT_URL,
@@ -1038,7 +987,7 @@ export default function AccountMenu() {
 
 
   /* =======================================================
-     OPEN RESTORE
+     RESTORE
      ======================================================= */
 
   function openRestoreDialog() {
@@ -1057,10 +1006,6 @@ export default function AccountMenu() {
     setError("");
   }
 
-
-  /* =======================================================
-     RESTORE PLAN
-     ======================================================= */
 
   async function activateCode(
     event,
@@ -1121,9 +1066,9 @@ export default function AccountMenu() {
         await getSession();
 
 
-      /*
-       * AWD-KEY الجديد
-       */
+      /* ===================================================
+         AWD-KEY
+         =================================================== */
 
       if (universal) {
         const response =
@@ -1153,19 +1098,16 @@ export default function AccountMenu() {
 
                   deviceInfo: {
                     platform:
-                      navigator
-                        ?.platform ||
+                      navigator.platform ||
                       "",
 
                     language:
-                      navigator
-                        ?.language ||
+                      navigator.language ||
                       "",
 
                     mobile:
                       /Android|iPhone|iPad|iPod|Mobile/i.test(
-                        navigator
-                          ?.userAgent ||
+                        navigator.userAgent ||
                           "",
                       ),
                   },
@@ -1259,10 +1201,9 @@ export default function AccountMenu() {
       }
 
 
-      /*
-       * AWD-LIFE القديم
-       * نبقيه حتى لا نخسر العملاء القدامى.
-       */
+      /* ===================================================
+         AWD-LIFE LEGACY
+         =================================================== */
 
       const response =
         await fetch(
@@ -1364,23 +1305,21 @@ export default function AccountMenu() {
 
 
   /* =======================================================
-     RECOVERY CODE
+     REVEAL CODE
      ======================================================= */
 
   async function revealCode() {
     setOpen(false);
 
-    setDialog("code");
+    setDialog(
+      "code",
+    );
 
     setRevealedCode("");
 
     setRevealedCodeHint("");
 
     setRevealedCodePlan("");
-
-    setCodeOwnerDevice(
-      false,
-    );
 
     setCopied(false);
 
@@ -1394,15 +1333,12 @@ export default function AccountMenu() {
         await getSession();
 
 
-      /*
-       * أولاً نحاول نظام AWD-KEY الجديد.
-       */
-
       const keyResponse =
         await fetch(
           "/api/access-key/me",
           {
-            method: "GET",
+            method:
+              "GET",
 
             headers: {
               Authorization:
@@ -1454,23 +1390,14 @@ export default function AccountMenu() {
 
         if (anyKey) {
           setRevealedCode(
-            ownerKey
-              ?.code ||
+            ownerKey?.code ||
               "",
           );
 
 
           setRevealedCodeHint(
-            anyKey
-              ?.codeHint ||
+            anyKey?.codeHint ||
               "",
-          );
-
-
-          setCodeOwnerDevice(
-            Boolean(
-              ownerKey,
-            ),
           );
 
 
@@ -1500,10 +1427,9 @@ export default function AccountMenu() {
       }
 
 
-      /*
-       * إذا لم يوجد AWD-KEY،
-       * نحاول Lifetime القديم.
-       */
+      /* ===================================================
+         LEGACY LIFETIME
+         =================================================== */
 
       const legacyResponse =
         await fetch(
@@ -1543,10 +1469,6 @@ export default function AccountMenu() {
           legacyData
             ?.codeHint ||
           "",
-        );
-
-        setCodeOwnerDevice(
-          true,
         );
 
         setRevealedCodePlan(
@@ -1590,7 +1512,9 @@ export default function AccountMenu() {
 
 
   async function copyCode() {
-    if (!revealedCode) {
+    if (
+      !revealedCode
+    ) {
       return;
     }
 
@@ -1630,13 +1554,15 @@ export default function AccountMenu() {
 
 
   /* =======================================================
-     LEGACY EMAIL SECURITY
+     LEGACY EMAIL
      ======================================================= */
 
   function openEmailSecurity() {
     setOpen(false);
 
-    setDialog("email");
+    setDialog(
+      "email",
+    );
 
 
     setEmail(
@@ -1730,7 +1656,7 @@ export default function AccountMenu() {
       ) {
         throw new Error(
           data?.error ||
-          "SEND_FAILED",
+            "SEND_FAILED",
         );
       }
 
@@ -1831,7 +1757,7 @@ export default function AccountMenu() {
       ) {
         throw new Error(
           data?.error ||
-          "VERIFY_FAILED",
+            "VERIFY_FAILED",
         );
       }
 
@@ -1879,16 +1805,1011 @@ export default function AccountMenu() {
 
 
   /* =======================================================
-     UI
+     PORTAL CONTENT
+     ======================================================= */
+
+  const portalContent =
+    mounted
+      ? createPortal(
+          <>
+            {/* ACCOUNT SHEET */}
+
+            {open && (
+              <div
+                className="awd-account-portal"
+                dir={
+                  isEnglish
+                    ? "ltr"
+                    : "rtl"
+                }
+              >
+                <button
+                  type="button"
+                  aria-label={
+                    text.close
+                  }
+                  className="awd-account-backdrop"
+                  onClick={() =>
+                    setOpen(false)
+                  }
+                />
+
+                <section
+                  className="awd-account-sheet"
+                  role="dialog"
+                  aria-modal="true"
+                >
+                  <span className="awd-sheet-handle" />
+
+
+                  <header className="awd-account-head">
+                    <img
+                      className="awd-account-avatar"
+                      src="/logov3.png"
+                      alt="AllWDbook"
+                    />
+
+                    <div className="awd-account-head-copy">
+                      <h3>
+                        {text.account}
+                      </h3>
+
+                      <p>
+                        {
+                          text.accountSubtitle
+                        }
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="awd-account-close"
+                      onClick={() =>
+                        setOpen(false)
+                      }
+                      aria-label={
+                        text.close
+                      }
+                    >
+                      ✕
+                    </button>
+                  </header>
+
+
+                  {/* CURRENT ACCESS */}
+
+                  <div className="awd-access-card">
+                    <span className="awd-access-label">
+                      {
+                        text.currentAccess
+                      }
+                    </span>
+
+                    <div className="awd-access-value">
+                      <span
+                        className={
+                          "awd-access-dot" +
+                          (
+                            access.lifetime ||
+                            activePlans.length
+                              ? " premium"
+                              : ""
+                          )
+                        }
+                      />
+
+                      <span>
+                        {
+                          currentPlanLabel
+                        }
+                      </span>
+                    </div>
+                  </div>
+
+
+                  {/* RESTORE */}
+
+                  <button
+                    type="button"
+                    className="awd-account-button green"
+                    onClick={
+                      openRestoreDialog
+                    }
+                  >
+                    <span className="awd-button-left">
+                      <span className="awd-button-icon">
+                        🔑
+                      </span>
+
+                      <span className="awd-button-copy">
+                        <strong>
+                          {text.restore}
+                        </strong>
+
+                        <small>
+                          {
+                            text.restoreSub
+                          }
+                        </small>
+                      </span>
+                    </span>
+
+                    <span className="awd-button-arrow">
+                      ‹
+                    </span>
+                  </button>
+
+
+                  {/* RECOVERY CODE */}
+
+                  {access.paid && (
+                    <button
+                      type="button"
+                      className="awd-account-button"
+                      onClick={
+                        revealCode
+                      }
+                      disabled={
+                        busy
+                      }
+                    >
+                      <span className="awd-button-left">
+                        <span className="awd-button-icon">
+                          🛡️
+                        </span>
+
+                        <span className="awd-button-copy">
+                          <strong>
+                            {
+                              text.recoveryCode
+                            }
+                          </strong>
+
+                          <small>
+                            {
+                              text.recoveryCodeSub
+                            }
+                          </small>
+                        </span>
+                      </span>
+
+                      <span className="awd-button-arrow">
+                        ‹
+                      </span>
+                    </button>
+                  )}
+
+
+                  {/* LIFETIME */}
+
+                  {!access.lifetime && (
+                    <div className="awd-lifetime-card">
+                      <div className="awd-lifetime-top">
+                        <div className="awd-lifetime-icon">
+                          👑
+                        </div>
+
+                        <div className="awd-lifetime-copy">
+                          <span className="awd-lifetime-title">
+                            {
+                              text.lifetimeTitle
+                            }
+                          </span>
+
+                          <span className="awd-lifetime-sub">
+                            {
+                              text.lifetimeSub
+                            }
+                          </span>
+
+                          <div className="awd-lifetime-price">
+                            {
+                              text.lifetimePrice
+                            }
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="awd-account-button primary"
+                        onClick={
+                          buyLifetime
+                        }
+                        disabled={
+                          busy
+                        }
+                      >
+                        <span className="awd-button-left">
+                          <span className="awd-button-icon">
+                            ⚡
+                          </span>
+
+                          {
+                            text.buyLifetime
+                          }
+                        </span>
+
+                        <span className="awd-button-arrow">
+                          ‹
+                        </span>
+                      </button>
+                    </div>
+                  )}
+
+
+                  {/* SUBSCRIPTION */}
+
+                  <a
+                    href="/subscription"
+                    className="awd-account-button"
+                  >
+                    <span className="awd-button-left">
+                      <span className="awd-button-icon">
+                        👑
+                      </span>
+
+                      {
+                        text.goPlans
+                      }
+                    </span>
+
+                    <span className="awd-button-arrow">
+                      ‹
+                    </span>
+                  </a>
+
+
+                  {/* PACKAGES */}
+
+                  <button
+                    type="button"
+                    className="awd-account-button"
+                    onClick={() =>
+                      setShowPlans(
+                        (current) =>
+                          !current,
+                      )
+                    }
+                  >
+                    <span className="awd-button-left">
+                      <span className="awd-button-icon">
+                        🧾
+                      </span>
+
+                      {showPlans
+                        ? text.hidePlans
+                        : text.showPlans}
+                    </span>
+
+                    <span className="awd-button-arrow">
+                      {showPlans
+                        ? "⌃"
+                        : "⌄"}
+                    </span>
+                  </button>
+
+
+                  {showPlans && (
+                    <div className="awd-plans-wrap">
+                      {PACKAGES.map(
+                        (plan) => {
+                          const current =
+                            access.lifetime ||
+                            activePlans.includes(
+                              plan.id,
+                            );
+
+
+                          return (
+                            <button
+                              key={
+                                plan.id
+                              }
+                              type="button"
+                              disabled={
+                                current ||
+                                busy
+                              }
+                              onClick={() =>
+                                openCheckout(
+                                  plan,
+                                )
+                              }
+                              className={
+                                "awd-plan-option" +
+                                (
+                                  plan.featured
+                                    ? " featured"
+                                    : ""
+                                ) +
+                                (
+                                  current
+                                    ? " active"
+                                    : ""
+                                )
+                              }
+                            >
+                              <span className="awd-plan-icon">
+                                {
+                                  plan.icon
+                                }
+                              </span>
+
+                              <span className="awd-plan-middle">
+                                <span className="awd-plan-name">
+                                  {isEnglish
+                                    ? plan.en
+                                    : plan.ar}
+                                </span>
+
+                                {current && (
+                                  <small className="awd-plan-state">
+                                    ✓{" "}
+                                    {access.lifetime
+                                      ? text.included
+                                      : text.active}
+                                  </small>
+                                )}
+                              </span>
+
+                              <span className="awd-plan-price">
+                                {
+                                  plan.price
+                                }
+
+                                <small>
+                                  {isEnglish
+                                    ? plan.periodEn
+                                    : plan.periodAr}
+                                </small>
+                              </span>
+                            </button>
+                          );
+                        },
+                      )}
+                    </div>
+                  )}
+
+
+                  {/* LEGACY EMAIL */}
+
+                  {access.lifetime &&
+                    access
+                      .lifetimeLicense
+                      ?.system ===
+                      "legacy" && (
+                      <button
+                        type="button"
+                        className="awd-account-button gold"
+                        onClick={
+                          openEmailSecurity
+                        }
+                        disabled={
+                          busy
+                        }
+                      >
+                        <span className="awd-button-left">
+                          <span className="awd-button-icon">
+                            ✉️
+                          </span>
+
+                          <span className="awd-button-copy">
+                            <strong>
+                              {
+                                text.securityEmail
+                              }
+                            </strong>
+
+                            <small>
+                              {
+                                text.securityEmailSub
+                              }
+                            </small>
+                          </span>
+                        </span>
+
+                        <span className="awd-button-arrow">
+                          ‹
+                        </span>
+                      </button>
+                    )}
+
+
+                  {/* BILLING */}
+
+                  {billingUrl && (
+                    <a
+                      href={
+                        billingUrl
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="awd-account-button"
+                    >
+                      <span className="awd-button-left">
+                        <span className="awd-button-icon">
+                          ⚙️
+                        </span>
+
+                        {
+                          text.billing
+                        }
+                      </span>
+
+                      <span className="awd-button-arrow">
+                        ↗
+                      </span>
+                    </a>
+                  )}
+
+
+                  {error && (
+                    <div
+                      className="awd-account-error"
+                      role="alert"
+                    >
+                      {error}
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+
+
+            {/* DIALOG */}
+
+            {dialog && (
+              <div
+                className="awd-dialog-portal"
+                dir={
+                  isEnglish
+                    ? "ltr"
+                    : "rtl"
+                }
+              >
+                <button
+                  type="button"
+                  aria-label={
+                    text.close
+                  }
+                  className="awd-dialog-backdrop"
+                  onClick={
+                    closeDialog
+                  }
+                />
+
+                <section
+                  className="awd-dialog"
+                  role="dialog"
+                  aria-modal="true"
+                >
+                  <span className="awd-dialog-handle" />
+
+
+                  {/* RESTORE */}
+
+                  {dialog ===
+                    "restore" && (
+                    <div>
+                      <h2>
+                        🔑{" "}
+                        {
+                          text.restoreTitle
+                        }
+                      </h2>
+
+                      <p className="awd-dialog-description">
+                        {
+                          text.restoreDescription
+                        }
+                      </p>
+
+
+                      {!restoreResult ? (
+                        <form
+                          onSubmit={
+                            activateCode
+                          }
+                        >
+                          <input
+                            className="awd-dialog-input"
+                            dir="ltr"
+                            value={
+                              accessCode
+                            }
+                            placeholder={
+                              text.codePlaceholder
+                            }
+                            autoComplete="off"
+                            autoCapitalize="characters"
+                            spellCheck="false"
+                            onChange={(
+                              event,
+                            ) =>
+                              setAccessCode(
+                                event
+                                  .target
+                                  .value,
+                              )
+                            }
+                          />
+
+
+                          {error && (
+                            <div
+                              className="awd-account-error"
+                              role="alert"
+                            >
+                              {error}
+                            </div>
+                          )}
+
+
+                          <div className="awd-dialog-actions">
+                            <button
+                              type="submit"
+                              className="awd-dialog-primary"
+                              disabled={
+                                busy
+                              }
+                            >
+                              {busy
+                                ? text.processing
+                                : text.activate}
+                            </button>
+
+                            <button
+                              type="button"
+                              className="awd-dialog-secondary"
+                              onClick={
+                                closeDialog
+                              }
+                            >
+                              {
+                                text.close
+                              }
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <>
+                          <div className="awd-success-box">
+                            ✅{" "}
+                            {
+                              text.restoreSuccess
+                            }
+
+                            <small>
+                              {
+                                text.restoreSuccessNote
+                              }
+                            </small>
+                          </div>
+
+
+                          <div className="awd-result-grid">
+                            <div className="awd-result-box">
+                              <small>
+                                {
+                                  text.restoredPlan
+                                }
+                              </small>
+
+                              <strong>
+                                {
+                                  restoreResult
+                                    .planName
+                                }
+                              </strong>
+                            </div>
+
+                            <div className="awd-result-box">
+                              <small>
+                                {
+                                  text.devices
+                                }
+                              </small>
+
+                              <strong
+                                dir="ltr"
+                              >
+                                {restoreResult
+                                  .activeDevices ??
+                                  "—"}
+                                {" / "}
+                                {restoreResult
+                                  .maxActivations ??
+                                  "—"}
+                              </strong>
+                            </div>
+                          </div>
+
+
+                          {restoreResult
+                            .codeHint && (
+                            <div className="awd-code-box awd-code-space">
+                              {
+                                restoreResult
+                                  .codeHint
+                              }
+                            </div>
+                          )}
+
+
+                          <div className="awd-dialog-actions">
+                            <button
+                              type="button"
+                              className="awd-dialog-primary"
+                              onClick={() => {
+                                closeDialog();
+
+                                window.location.href =
+                                  "/";
+                              }}
+                            >
+                              🚀 AllWDbook
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+
+                  {/* CODE */}
+
+                  {dialog ===
+                    "code" && (
+                    <div>
+                      <h2>
+                        🛡️{" "}
+                        {
+                          text.codeTitle
+                        }
+                      </h2>
+
+
+                      <p className="awd-dialog-description">
+                        {
+                          text.codeWarning
+                        }
+                      </p>
+
+
+                      {busy ? (
+                        <p className="awd-dialog-description">
+                          {
+                            text.processing
+                          }
+                        </p>
+                      ) : revealedCode ? (
+                        <>
+                          {revealedCodePlan && (
+                            <div className="awd-result-box">
+                              <small>
+                                {
+                                  text.restoredPlan
+                                }
+                              </small>
+
+                              <strong>
+                                {
+                                  revealedCodePlan
+                                }
+                              </strong>
+                            </div>
+                          )}
+
+
+                          <div className="awd-code-box awd-code-space">
+                            {
+                              revealedCode
+                            }
+                          </div>
+
+
+                          <p className="awd-code-warning">
+                            🔒{" "}
+                            {
+                              text.ownerDevice
+                            }
+                          </p>
+
+
+                          <div className="awd-dialog-actions">
+                            <button
+                              type="button"
+                              className="awd-dialog-primary"
+                              onClick={
+                                copyCode
+                              }
+                            >
+                              {copied
+                                ? text.copied
+                                : text.copy}
+                            </button>
+
+                            <button
+                              type="button"
+                              className="awd-dialog-secondary"
+                              onClick={
+                                closeDialog
+                              }
+                            >
+                              {
+                                text.close
+                              }
+                            </button>
+                          </div>
+                        </>
+                      ) : revealedCodeHint ? (
+                        <>
+                          {revealedCodePlan && (
+                            <div className="awd-result-box">
+                              <small>
+                                {
+                                  text.restoredPlan
+                                }
+                              </small>
+
+                              <strong>
+                                {
+                                  revealedCodePlan
+                                }
+                              </strong>
+                            </div>
+                          )}
+
+
+                          <div className="awd-code-box awd-code-space">
+                            {
+                              revealedCodeHint
+                            }
+                          </div>
+
+
+                          <p className="awd-code-warning">
+                            🔐{" "}
+                            {
+                              text.codeUnavailable
+                            }
+                          </p>
+
+
+                          <div className="awd-dialog-actions">
+                            <button
+                              type="button"
+                              className="awd-dialog-secondary"
+                              onClick={
+                                closeDialog
+                              }
+                            >
+                              {
+                                text.close
+                              }
+                            </button>
+                          </div>
+                        </>
+                      ) : null}
+
+
+                      {error && (
+                        <div
+                          className="awd-account-error"
+                          role="alert"
+                        >
+                          {error}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+
+                  {/* EMAIL */}
+
+                  {dialog ===
+                    "email" && (
+                    <div>
+                      <h2>
+                        ✉️{" "}
+                        {
+                          text.emailTitle
+                        }
+                      </h2>
+
+                      <p className="awd-dialog-description">
+                        {
+                          text.emailDescription
+                        }
+                      </p>
+
+
+                      {emailStep ===
+                        "email" && (
+                        <>
+                          <input
+                            className="awd-dialog-input"
+                            type="email"
+                            dir="ltr"
+                            autoComplete="email"
+                            placeholder={
+                              text.emailPlaceholder
+                            }
+                            value={
+                              email
+                            }
+                            onChange={(
+                              event,
+                            ) =>
+                              setEmail(
+                                event
+                                  .target
+                                  .value,
+                              )
+                            }
+                          />
+
+                          <div className="awd-dialog-actions">
+                            <button
+                              type="button"
+                              className="awd-dialog-primary"
+                              onClick={
+                                sendEmailCode
+                              }
+                              disabled={
+                                busy
+                              }
+                            >
+                              {busy
+                                ? text.processing
+                                : text.sendCode}
+                            </button>
+
+                            <button
+                              type="button"
+                              className="awd-dialog-secondary"
+                              onClick={
+                                closeDialog
+                              }
+                            >
+                              {
+                                text.close
+                              }
+                            </button>
+                          </div>
+                        </>
+                      )}
+
+
+                      {emailStep ===
+                        "otp" && (
+                        <>
+                          <input
+                            className="awd-dialog-input"
+                            dir="ltr"
+                            inputMode="numeric"
+                            autoComplete="one-time-code"
+                            maxLength={
+                              6
+                            }
+                            placeholder={
+                              text.otpPlaceholder
+                            }
+                            value={
+                              otp
+                            }
+                            onChange={(
+                              event,
+                            ) =>
+                              setOtp(
+                                event
+                                  .target
+                                  .value
+                                  .replace(
+                                    /\D/g,
+                                    "",
+                                  )
+                                  .slice(
+                                    0,
+                                    6,
+                                  ),
+                              )
+                            }
+                          />
+
+                          <div className="awd-dialog-actions">
+                            <button
+                              type="button"
+                              className="awd-dialog-primary"
+                              onClick={
+                                verifyEmailCode
+                              }
+                              disabled={
+                                busy
+                              }
+                            >
+                              {busy
+                                ? text.processing
+                                : text.verify}
+                            </button>
+
+                            <button
+                              type="button"
+                              className="awd-dialog-secondary"
+                              onClick={
+                                closeDialog
+                              }
+                            >
+                              {
+                                text.close
+                              }
+                            </button>
+                          </div>
+                        </>
+                      )}
+
+
+                      {emailStep ===
+                        "verified" && (
+                        <>
+                          <div className="awd-success-box">
+                            ✅{" "}
+                            {
+                              text.verified
+                            }
+                          </div>
+
+                          <div className="awd-dialog-actions">
+                            <button
+                              type="button"
+                              className="awd-dialog-primary"
+                              onClick={
+                                closeDialog
+                              }
+                            >
+                              {
+                                text.close
+                              }
+                            </button>
+                          </div>
+                        </>
+                      )}
+
+
+                      {error && (
+                        <div
+                          className="awd-account-error"
+                          role="alert"
+                        >
+                          {error}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+          </>,
+          document.body,
+        )
+      : null;
+
+
+  /* =======================================================
+     RETURN
      ======================================================= */
 
   return (
     <>
       <style jsx global>{`
         .awd-account-root,
-        .awd-account-root * {
-          box-sizing:
-            border-box;
+        .awd-account-root *,
+        .awd-account-portal,
+        .awd-account-portal *,
+        .awd-dialog-portal,
+        .awd-dialog-portal * {
+          box-sizing: border-box;
         }
 
 
@@ -1914,14 +2835,11 @@ export default function AccountMenu() {
               0.11
             );
 
-          border-radius:
-            15px;
+          border-radius: 15px;
 
-          background:
-            #0d1929;
+          background: #0d1929;
 
-          cursor:
-            pointer;
+          cursor: pointer;
         }
 
 
@@ -1931,11 +2849,43 @@ export default function AccountMenu() {
 
           display: block;
 
-          object-fit:
-            cover;
+          object-fit: cover;
 
-          border-radius:
-            12px;
+          border-radius: 12px;
+        }
+
+
+        /* ===============================================
+           IMPORTANT: PORTAL
+           =============================================== */
+
+        .awd-account-portal,
+        .awd-dialog-portal {
+          position: fixed;
+
+          inset: 0;
+
+          width: 100vw;
+          height: 100dvh;
+
+          margin: 0;
+          padding: 0;
+
+          transform: none !important;
+
+          isolation: isolate;
+
+          pointer-events: none;
+        }
+
+
+        .awd-account-portal {
+          z-index: 2147483000;
+        }
+
+
+        .awd-dialog-portal {
+          z-index: 2147483100;
         }
 
 
@@ -1943,47 +2893,67 @@ export default function AccountMenu() {
            BACKDROP
            =============================================== */
 
-        .awd-account-backdrop {
-          position:
-            fixed;
+        .awd-account-backdrop,
+        .awd-dialog-backdrop {
+          position: absolute;
 
           inset: 0;
 
-          z-index:
-            20000;
+          width: 100%;
+          height: 100%;
+
+          margin: 0;
+          padding: 0;
+
+          border: 0;
+
+          pointer-events: auto;
+
+          cursor: default;
 
           background:
             rgba(
               1,
               7,
               15,
-              0.73
+              0.78
             );
 
           backdrop-filter:
-            blur(5px);
+            blur(7px);
+
+          -webkit-backdrop-filter:
+            blur(7px);
+        }
+
+
+        .awd-dialog-backdrop {
+          background:
+            rgba(
+              1,
+              7,
+              15,
+              0.86
+            );
         }
 
 
         /* ===============================================
-           PANEL
+           ACCOUNT SHEET — DESKTOP
            =============================================== */
 
         .awd-account-sheet {
-          position:
-            fixed;
+          position: absolute;
 
-          z-index:
-            20010;
+          z-index: 2;
 
-          top: 84px;
+          top: 82px;
 
-          inset-inline-end:
-            18px;
+          inset-inline-end: 18px;
 
           width:
             min(
-              400px,
+              410px,
               calc(
                 100vw -
                 36px
@@ -1993,24 +2963,26 @@ export default function AccountMenu() {
           max-height:
             calc(
               100dvh -
-              104px
+                102px
             );
 
-          overflow-y:
-            auto;
+          overflow-x: hidden;
+          overflow-y: auto;
 
           overscroll-behavior:
             contain;
 
-          padding:
-            18px;
+          -webkit-overflow-scrolling:
+            touch;
+
+          padding: 18px;
 
           border:
-            1px solid
-            #263650;
+            1px solid #263650;
 
-          border-radius:
-            24px;
+          border-radius: 24px;
+
+          pointer-events: auto;
 
           background:
             radial-gradient(
@@ -2022,8 +2994,7 @@ export default function AccountMenu() {
                 0,
                 0.11
               ),
-              transparent
-                34%
+              transparent 34%
             ),
             linear-gradient(
               160deg,
@@ -2031,8 +3002,7 @@ export default function AccountMenu() {
               #071424
             );
 
-          color:
-            #f4f7fb;
+          color: #f4f7fb;
 
           box-shadow:
             0 30px 80px
@@ -2057,8 +3027,7 @@ export default function AccountMenu() {
                 0,
                 0.11
               ),
-              transparent
-                34%
+              transparent 34%
             ),
             linear-gradient(
               160deg,
@@ -2068,21 +3037,24 @@ export default function AccountMenu() {
         }
 
 
-        .awd-sheet-handle {
+        .awd-sheet-handle,
+        .awd-dialog-handle {
           display: none;
         }
 
 
+        /* ===============================================
+           HEADER
+           =============================================== */
+
         .awd-account-head {
           display: flex;
 
-          align-items:
-            center;
+          align-items: center;
 
           gap: 12px;
 
-          margin-bottom:
-            17px;
+          margin-bottom: 17px;
         }
 
 
@@ -2093,11 +3065,9 @@ export default function AccountMenu() {
           flex:
             0 0 54px;
 
-          border-radius:
-            16px;
+          border-radius: 16px;
 
-          object-fit:
-            cover;
+          object-fit: cover;
         }
 
 
@@ -2113,11 +3083,9 @@ export default function AccountMenu() {
 
           color: white;
 
-          font-size:
-            18px;
+          font-size: 18px;
 
-          font-weight:
-            900;
+          font-weight: 900;
         }
 
 
@@ -2125,63 +3093,51 @@ export default function AccountMenu() {
           margin:
             4px 0 0;
 
-          color:
-            #8496ae;
+          color: #8496ae;
 
-          font-size:
-            11px;
+          font-size: 11px;
 
-          line-height:
-            1.5;
+          line-height: 1.5;
         }
 
 
         .awd-account-close {
-          width: 38px;
-          height: 38px;
+          width: 40px;
+          height: 40px;
 
           flex:
-            0 0 38px;
+            0 0 40px;
 
           display: grid;
 
-          place-items:
-            center;
+          place-items: center;
 
           border:
-            1px solid
-            #2a3a51;
+            1px solid #29405d;
 
-          border-radius:
-            12px;
+          border-radius: 12px;
 
-          background:
-            #111f32;
+          background: #0c1d31;
 
-          color: white;
+          color: #dce6f1;
 
-          cursor:
-            pointer;
+          font-size: 18px;
 
-          font-size:
-            17px;
+          cursor: pointer;
         }
 
 
         /* ===============================================
-           ACCESS
+           CURRENT ACCESS
            =============================================== */
 
         .awd-access-card {
-          padding:
-            15px;
+          padding: 15px;
 
           border:
-            1px solid
-            #263650;
+            1px solid #263650;
 
-          border-radius:
-            17px;
+          border-radius: 17px;
 
           background:
             rgba(
@@ -2196,35 +3152,28 @@ export default function AccountMenu() {
         .awd-access-label {
           display: block;
 
-          margin-bottom:
-            7px;
+          margin-bottom: 7px;
 
-          color:
-            #8292aa;
+          color: #8292aa;
 
-          font-size:
-            10px;
+          font-size: 10px;
 
-          font-weight:
-            800;
+          font-weight: 800;
         }
 
 
         .awd-access-value {
           display: flex;
 
-          align-items:
-            center;
+          align-items: center;
 
-          gap: 8px;
+          gap: 9px;
 
           color: white;
 
-          font-size:
-            15px;
+          font-size: 16px;
 
-          font-weight:
-            900;
+          font-weight: 900;
         }
 
 
@@ -2232,11 +3181,12 @@ export default function AccountMenu() {
           width: 9px;
           height: 9px;
 
-          border-radius:
-            999px;
+          flex:
+            0 0 9px;
 
-          background:
-            #ff6b00;
+          border-radius: 999px;
+
+          background: #ff6b00;
 
           box-shadow:
             0 0 0 5px
@@ -2250,8 +3200,7 @@ export default function AccountMenu() {
 
 
         .awd-access-dot.premium {
-          background:
-            #21c47b;
+          background: #21c47b;
 
           box-shadow:
             0 0 0 5px
@@ -2265,189 +3214,51 @@ export default function AccountMenu() {
 
 
         /* ===============================================
-           LIFETIME
-           =============================================== */
-
-        .awd-lifetime-card {
-          margin-top:
-            12px;
-
-          padding:
-            15px;
-
-          border:
-            1px solid
-            rgba(
-              255,
-              177,
-              52,
-              0.28
-            );
-
-          border-radius:
-            18px;
-
-          background:
-            radial-gradient(
-              circle at
-                85% 0%,
-              rgba(
-                255,
-                180,
-                50,
-                0.13
-              ),
-              transparent
-                45%
-            ),
-            #0d1929;
-        }
-
-
-        .awd-lifetime-top {
-          display: flex;
-
-          gap: 12px;
-
-          align-items:
-            center;
-        }
-
-
-        .awd-lifetime-icon {
-          width: 48px;
-          height: 48px;
-
-          display: grid;
-
-          place-items:
-            center;
-
-          flex:
-            0 0 48px;
-
-          border-radius:
-            15px;
-
-          background:
-            rgba(
-              255,
-              185,
-              55,
-              0.12
-            );
-
-          font-size:
-            24px;
-        }
-
-
-        .awd-lifetime-copy {
-          flex: 1;
-
-          min-width: 0;
-        }
-
-
-        .awd-lifetime-title {
-          display: block;
-
-          font-size:
-            16px;
-
-          font-weight:
-            900;
-        }
-
-
-        .awd-lifetime-sub {
-          display: block;
-
-          margin-top:
-            3px;
-
-          color:
-            #9aa8ba;
-
-          font-size:
-            11px;
-        }
-
-
-        .awd-lifetime-price {
-          margin-top:
-            4px;
-
-          color:
-            #ffc25a;
-
-          font-size:
-            12px;
-
-          font-weight:
-            900;
-        }
-
-
-        /* ===============================================
            BUTTONS
            =============================================== */
 
         .awd-account-button {
           width: 100%;
 
-          min-height:
-            48px;
+          min-height: 52px;
 
           display: flex;
 
-          align-items:
-            center;
+          align-items: center;
 
           justify-content:
             space-between;
 
           gap: 10px;
 
-          margin-top:
-            10px;
+          margin-top: 10px;
 
           padding:
             10px 13px;
 
           border:
-            1px solid
-            #283a52;
+            1px solid #283a52;
 
-          border-radius:
-            14px;
+          border-radius: 14px;
 
-          background:
-            #0c1b2e;
+          background: #0c1b2e;
 
-          color:
-            #eef3fb;
+          color: #eef3fb;
 
-          text-align:
-            inherit;
+          text-align: inherit;
 
-          text-decoration:
-            none;
+          text-decoration: none;
 
-          font-size:
-            13px;
+          font-size: 13px;
 
-          font-weight:
-            800;
+          font-weight: 800;
 
-          cursor:
-            pointer;
+          cursor: pointer;
         }
 
 
         .awd-account-button.primary {
-          border-color:
-            #ff6b00;
+          border-color: #ff6b00;
 
           background:
             linear-gradient(
@@ -2477,8 +3288,7 @@ export default function AccountMenu() {
               0.07
             );
 
-          color:
-            #ffd37d;
+          color: #ffd37d;
         }
 
 
@@ -2488,35 +3298,41 @@ export default function AccountMenu() {
               32,
               196,
               121,
-              0.25
+              0.3
             );
 
           background:
-            rgba(
-              32,
-              196,
-              121,
-              0.07
+            linear-gradient(
+              135deg,
+              rgba(
+                19,
+                102,
+                82,
+                0.17
+              ),
+              rgba(
+                5,
+                69,
+                66,
+                0.12
+              )
             );
 
-          color:
-            #73e4ad;
+          color: #73e4ad;
         }
 
 
         .awd-account-button:disabled {
-          opacity: 0.5;
+          opacity: 0.52;
 
-          cursor:
-            not-allowed;
+          cursor: not-allowed;
         }
 
 
         .awd-button-left {
           display: flex;
 
-          align-items:
-            center;
+          align-items: center;
 
           gap: 10px;
 
@@ -2525,19 +3341,17 @@ export default function AccountMenu() {
 
 
         .awd-button-icon {
-          width: 31px;
-          height: 31px;
+          width: 34px;
+          height: 34px;
 
           display: grid;
 
-          place-items:
-            center;
+          place-items: center;
 
           flex:
-            0 0 31px;
+            0 0 34px;
 
-          border-radius:
-            9px;
+          border-radius: 10px;
 
           background:
             rgba(
@@ -2547,8 +3361,7 @@ export default function AccountMenu() {
               0.055
             );
 
-          font-size:
-            16px;
+          font-size: 17px;
         }
 
 
@@ -2562,34 +3375,158 @@ export default function AccountMenu() {
 
           color: inherit;
 
-          font-size:
-            13px;
+          font-size: 13px;
         }
 
 
         .awd-button-copy small {
           display: block;
 
-          margin-top:
-            2px;
+          margin-top: 3px;
 
-          color:
-            #71839d;
+          color: #71839d;
 
-          font-size:
-            9px;
+          font-size: 9px;
 
-          font-weight:
-            500;
+          font-weight: 500;
+
+          line-height: 1.45;
         }
 
 
         .awd-button-arrow {
-          color:
-            #667993;
+          flex:
+            0 0 auto;
 
-          font-size:
-            18px;
+          color: #657a96;
+
+          font-size: 20px;
+        }
+
+
+        /* ===============================================
+           LIFETIME
+           =============================================== */
+
+        .awd-lifetime-card {
+          margin-top: 12px;
+
+          padding: 15px;
+
+          border:
+            1px solid
+            rgba(
+              255,
+              177,
+              52,
+              0.3
+            );
+
+          border-radius: 18px;
+
+          background:
+            radial-gradient(
+              circle at
+                85% 0%,
+              rgba(
+                255,
+                180,
+                50,
+                0.13
+              ),
+              transparent 45%
+            ),
+            #0d1929;
+        }
+
+
+        [dir="rtl"]
+          .awd-lifetime-card {
+          background:
+            radial-gradient(
+              circle at
+                15% 0%,
+              rgba(
+                255,
+                180,
+                50,
+                0.13
+              ),
+              transparent 45%
+            ),
+            #0d1929;
+        }
+
+
+        .awd-lifetime-top {
+          display: flex;
+
+          gap: 12px;
+
+          align-items: center;
+        }
+
+
+        .awd-lifetime-icon {
+          width: 50px;
+          height: 50px;
+
+          display: grid;
+
+          place-items: center;
+
+          flex:
+            0 0 50px;
+
+          border-radius: 15px;
+
+          background:
+            rgba(
+              255,
+              185,
+              55,
+              0.12
+            );
+
+          font-size: 25px;
+        }
+
+
+        .awd-lifetime-copy {
+          flex: 1;
+
+          min-width: 0;
+        }
+
+
+        .awd-lifetime-title {
+          display: block;
+
+          font-size: 17px;
+
+          font-weight: 900;
+        }
+
+
+        .awd-lifetime-sub {
+          display: block;
+
+          margin-top: 3px;
+
+          color: #9aa8ba;
+
+          font-size: 11px;
+        }
+
+
+        .awd-lifetime-price {
+          margin-top: 5px;
+
+          color: #ffc25a;
+
+          font-size: 12px;
+
+          font-weight: 900;
         }
 
 
@@ -2602,8 +3539,7 @@ export default function AccountMenu() {
 
           gap: 8px;
 
-          margin-top:
-            10px;
+          margin-top: 10px;
         }
 
 
@@ -2620,32 +3556,24 @@ export default function AccountMenu() {
             )
             auto;
 
-          align-items:
-            center;
+          align-items: center;
 
           gap: 10px;
 
-          padding:
-            12px;
+          padding: 12px;
 
           border:
-            1px solid
-            #283950;
+            1px solid #283950;
 
-          border-radius:
-            14px;
+          border-radius: 14px;
 
-          background:
-            #0a1829;
+          background: #0a1829;
 
-          color:
-            #edf3fb;
+          color: #edf3fb;
 
-          text-align:
-            inherit;
+          text-align: inherit;
 
-          cursor:
-            pointer;
+          cursor: pointer;
         }
 
 
@@ -2688,51 +3616,51 @@ export default function AccountMenu() {
 
 
         .awd-plan-option:disabled {
-          cursor:
-            default;
+          cursor: default;
         }
 
 
         .awd-plan-icon {
-          width: 38px;
-          height: 38px;
+          width: 40px;
+          height: 40px;
 
           display: grid;
 
-          place-items:
-            center;
+          place-items: center;
 
-          border-radius:
-            11px;
+          border-radius: 11px;
 
-          background:
-            #15243a;
+          background: #15243a;
 
-          font-size:
-            19px;
+          font-size: 19px;
+        }
+
+
+        .awd-plan-middle {
+          min-width: 0;
         }
 
 
         .awd-plan-name {
-          font-size:
-            13px;
+          display: block;
 
-          font-weight:
-            900;
+          overflow-wrap:
+            anywhere;
+
+          font-size: 13px;
+
+          font-weight: 900;
         }
 
 
         .awd-plan-state {
           display: block;
 
-          margin-top:
-            3px;
+          margin-top: 3px;
 
-          color:
-            #54d99a;
+          color: #54d99a;
 
-          font-size:
-            10px;
+          font-size: 10px;
         }
 
 
@@ -2741,33 +3669,27 @@ export default function AccountMenu() {
 
           text-align: end;
 
-          font-size:
-            13px;
+          font-size: 13px;
 
-          font-weight:
-            900;
+          font-weight: 900;
         }
 
 
         .awd-plan-price small {
           display: block;
 
-          margin-top:
-            2px;
+          margin-top: 2px;
 
-          color:
-            #788aa2;
+          color: #788aa2;
 
-          font-size:
-            9px;
+          font-size: 9px;
 
-          font-weight:
-            500;
+          font-weight: 500;
         }
 
 
         /* ===============================================
-           ERROR
+           ERRORS
            =============================================== */
 
         .awd-account-error {
@@ -2786,8 +3708,7 @@ export default function AccountMenu() {
               0.25
             );
 
-          border-radius:
-            12px;
+          border-radius: 12px;
 
           background:
             rgba(
@@ -2797,14 +3718,11 @@ export default function AccountMenu() {
               0.08
             );
 
-          color:
-            #ff9b9b;
+          color: #ff9b9b;
 
-          font-size:
-            11px;
+          font-size: 11px;
 
-          line-height:
-            1.6;
+          line-height: 1.6;
         }
 
 
@@ -2812,60 +3730,52 @@ export default function AccountMenu() {
            DIALOG
            =============================================== */
 
-        .awd-dialog-backdrop {
-          position:
-            fixed;
-
-          inset: 0;
-
-          z-index:
-            21000;
-
-          display: grid;
-
-          place-items:
-            center;
-
-          padding: 18px;
-
-          background:
-            rgba(
-              1,
-              7,
-              15,
-              0.84
-            );
-
-          backdrop-filter:
-            blur(7px);
-        }
-
-
         .awd-dialog {
+          position: absolute;
+
+          z-index: 2;
+
+          top: 50%;
+          left: 50%;
+
           width:
             min(
               460px,
-              100%
+              calc(
+                100vw -
+                36px
+              )
             );
 
           max-height:
             calc(
               100dvh -
-              36px
+                36px
             );
 
-          overflow-y:
-            auto;
+          overflow-x: hidden;
+          overflow-y: auto;
 
-          padding:
-            22px;
+          overscroll-behavior:
+            contain;
+
+          -webkit-overflow-scrolling:
+            touch;
+
+          padding: 22px;
 
           border:
-            1px solid
-            #283950;
+            1px solid #283950;
 
-          border-radius:
-            24px;
+          border-radius: 24px;
+
+          pointer-events: auto;
+
+          transform:
+            translate(
+              -50%,
+              -50%
+            );
 
           background:
             radial-gradient(
@@ -2877,13 +3787,11 @@ export default function AccountMenu() {
                 0,
                 0.1
               ),
-              transparent
-                35%
+              transparent 35%
             ),
             #08182a;
 
-          color:
-            #f4f7fb;
+          color: #f4f7fb;
 
           box-shadow:
             0 30px 90px
@@ -2908,8 +3816,7 @@ export default function AccountMenu() {
                 0,
                 0.1
               ),
-              transparent
-                35%
+              transparent 35%
             ),
             #08182a;
         }
@@ -2918,60 +3825,56 @@ export default function AccountMenu() {
         .awd-dialog h2 {
           margin: 0;
 
-          font-size:
-            21px;
+          color: white;
 
-          line-height:
-            1.3;
+          font-size: 21px;
+
+          line-height: 1.35;
         }
 
 
         .awd-dialog-description {
           margin:
-            8px 0 18px;
+            9px 0 18px;
 
-          color:
-            #8fa0b8;
+          color: #8fa0b8;
 
-          font-size:
-            12px;
+          font-size: 12px;
 
-          line-height:
-            1.75;
+          line-height: 1.8;
         }
 
 
         .awd-dialog-input {
           width: 100%;
 
-          min-height:
-            52px;
+          min-height: 54px;
 
           padding:
             11px 13px;
 
           border:
-            1px solid
-            #2a3c55;
+            1px solid #2a3c55;
 
-          border-radius:
-            13px;
+          border-radius: 13px;
 
           outline: none;
 
-          background:
-            #04111f;
+          background: #04111f;
 
           color: white;
 
-          font-size:
-            14px;
+          font-size: 14px;
+        }
+
+
+        .awd-dialog-input::placeholder {
+          color: #60718a;
         }
 
 
         .awd-dialog-input:focus {
-          border-color:
-            #ff6b00;
+          border-color: #ff6b00;
 
           box-shadow:
             0 0 0 3px
@@ -2989,22 +3892,17 @@ export default function AccountMenu() {
             15px 10px;
 
           border:
-            1px solid
-            #293b54;
+            1px solid #293b54;
 
-          border-radius:
-            14px;
+          border-radius: 14px;
 
-          background:
-            #03101d;
+          background: #03101d;
 
-          color:
-            #ffc56d;
+          color: #ffc56d;
 
           direction: ltr;
 
-          text-align:
-            center;
+          text-align: center;
 
           overflow-wrap:
             anywhere;
@@ -3013,16 +3911,20 @@ export default function AccountMenu() {
             ui-monospace,
             SFMono-Regular,
             Menlo,
+            Monaco,
+            Consolas,
             monospace;
 
-          font-size:
-            13px;
+          font-size: 13px;
 
-          line-height:
-            1.6;
+          line-height: 1.6;
 
-          user-select:
-            all;
+          user-select: all;
+        }
+
+
+        .awd-code-space {
+          margin-top: 10px;
         }
 
 
@@ -3030,20 +3932,16 @@ export default function AccountMenu() {
           margin:
             12px 0 0;
 
-          color:
-            #9baabd;
+          color: #9baabd;
 
-          font-size:
-            11px;
+          font-size: 11px;
 
-          line-height:
-            1.65;
+          line-height: 1.7;
         }
 
 
         .awd-success-box {
-          padding:
-            15px;
+          padding: 15px;
 
           border:
             1px solid
@@ -3054,8 +3952,7 @@ export default function AccountMenu() {
               0.3
             );
 
-          border-radius:
-            14px;
+          border-radius: 14px;
 
           background:
             rgba(
@@ -3065,14 +3962,26 @@ export default function AccountMenu() {
               0.07
             );
 
-          color:
-            #72e5ad;
+          color: #72e5ad;
 
-          font-size:
-            12px;
+          font-size: 12px;
 
-          line-height:
-            1.65;
+          font-weight: 800;
+
+          line-height: 1.65;
+        }
+
+
+        .awd-success-box small {
+          display: block;
+
+          margin-top: 5px;
+
+          color: #9db8aa;
+
+          font-size: 10px;
+
+          font-weight: 500;
         }
 
 
@@ -3090,48 +3999,39 @@ export default function AccountMenu() {
 
           gap: 8px;
 
-          margin-top:
-            11px;
+          margin-top: 11px;
         }
 
 
         .awd-result-box {
-          padding:
-            12px;
+          padding: 12px;
 
           border:
-            1px solid
-            #233a55;
+            1px solid #233a55;
 
-          border-radius:
-            13px;
+          border-radius: 13px;
 
-          background:
-            #051426;
+          background: #051426;
         }
 
 
         .awd-result-box small {
           display: block;
 
-          color:
-            #7588a2;
+          color: #7588a2;
 
-          font-size:
-            9px;
+          font-size: 9px;
         }
 
 
         .awd-result-box strong {
           display: block;
 
-          margin-top:
-            5px;
+          margin-top: 5px;
 
           color: white;
 
-          font-size:
-            12px;
+          font-size: 12px;
 
           overflow-wrap:
             anywhere;
@@ -3143,8 +4043,7 @@ export default function AccountMenu() {
 
           gap: 9px;
 
-          margin-top:
-            16px;
+          margin-top: 16px;
         }
 
 
@@ -3152,27 +4051,21 @@ export default function AccountMenu() {
         .awd-dialog-secondary {
           width: 100%;
 
-          min-height:
-            49px;
+          min-height: 50px;
 
-          border-radius:
-            13px;
+          border-radius: 13px;
 
-          font-size:
-            13px;
+          font-size: 13px;
 
-          font-weight:
-            900;
+          font-weight: 900;
 
-          cursor:
-            pointer;
+          cursor: pointer;
         }
 
 
         .awd-dialog-primary {
           border:
-            1px solid
-            #ff6b00;
+            1px solid #ff6b00;
 
           background:
             linear-gradient(
@@ -3182,44 +4075,47 @@ export default function AccountMenu() {
             );
 
           color: white;
+
+          box-shadow:
+            0 12px 28px
+            rgba(
+              255,
+              105,
+              0,
+              0.12
+            );
         }
 
 
         .awd-dialog-secondary {
           border:
-            1px solid
-            #2a3c54;
+            1px solid #2a3c54;
 
-          background:
-            #0d1c30;
+          background: #0d1c30;
 
-          color:
-            #d9e2ef;
+          color: #d9e2ef;
         }
 
 
         .awd-dialog-primary:disabled {
           opacity: 0.55;
 
-          cursor:
-            not-allowed;
+          cursor: not-allowed;
         }
 
 
         /* ===============================================
-           MOBILE
+           PHONE
            =============================================== */
 
         @media (
-          max-width:
-            620px
+          max-width: 620px
         ) {
           .awd-account-trigger {
             width: 43px;
             height: 43px;
 
-            border-radius:
-              13px;
+            border-radius: 13px;
           }
 
 
@@ -3227,131 +4123,212 @@ export default function AccountMenu() {
             width: 35px;
             height: 35px;
 
-            border-radius:
-              11px;
+            border-radius: 11px;
           }
 
+
+          /*
+           * مهم:
+           *
+           * أصبح Bottom Sheet مربوطاً بـ BODY
+           * بواسطة React Portal.
+           *
+           * لذلك يبدأ من x=0 الحقيقي للشاشة.
+           */
 
           .awd-account-sheet {
             top: auto;
 
             bottom: 0;
 
-            inset-inline-start:
-              0;
+            left: 0;
+            right: 0;
 
-            inset-inline-end:
-              0;
+            inset-inline-start: 0;
+            inset-inline-end: 0;
 
-            width: 100%;
-
+            width: 100vw;
             max-width: none;
 
-            max-height:
-              86dvh;
+            max-height: 88dvh;
+
+            margin: 0;
 
             padding:
-              10px
-              16px
+              10px 17px
               calc(
                 18px +
-                env(
-                  safe-area-inset-bottom
-                )
+                  env(
+                    safe-area-inset-bottom
+                  )
               );
 
-            border-inline:
-              0;
-
-            border-bottom:
-              0;
+            border-inline: 0;
+            border-bottom: 0;
 
             border-radius:
-              26px
-              26px
+              27px
+              27px
               0
               0;
+
+            box-shadow:
+              0 -20px 60px
+              rgba(
+                0,
+                0,
+                0,
+                0.5
+              );
           }
 
 
-          .awd-sheet-handle {
-            width: 44px;
+          .awd-sheet-handle,
+          .awd-dialog-handle {
+            width: 48px;
             height: 5px;
 
             display: block;
 
             margin:
-              2px auto 13px;
+              2px auto
+              15px;
 
             border-radius:
               999px;
 
-            background:
-              #3c4b5f;
+            background: #425570;
           }
 
 
           .awd-account-head {
-            margin-bottom:
-              13px;
+            margin-bottom: 13px;
           }
 
 
           .awd-account-avatar {
-            width: 48px;
-            height: 48px;
+            width: 49px;
+            height: 49px;
 
-            flex-basis:
-              48px;
+            flex-basis: 49px;
 
-            border-radius:
-              14px;
+            border-radius: 14px;
           }
 
 
-          .awd-dialog-backdrop {
-            align-items:
-              end;
-
-            padding: 0;
+          .awd-account-head-copy h3 {
+            font-size: 20px;
           }
 
+
+          .awd-access-card {
+            padding: 16px;
+          }
+
+
+          .awd-account-button {
+            min-height: 56px;
+          }
+
+
+          /* DIALOG MOBILE */
 
           .awd-dialog {
-            width: 100%;
+            top: auto;
+            bottom: 0;
 
-            max-height:
-              88dvh;
+            left: 0;
+            right: 0;
+
+            width: 100vw;
+            max-width: none;
+
+            max-height: 90dvh;
+
+            margin: 0;
 
             padding:
-              22px
-              17px
+              10px 18px
               calc(
                 20px +
-                env(
-                  safe-area-inset-bottom
-                )
+                  env(
+                    safe-area-inset-bottom
+                  )
               );
 
-            border-inline:
-              0;
-
-            border-bottom:
-              0;
+            border-inline: 0;
+            border-bottom: 0;
 
             border-radius:
-              26px
-              26px
+              27px
+              27px
               0
               0;
+
+            transform: none;
+
+            box-shadow:
+              0 -20px 70px
+              rgba(
+                0,
+                0,
+                0,
+                0.58
+              );
+          }
+
+
+          .awd-dialog h2 {
+            font-size: 21px;
+          }
+
+
+          .awd-dialog-description {
+            font-size: 12px;
+          }
+
+
+          .awd-dialog-input {
+            min-height: 58px;
+
+            font-size: 14px;
+          }
+
+
+          .awd-dialog-primary,
+          .awd-dialog-secondary {
+            min-height: 55px;
+          }
+        }
+
+
+        /* ===============================================
+           VERY SMALL PHONE
+           =============================================== */
+
+        @media (
+          max-width: 360px
+        ) {
+          .awd-account-sheet,
+          .awd-dialog {
+            padding-inline: 13px;
+          }
+
+
+          .awd-account-head-copy h3 {
+            font-size: 18px;
+          }
+
+
+          .awd-result-grid {
+            grid-template-columns:
+              1fr;
           }
         }
       `}</style>
 
 
-      {/* ===================================================
-          ACCOUNT BUTTON
-          =================================================== */}
+      {/* TRIGGER STAYS IN ITS ORIGINAL PLACE */}
 
       <div className="awd-account-root">
         <button
@@ -3377,1010 +4354,9 @@ export default function AccountMenu() {
       </div>
 
 
-      {/* ===================================================
-          ACCOUNT SHEET
-          =================================================== */}
+      {/* EVERYTHING ELSE IS RENDERED DIRECTLY UNDER BODY */}
 
-      {open && (
-        <>
-          <div
-            className="awd-account-backdrop"
-            onClick={() =>
-              setOpen(false)
-            }
-          />
-
-
-          <section
-            className="awd-account-sheet"
-            role="dialog"
-            aria-modal="true"
-            dir={
-              isEnglish
-                ? "ltr"
-                : "rtl"
-            }
-          >
-            <span className="awd-sheet-handle" />
-
-
-            <header className="awd-account-head">
-              <img
-                className="awd-account-avatar"
-                src="/logov3.png"
-                alt="AllWDbook"
-              />
-
-
-              <div className="awd-account-head-copy">
-                <h3>
-                  {text.account}
-                </h3>
-
-                <p>
-                  {
-                    text.accountSubtitle
-                  }
-                </p>
-              </div>
-
-
-              <button
-                type="button"
-                className="awd-account-close"
-                onClick={() =>
-                  setOpen(false)
-                }
-                aria-label={
-                  text.close
-                }
-              >
-                ✕
-              </button>
-            </header>
-
-
-            {/* ACCESS */}
-
-            <div className="awd-access-card">
-              <span className="awd-access-label">
-                {
-                  text.currentAccess
-                }
-              </span>
-
-              <div className="awd-access-value">
-                <span
-                  className={
-                    "awd-access-dot" +
-                    (
-                      access.lifetime ||
-                      activePlans.length
-                        ? " premium"
-                        : ""
-                    )
-                  }
-                />
-
-                <span>
-                  {
-                    currentPlanLabel
-                  }
-                </span>
-              </div>
-            </div>
-
-
-            {/* RESTORE — IMPORTANT */}
-
-            <button
-              type="button"
-              className="awd-account-button green"
-              onClick={
-                openRestoreDialog
-              }
-            >
-              <span className="awd-button-left">
-                <span className="awd-button-icon">
-                  🔑
-                </span>
-
-                <span className="awd-button-copy">
-                  <strong>
-                    {text.restore}
-                  </strong>
-
-                  <small>
-                    {
-                      text.restoreSub
-                    }
-                  </small>
-                </span>
-              </span>
-
-              <span className="awd-button-arrow">
-                ›
-              </span>
-            </button>
-
-
-            {/* RECOVERY CODE */}
-
-            {access.paid && (
-              <button
-                type="button"
-                className="awd-account-button"
-                onClick={
-                  revealCode
-                }
-                disabled={
-                  busy
-                }
-              >
-                <span className="awd-button-left">
-                  <span className="awd-button-icon">
-                    🛡️
-                  </span>
-
-                  <span className="awd-button-copy">
-                    <strong>
-                      {
-                        text.recoveryCode
-                      }
-                    </strong>
-
-                    <small>
-                      {
-                        text.recoveryCodeSub
-                      }
-                    </small>
-                  </span>
-                </span>
-
-                <span className="awd-button-arrow">
-                  ›
-                </span>
-              </button>
-            )}
-
-
-            {/* LIFETIME OFFER */}
-
-            {!access.lifetime && (
-              <div className="awd-lifetime-card">
-                <div className="awd-lifetime-top">
-                  <div className="awd-lifetime-icon">
-                    👑
-                  </div>
-
-                  <div className="awd-lifetime-copy">
-                    <span className="awd-lifetime-title">
-                      {
-                        text.lifetimeTitle
-                      }
-                    </span>
-
-                    <span className="awd-lifetime-sub">
-                      {
-                        text.lifetimeSub
-                      }
-                    </span>
-
-                    <div className="awd-lifetime-price">
-                      {
-                        text.lifetimePrice
-                      }
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  className="awd-account-button primary"
-                  onClick={
-                    buyLifetime
-                  }
-                  disabled={
-                    busy
-                  }
-                >
-                  <span className="awd-button-left">
-                    <span className="awd-button-icon">
-                      ⚡
-                    </span>
-
-                    {
-                      text.buyLifetime
-                    }
-                  </span>
-
-                  <span className="awd-button-arrow">
-                    ›
-                  </span>
-                </button>
-              </div>
-            )}
-
-
-            {/* SUBSCRIPTION PAGE */}
-
-            <a
-              href="/subscription"
-              className="awd-account-button"
-            >
-              <span className="awd-button-left">
-                <span className="awd-button-icon">
-                  👑
-                </span>
-
-                {
-                  text.goPlans
-                }
-              </span>
-
-              <span className="awd-button-arrow">
-                ›
-              </span>
-            </a>
-
-
-            {/* QUICK PLANS */}
-
-            <button
-              type="button"
-              className="awd-account-button"
-              onClick={() =>
-                setShowPlans(
-                  (current) =>
-                    !current,
-                )
-              }
-            >
-              <span className="awd-button-left">
-                <span className="awd-button-icon">
-                  🧾
-                </span>
-
-                {showPlans
-                  ? text.hidePlans
-                  : text.showPlans}
-              </span>
-
-              <span className="awd-button-arrow">
-                {showPlans
-                  ? "⌃"
-                  : "⌄"}
-              </span>
-            </button>
-
-
-            {showPlans && (
-              <div className="awd-plans-wrap">
-                {PACKAGES.map(
-                  (plan) => {
-                    const current =
-                      access.lifetime ||
-                      activePlans.includes(
-                        plan.id,
-                      );
-
-
-                    return (
-                      <button
-                        key={
-                          plan.id
-                        }
-                        type="button"
-                        disabled={
-                          current ||
-                          busy
-                        }
-                        onClick={() =>
-                          openCheckout(
-                            plan,
-                          )
-                        }
-                        className={
-                          "awd-plan-option" +
-                          (
-                            plan.featured
-                              ? " featured"
-                              : ""
-                          ) +
-                          (
-                            current
-                              ? " active"
-                              : ""
-                          )
-                        }
-                      >
-                        <span className="awd-plan-icon">
-                          {
-                            plan.icon
-                          }
-                        </span>
-
-                        <span>
-                          <span className="awd-plan-name">
-                            {isEnglish
-                              ? plan.en
-                              : plan.ar}
-                          </span>
-
-                          {current && (
-                            <small className="awd-plan-state">
-                              ✓{" "}
-                              {access.lifetime
-                                ? text.included
-                                : text.active}
-                            </small>
-                          )}
-                        </span>
-
-                        <span className="awd-plan-price">
-                          {
-                            plan.price
-                          }
-
-                          <small>
-                            {isEnglish
-                              ? plan.periodEn
-                              : plan.periodAr}
-                          </small>
-                        </span>
-                      </button>
-                    );
-                  },
-                )}
-              </div>
-            )}
-
-
-            {/* LEGACY LIFETIME EMAIL */}
-
-            {access.lifetime &&
-              access
-                .lifetimeLicense
-                ?.system ===
-                "legacy" && (
-                <button
-                  type="button"
-                  className="awd-account-button gold"
-                  onClick={
-                    openEmailSecurity
-                  }
-                  disabled={
-                    busy
-                  }
-                >
-                  <span className="awd-button-left">
-                    <span className="awd-button-icon">
-                      ✉️
-                    </span>
-
-                    <span className="awd-button-copy">
-                      <strong>
-                        {
-                          text.securityEmail
-                        }
-                      </strong>
-
-                      <small>
-                        {
-                          text.securityEmailSub
-                        }
-                      </small>
-                    </span>
-                  </span>
-
-                  <span className="awd-button-arrow">
-                    ›
-                  </span>
-                </button>
-              )}
-
-
-            {/* BILLING */}
-
-            {billingUrl && (
-              <a
-                href={
-                  billingUrl
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-                className="awd-account-button"
-              >
-                <span className="awd-button-left">
-                  <span className="awd-button-icon">
-                    ⚙️
-                  </span>
-
-                  {
-                    text.billing
-                  }
-                </span>
-
-                <span className="awd-button-arrow">
-                  ↗
-                </span>
-              </a>
-            )}
-
-
-            {error && (
-              <div
-                className="awd-account-error"
-                role="alert"
-              >
-                {error}
-              </div>
-            )}
-          </section>
-        </>
-      )}
-
-
-      {/* ===================================================
-          DIALOG
-          =================================================== */}
-
-      {dialog && (
-        <div
-          className="awd-dialog-backdrop"
-          onMouseDown={(
-            event,
-          ) => {
-            if (
-              event.target ===
-              event.currentTarget
-            ) {
-              closeDialog();
-            }
-          }}
-        >
-          <section
-            className="awd-dialog"
-            role="dialog"
-            aria-modal="true"
-            dir={
-              isEnglish
-                ? "ltr"
-                : "rtl"
-            }
-          >
-
-            {/* =============================================
-                RESTORE
-                ============================================= */}
-
-            {dialog ===
-              "restore" && (
-              <div>
-                <h2>
-                  🔑{" "}
-                  {
-                    text.restoreTitle
-                  }
-                </h2>
-
-                <p className="awd-dialog-description">
-                  {
-                    text.restoreDescription
-                  }
-                </p>
-
-
-                {!restoreResult ? (
-                  <form
-                    onSubmit={
-                      activateCode
-                    }
-                  >
-                    <input
-                      className="awd-dialog-input"
-                      dir="ltr"
-                      value={
-                        accessCode
-                      }
-                      placeholder={
-                        text.codePlaceholder
-                      }
-                      autoComplete="off"
-                      autoCapitalize="characters"
-                      spellCheck="false"
-                      onChange={(
-                        event,
-                      ) =>
-                        setAccessCode(
-                          event
-                            .target
-                            .value,
-                        )
-                      }
-                    />
-
-
-                    {error && (
-                      <div
-                        className="awd-account-error"
-                        role="alert"
-                      >
-                        {error}
-                      </div>
-                    )}
-
-
-                    <div className="awd-dialog-actions">
-                      <button
-                        type="submit"
-                        className="awd-dialog-primary"
-                        disabled={
-                          busy
-                        }
-                      >
-                        {busy
-                          ? text.processing
-                          : text.activate}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="awd-dialog-secondary"
-                        onClick={
-                          closeDialog
-                        }
-                      >
-                        {
-                          text.close
-                        }
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <>
-                    <div className="awd-success-box">
-                      ✅{" "}
-                      {
-                        text.restoreSuccess
-                      }
-                      <br />
-                      <small>
-                        {
-                          text.restoreSuccessNote
-                        }
-                      </small>
-                    </div>
-
-
-                    <div className="awd-result-grid">
-                      <div className="awd-result-box">
-                        <small>
-                          {
-                            text.restoredPlan
-                          }
-                        </small>
-
-                        <strong>
-                          {
-                            restoreResult
-                              .planName
-                          }
-                        </strong>
-                      </div>
-
-
-                      <div className="awd-result-box">
-                        <small>
-                          {
-                            text.devices
-                          }
-                        </small>
-
-                        <strong
-                          dir="ltr"
-                        >
-                          {restoreResult
-                            .activeDevices ??
-                            "—"}
-                          {" / "}
-                          {restoreResult
-                            .maxActivations ??
-                            "—"}
-                        </strong>
-                      </div>
-                    </div>
-
-
-                    {restoreResult
-                      .codeHint && (
-                      <div
-                        className="awd-code-box"
-                        style={{
-                          marginTop:
-                            "10px",
-                        }}
-                      >
-                        {
-                          restoreResult
-                            .codeHint
-                        }
-                      </div>
-                    )}
-
-
-                    <div className="awd-dialog-actions">
-                      <button
-                        type="button"
-                        className="awd-dialog-primary"
-                        onClick={() => {
-                          closeDialog();
-
-                          window.location.href =
-                            "/";
-                        }}
-                      >
-                        🚀 AllWDbook
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
-
-            {/* =============================================
-                RECOVERY CODE
-                ============================================= */}
-
-            {dialog ===
-              "code" && (
-              <div>
-                <h2>
-                  🛡️{" "}
-                  {
-                    text.codeTitle
-                  }
-                </h2>
-
-
-                <p className="awd-dialog-description">
-                  {
-                    text.codeWarning
-                  }
-                </p>
-
-
-                {busy ? (
-                  <p className="awd-dialog-description">
-                    {
-                      text.processing
-                    }
-                  </p>
-                ) : revealedCode ? (
-                  <>
-                    {revealedCodePlan && (
-                      <div className="awd-result-box">
-                        <small>
-                          {
-                            text.restoredPlan
-                          }
-                        </small>
-
-                        <strong>
-                          {
-                            revealedCodePlan
-                          }
-                        </strong>
-                      </div>
-                    )}
-
-
-                    <div
-                      className="awd-code-box"
-                      style={{
-                        marginTop:
-                          "10px",
-                      }}
-                    >
-                      {
-                        revealedCode
-                      }
-                    </div>
-
-
-                    <p className="awd-code-warning">
-                      🔒{" "}
-                      {
-                        text.ownerDevice
-                      }
-                    </p>
-
-
-                    <div className="awd-dialog-actions">
-                      <button
-                        type="button"
-                        className="awd-dialog-primary"
-                        onClick={
-                          copyCode
-                        }
-                      >
-                        {copied
-                          ? text.copied
-                          : text.copy}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="awd-dialog-secondary"
-                        onClick={
-                          closeDialog
-                        }
-                      >
-                        {
-                          text.close
-                        }
-                      </button>
-                    </div>
-                  </>
-                ) : revealedCodeHint ? (
-                  <>
-                    {revealedCodePlan && (
-                      <div className="awd-result-box">
-                        <small>
-                          {
-                            text.restoredPlan
-                          }
-                        </small>
-
-                        <strong>
-                          {
-                            revealedCodePlan
-                          }
-                        </strong>
-                      </div>
-                    )}
-
-
-                    <div
-                      className="awd-code-box"
-                      style={{
-                        marginTop:
-                          "10px",
-                      }}
-                    >
-                      {
-                        revealedCodeHint
-                      }
-                    </div>
-
-
-                    <p className="awd-code-warning">
-                      🔐{" "}
-                      {
-                        text.codeUnavailable
-                      }
-                    </p>
-
-
-                    <div className="awd-dialog-actions">
-                      <button
-                        type="button"
-                        className="awd-dialog-secondary"
-                        onClick={
-                          closeDialog
-                        }
-                      >
-                        {
-                          text.close
-                        }
-                      </button>
-                    </div>
-                  </>
-                ) : null}
-
-
-                {error && (
-                  <div
-                    className="awd-account-error"
-                    role="alert"
-                  >
-                    {error}
-                  </div>
-                )}
-              </div>
-            )}
-
-
-            {/* =============================================
-                LEGACY EMAIL
-                ============================================= */}
-
-            {dialog ===
-              "email" && (
-              <div>
-                <h2>
-                  ✉️{" "}
-                  {
-                    text.emailTitle
-                  }
-                </h2>
-
-
-                <p className="awd-dialog-description">
-                  {
-                    text.emailDescription
-                  }
-                </p>
-
-
-                {emailStep ===
-                  "email" && (
-                  <>
-                    <input
-                      className="awd-dialog-input"
-                      type="email"
-                      dir="ltr"
-                      autoComplete="email"
-                      placeholder={
-                        text.emailPlaceholder
-                      }
-                      value={
-                        email
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        setEmail(
-                          event
-                            .target
-                            .value,
-                        )
-                      }
-                    />
-
-
-                    <div className="awd-dialog-actions">
-                      <button
-                        type="button"
-                        className="awd-dialog-primary"
-                        onClick={
-                          sendEmailCode
-                        }
-                        disabled={
-                          busy
-                        }
-                      >
-                        {busy
-                          ? text.processing
-                          : text.sendCode}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="awd-dialog-secondary"
-                        onClick={
-                          closeDialog
-                        }
-                      >
-                        {
-                          text.close
-                        }
-                      </button>
-                    </div>
-                  </>
-                )}
-
-
-                {emailStep ===
-                  "otp" && (
-                  <>
-                    <input
-                      className="awd-dialog-input"
-                      dir="ltr"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      maxLength={
-                        6
-                      }
-                      placeholder={
-                        text.otpPlaceholder
-                      }
-                      value={
-                        otp
-                      }
-                      onChange={(
-                        event,
-                      ) =>
-                        setOtp(
-                          event
-                            .target
-                            .value
-                            .replace(
-                              /\D/g,
-                              "",
-                            )
-                            .slice(
-                              0,
-                              6,
-                            ),
-                        )
-                      }
-                    />
-
-
-                    <div className="awd-dialog-actions">
-                      <button
-                        type="button"
-                        className="awd-dialog-primary"
-                        onClick={
-                          verifyEmailCode
-                        }
-                        disabled={
-                          busy
-                        }
-                      >
-                        {busy
-                          ? text.processing
-                          : text.verify}
-                      </button>
-
-                      <button
-                        type="button"
-                        className="awd-dialog-secondary"
-                        onClick={
-                          closeDialog
-                        }
-                      >
-                        {
-                          text.close
-                        }
-                      </button>
-                    </div>
-                  </>
-                )}
-
-
-                {emailStep ===
-                  "verified" && (
-                  <>
-                    <div className="awd-success-box">
-                      ✅{" "}
-                      {
-                        text.verified
-                      }
-                    </div>
-
-                    <div className="awd-dialog-actions">
-                      <button
-                        type="button"
-                        className="awd-dialog-primary"
-                        onClick={
-                          closeDialog
-                        }
-                      >
-                        {
-                          text.close
-                        }
-                      </button>
-                    </div>
-                  </>
-                )}
-
-
-                {error && (
-                  <div
-                    className="awd-account-error"
-                    role="alert"
-                  >
-                    {error}
-                  </div>
-                )}
-              </div>
-            )}
-          </section>
-        </div>
-      )}
+      {portalContent}
     </>
   );
 }
