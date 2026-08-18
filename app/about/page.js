@@ -1,7 +1,14 @@
 export const metadata = {
-  title: "عن AllWDbook — المنهجية والمصادر | About & Methodology",
+  title:
+    "عن AllWDbook — المنهجية والمصادر | About & Methodology",
+
   description:
-    "كيف تعمل أدوات AllWDbook، وما الفرق بين بيانات السوق الفعلية والتقديرات الحسابية واقتراحات الذكاء الاصطناعي."
+    "كيف تعمل أدوات AllWDbook، وما الفرق بين بيانات السوق الفعلية والتقديرات الحسابية واقتراحات الذكاء الاصطناعي.",
+
+  alternates: {
+    canonical:
+      "/about",
+  },
 };
 
 const box = {
