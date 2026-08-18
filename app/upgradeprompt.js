@@ -9,6 +9,15 @@ import {
   getSupabase,
 } from "../lib/supabase";
 
+import {
+  PAYMENTS_ENABLED,
+  PAYMENT_STATUS,
+} from "../lib/plans";
+
+/* =========================================================
+   PLANS
+   ========================================================= */
+
 const PLANS = {
   cover: {
     id: "cover",
@@ -58,6 +67,7 @@ const PLANS = {
     price: "$5.99",
     periodAr: "/ شهر",
     periodEn: "/ month",
+
     featured: true,
 
     checkoutUrl:
@@ -82,6 +92,10 @@ const PLANS = {
   },
 };
 
+/* =========================================================
+   TOOL PLANS
+   ========================================================= */
+
 const TOOL_PLANS = {
   coverDesigner: [
     "cover",
@@ -102,6 +116,30 @@ const TOOL_PLANS = {
   ],
 };
 
+const PAID_TOOL_PLANS = {
+  coverDesigner: [
+    "cover",
+    "pro_monthly",
+    "pro_yearly",
+  ],
+
+  microNiche: [
+    "micro_niche",
+    "pro_monthly",
+    "pro_yearly",
+  ],
+
+  keywords: [
+    "keywords",
+    "pro_monthly",
+    "pro_yearly",
+  ],
+};
+
+/* =========================================================
+   TOOL NAMES
+   ========================================================= */
+
 const TOOL_NAMES = {
   coverDesigner: {
     ar: "مصمم الغلاف",
@@ -119,13 +157,17 @@ const TOOL_NAMES = {
   },
 };
 
+/* =========================================================
+   TEXT
+   ========================================================= */
+
 const TEXT = {
   ar: {
     title:
       "انتهت استخداماتك المجانية اليوم",
 
     note:
-      "استخدمت 5 عمليات مجانية لهذه الأداة. اختر باقة للمتابعة دون حد يومي.",
+      "استخدمت الحد المجاني المتاح لهذه الأداة اليوم.",
 
     choose:
       "اختر الباقة المناسبة",
@@ -140,10 +182,10 @@ const TEXT = {
       "لدي اشتراك — تسجيل الدخول",
 
     close:
-      "ليس الآن",
+      "حسنًا",
 
     closeLabel:
-      "إغلاق نافذة الاشتراك",
+      "إغلاق النافذة",
 
     opening:
       "جارٍ فتح الدفع...",
@@ -153,6 +195,18 @@ const TEXT = {
 
     reset:
       "تتجدد الاستخدامات المجانية في اليوم التالي.",
+
+    pausedBadge:
+      "الدفع متوقف مؤقتًا",
+
+    pausedTitle:
+      "الشراء غير متاح حاليًا",
+
+    pausedNote:
+      "نعمل على استكمال توثيق بوابة الدفع. لا توجد مشكلة في حسابك أو في الأداة، ويمكنك العودة واستخدام الحد المجاني من جديد في اليوم التالي.",
+
+    freeContinue:
+      "يمكنك الاستمرار باستخدام AllWDbook مجانًا ضمن الحدود اليومية.",
   },
 
   en: {
@@ -160,7 +214,7 @@ const TEXT = {
       "You have used today's free allowance",
 
     note:
-      "You used 5 free actions for this tool. Choose a plan to continue without a daily limit.",
+      "You have reached today's free allowance for this tool.",
 
     choose:
       "Choose a plan",
@@ -175,10 +229,10 @@ const TEXT = {
       "I have a subscription — Sign in",
 
     close:
-      "Not now",
+      "OK",
 
     closeLabel:
-      "Close subscription window",
+      "Close window",
 
     opening:
       "Opening checkout...",
@@ -188,8 +242,24 @@ const TEXT = {
 
     reset:
       "Free uses reset the following day.",
+
+    pausedBadge:
+      "Payments temporarily paused",
+
+    pausedTitle:
+      "Purchases are currently unavailable",
+
+    pausedNote:
+      "We are completing payment-provider verification. There is no issue with your account or the tool, and your free allowance will be available again the following day.",
+
+    freeContinue:
+      "You can continue using AllWDbook for free within the daily limits.",
   },
 };
+
+/* =========================================================
+   DAILY LIMIT MEMORY
+   ========================================================= */
 
 const LIMIT_KEY_PREFIX =
   "awd_daily_limit_";
@@ -215,7 +285,6 @@ export function rememberDailyLimit(
     localStorage.setItem(
       LIMIT_KEY_PREFIX +
         toolId,
-
       utcUsageDate()
     );
   } catch {}
@@ -238,7 +307,9 @@ export function isDailyLimitRemembered(
       toolId;
 
     const savedDate =
-      localStorage.getItem(key);
+      localStorage.getItem(
+        key
+      );
 
     if (
       savedDate ===
@@ -276,25 +347,9 @@ export function clearRememberedDailyLimit(
   } catch {}
 }
 
-const PAID_TOOL_PLANS = {
-  coverDesigner: [
-    "cover",
-    "pro_monthly",
-    "pro_yearly",
-  ],
-
-  microNiche: [
-    "micro_niche",
-    "pro_monthly",
-    "pro_yearly",
-  ],
-
-  keywords: [
-    "keywords",
-    "pro_monthly",
-    "pro_yearly",
-  ],
-};
+/* =========================================================
+   REMEMBERED LIMIT CHECK
+   ========================================================= */
 
 export async function shouldBlockRememberedLimit(
   toolId,
@@ -313,14 +368,16 @@ export async function shouldBlockRememberedLimit(
       await fetch(
         "/api/access",
         {
-          cache: "no-store",
+          cache:
+            "no-store",
 
-          headers: accessToken
-            ? {
-                Authorization:
-                  `Bearer ${accessToken}`,
-              }
-            : {},
+          headers:
+            accessToken
+              ? {
+                  Authorization:
+                    `Bearer ${accessToken}`,
+                }
+              : {},
         }
       );
 
@@ -369,6 +426,10 @@ export async function shouldBlockRememberedLimit(
   return true;
 }
 
+/* =========================================================
+   COMPONENT
+   ========================================================= */
+
 export default function UpgradePrompt({
   open,
   toolId,
@@ -384,8 +445,10 @@ export default function UpgradePrompt({
     setOpeningPlan,
   ] = useState("");
 
-  const [error, setError] =
-    useState("");
+  const [
+    error,
+    setError,
+  ] = useState("");
 
   const isEnglish =
     language === "en";
@@ -394,6 +457,10 @@ export default function UpgradePrompt({
     isEnglish
       ? TEXT.en
       : TEXT.ar;
+
+  /* =======================================================
+     LANGUAGE + MODAL BEHAVIOR
+     ======================================================= */
 
   useEffect(() => {
     function detectLanguage() {
@@ -457,7 +524,8 @@ export default function UpgradePrompt({
       event
     ) {
       if (
-        event.key === "Escape"
+        event.key ===
+        "Escape"
       ) {
         onClose?.();
       }
@@ -500,14 +568,33 @@ export default function UpgradePrompt({
       language
     ] || "AllWDbook";
 
+  /* =======================================================
+     CHECKOUT
+     ======================================================= */
+
   async function choosePlan(
     plan
   ) {
+    if (
+      !PAYMENTS_ENABLED
+    ) {
+      setError(
+        isEnglish
+          ? PAYMENT_STATUS.messageEn
+          : PAYMENT_STATUS.messageAr
+      );
+
+      return;
+    }
+
     if (openingPlan) {
       return;
     }
 
-    setOpeningPlan(plan.id);
+    setOpeningPlan(
+      plan.id
+    );
+
     setError("");
 
     try {
@@ -520,7 +607,9 @@ export default function UpgradePrompt({
         getSupabase();
 
       const {
-        data: { session },
+        data: {
+          session,
+        },
       } =
         await supabase.auth
           .getSession();
@@ -573,14 +662,23 @@ export default function UpgradePrompt({
       );
 
       setOpeningPlan("");
-      setError(text.error);
+
+      setError(
+        text.error
+      );
     }
   }
+
+  /* =======================================================
+     UI
+     ======================================================= */
 
   return (
     <div
       role="presentation"
-      onMouseDown={(event) => {
+      onMouseDown={(
+        event
+      ) => {
         if (
           event.target ===
           event.currentTarget
@@ -589,14 +687,22 @@ export default function UpgradePrompt({
         }
       }}
       style={{
-        position: "fixed",
+        position:
+          "fixed",
+
         inset: 0,
-        zIndex: 20000,
 
-        display: "grid",
-        placeItems: "center",
+        zIndex:
+          20000,
 
-        padding: 16,
+        display:
+          "grid",
+
+        placeItems:
+          "center",
+
+        padding:
+          16,
 
         background:
           "rgba(4, 10, 20, .78)",
@@ -619,7 +725,8 @@ export default function UpgradePrompt({
           maxHeight:
             "calc(100vh - 32px)",
 
-          overflowY: "auto",
+          overflowY:
+            "auto",
 
           boxSizing:
             "border-box",
@@ -627,7 +734,8 @@ export default function UpgradePrompt({
           padding:
             "54px 20px 20px",
 
-          borderRadius: 18,
+          borderRadius:
+            18,
 
           background:
             "#ffffff",
@@ -641,13 +749,15 @@ export default function UpgradePrompt({
           boxShadow:
             "0 28px 80px rgba(0,0,0,.55)",
 
-          direction: isEnglish
-            ? "ltr"
-            : "rtl",
+          direction:
+            isEnglish
+              ? "ltr"
+              : "rtl",
 
-          textAlign: isEnglish
-            ? "left"
-            : "right",
+          textAlign:
+            isEnglish
+              ? "left"
+              : "right",
         }}
       >
         <button
@@ -667,19 +777,24 @@ export default function UpgradePrompt({
 
             top: 12,
 
-            right: isEnglish
-              ? 12
-              : "auto",
+            right:
+              isEnglish
+                ? 12
+                : "auto",
 
-            left: isEnglish
-              ? "auto"
-              : 12,
+            left:
+              isEnglish
+                ? "auto"
+                : 12,
 
             width: 36,
             height: 36,
 
-            display: "grid",
-            placeItems: "center",
+            display:
+              "grid",
+
+            placeItems:
+              "center",
 
             padding: 0,
 
@@ -695,9 +810,14 @@ export default function UpgradePrompt({
             color:
               "#172033",
 
-            fontSize: 22,
-            fontWeight: 900,
-            lineHeight: 1,
+            fontSize:
+              22,
+
+            fontWeight:
+              900,
+
+            lineHeight:
+              1,
 
             cursor:
               "pointer",
@@ -708,15 +828,19 @@ export default function UpgradePrompt({
 
         <div
           style={{
-            textAlign: "center",
+            textAlign:
+              "center",
           }}
         >
           <div
             style={{
-              fontSize: 42,
+              fontSize:
+                42,
             }}
           >
-            🔒
+            {PAYMENTS_ENABLED
+              ? "🔒"
+              : "⏸️"}
           </div>
 
           <h2
@@ -725,10 +849,13 @@ export default function UpgradePrompt({
               margin:
                 "8px 0 7px",
 
-              fontSize: 21,
+              fontSize:
+                21,
             }}
           >
-            {text.title}
+            {PAYMENTS_ENABLED
+              ? text.title
+              : text.pausedTitle}
           </h2>
 
           <p
@@ -738,10 +865,13 @@ export default function UpgradePrompt({
               color:
                 "#65738a",
 
-              lineHeight: 1.75,
+              lineHeight:
+                1.75,
             }}
           >
-            {text.note}
+            {PAYMENTS_ENABLED
+              ? text.note
+              : text.pausedNote}
           </p>
 
           <strong
@@ -749,191 +879,380 @@ export default function UpgradePrompt({
               display:
                 "inline-block",
 
-              marginTop: 9,
+              marginTop:
+                9,
 
               padding:
                 "6px 10px",
 
-              borderRadius: 999,
+              borderRadius:
+                999,
 
               background:
-                "#f2f4f7",
+                PAYMENTS_ENABLED
+                  ? "#f2f4f7"
+                  : "#fff3e8",
 
               color:
-                "#40506a",
+                PAYMENTS_ENABLED
+                  ? "#40506a"
+                  : "#c65f05",
 
-              fontSize: 12,
+              fontSize:
+                12,
             }}
           >
-            {toolName}
+            {PAYMENTS_ENABLED
+              ? toolName
+              : text.pausedBadge}
           </strong>
         </div>
 
-        <div
-          style={{
-            marginTop: 17,
-            fontSize: 13,
-            fontWeight: 900,
-          }}
-        >
-          {text.choose}
-        </div>
+        {!PAYMENTS_ENABLED ? (
+          <>
+            <div
+              style={{
+                marginTop:
+                  18,
 
-        <div
-          style={{
-            display: "grid",
-            gap: 9,
-            marginTop: 9,
-          }}
-        >
-          {planIds.map(
-            (planId) => {
-              const plan =
-                PLANS[planId];
+                padding:
+                  14,
 
-              const loading =
-                openingPlan ===
-                plan.id;
+                borderRadius:
+                  12,
 
-              return (
-                <button
-                  key={plan.id}
-                  type="button"
-                  disabled={Boolean(
-                    openingPlan
-                  )}
-                  onClick={() =>
-                    choosePlan(
-                      plan
-                    )
+                border:
+                  "1px solid #f2c392",
+
+                background:
+                  "#fff8f1",
+
+                color:
+                  "#744217",
+
+                fontSize:
+                  13,
+
+                lineHeight:
+                  1.7,
+
+                textAlign:
+                  "center",
+              }}
+            >
+              {text.freeContinue}
+            </div>
+
+            <div
+              style={{
+                marginTop:
+                  12,
+
+                padding:
+                  12,
+
+                borderRadius:
+                  11,
+
+                background:
+                  "#f3f7fb",
+
+                color:
+                  "#65738a",
+
+                fontSize:
+                  12,
+
+                textAlign:
+                  "center",
+
+                lineHeight:
+                  1.6,
+              }}
+            >
+              {text.reset}
+            </div>
+
+            <a
+              href="/subscription"
+              style={{
+                display:
+                  "block",
+
+                marginTop:
+                  12,
+
+                padding:
+                  "11px 12px",
+
+                borderRadius:
+                  10,
+
+                background:
+                  "#eaf3ff",
+
+                border:
+                  "1px solid #6ca8eb",
+
+                color:
+                  "#1459a6",
+
+                textAlign:
+                  "center",
+
+                textDecoration:
+                  "none",
+
+                fontSize:
+                  13,
+
+                fontWeight:
+                  800,
+              }}
+            >
+              {isEnglish
+                ? "Payment status"
+                : "حالة الدفع"}
+            </a>
+          </>
+        ) : (
+          <>
+            <div
+              style={{
+                marginTop:
+                  17,
+
+                fontSize:
+                  13,
+
+                fontWeight:
+                  900,
+              }}
+            >
+              {text.choose}
+            </div>
+
+            <div
+              style={{
+                display:
+                  "grid",
+
+                gap: 9,
+
+                marginTop:
+                  9,
+              }}
+            >
+              {planIds.map(
+                (
+                  planId
+                ) => {
+                  const plan =
+                    PLANS[
+                      planId
+                    ];
+
+                  if (!plan) {
+                    return null;
                   }
-                  style={{
-                    width: "100%",
 
-                    display:
-                      "flex",
+                  const loading =
+                    openingPlan ===
+                    plan.id;
 
-                    alignItems:
-                      "center",
-
-                    justifyContent:
-                      "space-between",
-
-                    gap: 12,
-
-                    padding:
-                      "12px 13px",
-
-                    borderRadius:
-                      12,
-
-                    border:
-                      plan.featured
-                        ? "2px solid #22a95f"
-                        : "1px solid #d9e2ef",
-
-                    background:
-                      plan.featured
-                        ? "#effbf3"
-                        : "#f7f9fc",
-
-                    color:
-                      "#172033",
-
-                    direction:
-                      isEnglish
-                        ? "ltr"
-                        : "rtl",
-
-                    textAlign:
-                      isEnglish
-                        ? "left"
-                        : "right",
-
-                    cursor:
-                      openingPlan
-                        ? "wait"
-                        : "pointer",
-                  }}
-                >
-                  <span>
-                    <strong
+                  return (
+                    <button
+                      key={
+                        plan.id
+                      }
+                      type="button"
+                      disabled={Boolean(
+                        openingPlan
+                      )}
+                      onClick={() =>
+                        choosePlan(
+                          plan
+                        )
+                      }
                       style={{
+                        width:
+                          "100%",
+
                         display:
-                          "block",
+                          "flex",
 
-                        fontSize:
-                          14,
-                      }}
-                    >
-                      {isEnglish
-                        ? plan.en
-                        : plan.ar}
-                    </strong>
+                        alignItems:
+                          "center",
 
-                    <small
-                      style={{
-                        display:
-                          "block",
+                        justifyContent:
+                          "space-between",
 
-                        marginTop:
-                          3,
+                        gap:
+                          12,
+
+                        padding:
+                          "12px 13px",
+
+                        borderRadius:
+                          12,
+
+                        border:
+                          plan.featured
+                            ? "2px solid #22a95f"
+                            : "1px solid #d9e2ef",
+
+                        background:
+                          plan.featured
+                            ? "#effbf3"
+                            : "#f7f9fc",
 
                         color:
-                          "#16864a",
+                          "#172033",
+
+                        direction:
+                          isEnglish
+                            ? "ltr"
+                            : "rtl",
+
+                        textAlign:
+                          isEnglish
+                            ? "left"
+                            : "right",
+
+                        cursor:
+                          openingPlan
+                            ? "wait"
+                            : "pointer",
                       }}
                     >
-                      {loading
-                        ? text.opening
-                        : plan.featured
-                          ? text.featured
-                          : text.subscribe}
-                    </small>
-                  </span>
+                      <span>
+                        <strong
+                          style={{
+                            display:
+                              "block",
 
-                  <span
-                    style={{
-                      direction:
-                        "ltr",
+                            fontSize:
+                              14,
+                          }}
+                        >
+                          {isEnglish
+                            ? plan.en
+                            : plan.ar}
+                        </strong>
 
-                      color:
-                        "#c96b08",
+                        <small
+                          style={{
+                            display:
+                              "block",
 
-                      whiteSpace:
-                        "nowrap",
-                    }}
-                  >
-                    <strong>
-                      {plan.price}
-                    </strong>
+                            marginTop:
+                              3,
 
-                    <small
-                      style={{
-                        marginLeft:
-                          3,
+                            color:
+                              "#16864a",
+                          }}
+                        >
+                          {loading
+                            ? text.opening
+                            : plan.featured
+                              ? text.featured
+                              : text.subscribe}
+                        </small>
+                      </span>
 
-                        color:
-                          "#65738a",
-                      }}
-                    >
-                      {isEnglish
-                        ? plan.periodEn
-                        : plan.periodAr}
-                    </small>
-                  </span>
-                </button>
-              );
-            }
-          )}
-        </div>
+                      <span
+                        style={{
+                          direction:
+                            "ltr",
+
+                          color:
+                            "#c96b08",
+
+                          whiteSpace:
+                            "nowrap",
+                        }}
+                      >
+                        <strong>
+                          {
+                            plan.price
+                          }
+                        </strong>
+
+                        <small
+                          style={{
+                            marginLeft:
+                              3,
+
+                            color:
+                              "#65738a",
+                          }}
+                        >
+                          {isEnglish
+                            ? plan.periodEn
+                            : plan.periodAr}
+                        </small>
+                      </span>
+                    </button>
+                  );
+                }
+              )}
+            </div>
+
+            <a
+              href={`/login?plan=${encodeURIComponent(
+                planIds[0]
+              )}`}
+              style={{
+                display:
+                  "block",
+
+                marginTop:
+                  12,
+
+                padding:
+                  "10px 12px",
+
+                borderRadius:
+                  10,
+
+                background:
+                  "#eaf3ff",
+
+                border:
+                  "1px solid #6ca8eb",
+
+                color:
+                  "#1459a6",
+
+                textAlign:
+                  "center",
+
+                textDecoration:
+                  "none",
+
+                fontSize:
+                  13,
+
+                fontWeight:
+                  800,
+              }}
+            >
+              {text.existing}
+            </a>
+          </>
+        )}
 
         {error && (
           <div
             style={{
-              marginTop: 11,
-              padding: 10,
+              marginTop:
+                11,
 
-              borderRadius: 9,
+              padding:
+                10,
+
+              borderRadius:
+                9,
 
               background:
                 "#fff0ef",
@@ -944,7 +1263,8 @@ export default function UpgradePrompt({
               color:
                 "#b6322c",
 
-              fontSize: 13,
+              fontSize:
+                13,
 
               textAlign:
                 "center",
@@ -954,51 +1274,21 @@ export default function UpgradePrompt({
           </div>
         )}
 
-        <a
-          href={`/login?plan=${encodeURIComponent(
-            planIds[0]
-          )}`}
-          style={{
-            display: "block",
-
-            marginTop: 12,
-
-            padding:
-              "10px 12px",
-
-            borderRadius: 10,
-
-            background:
-              "#eaf3ff",
-
-            border:
-              "1px solid #6ca8eb",
-
-            color:
-              "#1459a6",
-
-            textAlign:
-              "center",
-
-            textDecoration:
-              "none",
-
-            fontSize: 13,
-            fontWeight: 800,
-          }}
-        >
-          {text.existing}
-        </a>
-
         <button
           type="button"
           onClick={() =>
             onClose?.()
           }
           style={{
-            width: "100%",
-            marginTop: 8,
-            padding: 9,
+            width:
+              "100%",
+
+            marginTop:
+              10,
+
+            padding:
+              10,
+
             border: 0,
 
             background:
@@ -1007,7 +1297,8 @@ export default function UpgradePrompt({
             color:
               "#65738a",
 
-            fontWeight: 800,
+            fontWeight:
+              800,
 
             cursor:
               "pointer",
@@ -1015,22 +1306,6 @@ export default function UpgradePrompt({
         >
           {text.close}
         </button>
-
-        <div
-          style={{
-            marginTop: 5,
-
-            color:
-              "#8491a5",
-
-            fontSize: 11,
-
-            textAlign:
-              "center",
-          }}
-        >
-          {text.reset}
-        </div>
       </section>
     </div>
   );
