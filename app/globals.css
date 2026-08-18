@@ -1,6 +1,6 @@
 /* =========================================================
    ALLWDBOOK — GLOBAL DESIGN SYSTEM
-   Dark Navy / Black / Orange
+   Stable Dark First Paint
    ========================================================= */
 
 :root {
@@ -36,25 +36,37 @@
     rgba(0, 0, 0, 0.22);
 }
 
+
 /* =========================================================
-   RESET
+   FIRST PAINT / FLASH PROTECTION
    ========================================================= */
 
-* {
-  box-sizing: border-box;
-}
-
 html {
-  scroll-behavior: smooth;
+  min-height: 100%;
+  margin: 0;
+
+  background:
+    #02060d;
+
   color-scheme: dark;
+
+  scroll-behavior:
+    smooth;
 }
 
 body {
+  min-height: 100vh;
+  min-height: 100dvh;
+
   margin: 0;
 
-  overflow-x: hidden;
+  overflow-x:
+    hidden;
 
-  background:
+  background-color:
+    #02060d;
+
+  background-image:
     radial-gradient(
       circle at 50% -180px,
       rgba(27, 79, 138, 0.18),
@@ -67,7 +79,14 @@ body {
       #020812 100%
     );
 
-  color: var(--txt);
+  background-repeat:
+    no-repeat;
+
+  background-attachment:
+    fixed;
+
+  color:
+    var(--txt);
 
   font-family:
     system-ui,
@@ -78,123 +97,185 @@ body {
     Arial,
     sans-serif;
 
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing:
+    antialiased;
+
+  text-rendering:
+    optimizeLegibility;
 }
+
+
+/* يمنع وميض اللمس الملون في Android / Chrome */
+
+* {
+  box-sizing:
+    border-box;
+
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+a,
+button,
+input,
+select,
+textarea,
+[role="button"] {
+  -webkit-tap-highlight-color:
+    transparent;
+
+  touch-action:
+    manipulation;
+}
+
+
+/* =========================================================
+   BASIC RESET
+   ========================================================= */
 
 button,
 input,
 select,
 textarea {
-  font-family: inherit;
+  font-family:
+    inherit;
 }
 
 button {
-  cursor: pointer;
+  cursor:
+    pointer;
 }
 
 button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+  opacity:
+    0.55;
+
+  cursor:
+    not-allowed;
 }
 
 a {
-  color: inherit;
+  color:
+    inherit;
 }
 
+
 /* =========================================================
-   LEGACY WRAPPER
+   SHARED WRAPPER
+   Used by legal / utility pages
    ========================================================= */
 
 .wrap {
-  width: min(
-    900px,
-    calc(100% - 32px)
-  );
+  width:
+    min(
+      900px,
+      calc(100% - 32px)
+    );
 
-  margin-inline: auto;
+  margin-inline:
+    auto;
 
   padding:
-    16px
-    0;
+    16px 0;
 }
 
-/* منع التأثير على Header الصفحة الرئيسية الجديدة */
-
 .wrap > header {
-  display: flex;
-  align-items: center;
+  display:
+    flex;
 
-  gap: 10px;
+  align-items:
+    center;
+
+  gap:
+    10px;
 
   padding:
-    14px
-    0;
+    14px 0;
 }
 
 .wrap h1 {
-  margin: 0;
+  margin:
+    0;
 
-  color: var(--txt);
+  color:
+    var(--txt);
 
-  font-size: 22px;
+  font-size:
+    22px;
 }
 
 .wrap h3,
 .card h3 {
   margin:
-    18px
-    0
-    10px;
+    18px 0 10px;
 
-  color: var(--txt);
+  color:
+    var(--txt);
 
-  line-height: 1.3;
+  line-height:
+    1.3;
 }
 
+
 /* =========================================================
-   OLD HEADER HELPERS
+   SHARED HEADER HELPERS
    ========================================================= */
 
 .logo {
-  width: 46px;
-  height: 46px;
+  width:
+    46px;
 
-  flex: 0 0 auto;
+  height:
+    46px;
 
-  object-fit: cover;
+  flex:
+    0 0 auto;
 
-  border-radius: 14px;
+  object-fit:
+    cover;
+
+  border-radius:
+    14px;
 }
 
 .brandbox {
-  flex: 1;
-  min-width: 0;
+  min-width:
+    0;
+
+  flex:
+    1;
 }
 
 .tm {
-  color: var(--acc);
+  color:
+    var(--acc);
 
-  font-size: 11px;
-  font-weight: 700;
+  font-size:
+    11px;
 
-  vertical-align: super;
+  font-weight:
+    700;
+
+  vertical-align:
+    super;
 }
 
 .lang {
-  flex: 0 0 auto;
+  min-height:
+    38px;
 
-  min-height: 38px;
+  flex:
+    0 0 auto;
 
   padding:
-    7px
-    12px;
+    7px 12px;
 
   border:
     1px solid
     rgba(255, 105, 0, 0.38);
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   background:
     rgba(255, 105, 0, 0.07);
@@ -202,53 +283,68 @@ a {
   color:
     #ff944d;
 
-  font-size: 13px;
-  font-weight: 800;
+  font-size:
+    13px;
+
+  font-weight:
+    800;
 }
+
 
 /* =========================================================
    TABS
    ========================================================= */
 
 .tabs {
-  display: flex;
+  display:
+    flex;
 
-  gap: 8px;
+  gap:
+    8px;
 
-  overflow-x: auto;
+  overflow-x:
+    auto;
 
   padding:
-    8px
-    0;
+    8px 0;
 
-  scrollbar-width: none;
+  scrollbar-width:
+    none;
 
   scroll-snap-type:
     x proximity;
 }
 
 .tabs::-webkit-scrollbar {
-  display: none;
+  display:
+    none;
 }
 
 .tab {
-  min-height: 42px;
+  min-height:
+    42px;
 
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display:
+    inline-flex;
 
-  flex: 0 0 auto;
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  flex:
+    0 0 auto;
 
   padding:
-    9px
-    14px;
+    9px 14px;
 
   border:
     1px solid
     var(--line);
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   background:
     linear-gradient(
@@ -260,11 +356,14 @@ a {
   color:
     var(--mut);
 
-  font-size: 13px;
+  font-size:
+    13px;
 
-  white-space: nowrap;
+  white-space:
+    nowrap;
 
-  scroll-snap-align: start;
+  scroll-snap-align:
+    start;
 
   transition:
     border-color 0.18s ease,
@@ -294,27 +393,31 @@ a {
   color:
     #ffffff;
 
-  font-weight: 900;
+  font-weight:
+    900;
 
   box-shadow:
     0 9px 25px
     rgba(255, 105, 0, 0.18);
 }
 
+
 /* =========================================================
-   CARD
+   TOOL CARDS
    ========================================================= */
 
 .card {
-  position: relative;
+  position:
+    relative;
 
   margin:
-    12px
-    0;
+    12px 0;
 
-  padding: 16px;
+  padding:
+    16px;
 
-  overflow: hidden;
+  overflow:
+    hidden;
 
   border:
     1px solid
@@ -355,6 +458,7 @@ a {
     );
 }
 
+
 /* =========================================================
    FORM ELEMENTS
    ========================================================= */
@@ -362,18 +466,17 @@ a {
 input,
 select,
 textarea {
-  width: 100%;
+  width:
+    100%;
 
-  min-height: 48px;
+  min-height:
+    48px;
 
   margin:
-    6px
-    0
-    12px;
+    6px 0 12px;
 
   padding:
-    11px
-    13px;
+    11px 13px;
 
   border:
     1px solid
@@ -382,7 +485,8 @@ textarea {
   border-radius:
     12px;
 
-  outline: none;
+  outline:
+    none;
 
   background:
     #020d1b;
@@ -390,7 +494,8 @@ textarea {
   color:
     var(--txt);
 
-  font-size: 15px;
+  font-size:
+    15px;
 
   transition:
     border-color 0.18s ease,
@@ -399,11 +504,14 @@ textarea {
 }
 
 textarea {
-  min-height: 110px;
+  min-height:
+    110px;
 
-  resize: vertical;
+  resize:
+    vertical;
 
-  line-height: 1.65;
+  line-height:
+    1.65;
 }
 
 input::placeholder,
@@ -416,32 +524,36 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color:
-    rgba(255, 105, 0, 0.72);
+    rgba(67, 136, 255, 0.72);
 
-  outline: none;
+  outline:
+    none;
 
   background:
     #031120;
 
   box-shadow:
     0 0 0 3px
-    rgba(255, 105, 0, 0.08);
+    rgba(67, 136, 255, 0.08);
 }
+
 
 /* =========================================================
    MAIN ACTION BUTTON
    ========================================================= */
 
 button.go {
-  width: 100%;
+  width:
+    100%;
 
-  min-height: 49px;
+  min-height:
+    49px;
 
-  margin-top: 5px;
+  margin-top:
+    5px;
 
   padding:
-    12px
-    15px;
+    12px 15px;
 
   border:
     1px solid
@@ -460,8 +572,11 @@ button.go {
   color:
     #ffffff;
 
-  font-size: 15px;
-  font-weight: 900;
+  font-size:
+    15px;
+
+  font-weight:
+    900;
 
   box-shadow:
     0 12px 28px
@@ -483,12 +598,14 @@ button.go:active {
     scale(0.985);
 }
 
+
 /* =========================================================
    GRID / KPI
    ========================================================= */
 
 .grid {
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
     repeat(
@@ -496,13 +613,16 @@ button.go:active {
       minmax(0, 1fr)
     );
 
-  gap: 10px;
+  gap:
+    10px;
 }
 
 .kpi {
-  min-width: 0;
+  min-width:
+    0;
 
-  padding: 13px;
+  padding:
+    13px;
 
   border:
     1px solid
@@ -520,27 +640,34 @@ button.go:active {
 }
 
 .kpi b {
-  display: block;
+  display:
+    block;
 
-  overflow-wrap: anywhere;
+  overflow-wrap:
+    anywhere;
 
   color:
     #ffffff;
 
-  font-size: 20px;
+  font-size:
+    20px;
 
-  line-height: 1.25;
+  line-height:
+    1.25;
 }
 
 .kpi span {
-  display: block;
+  display:
+    block;
 
-  margin-top: 4px;
+  margin-top:
+    4px;
 
   color:
     var(--mut);
 
-  font-size: 11px;
+  font-size:
+    11px;
 }
 
 .fullKpi {
@@ -548,67 +675,81 @@ button.go:active {
     1 / -1;
 }
 
+
 /* =========================================================
    ROWS
    ========================================================= */
 
 .row {
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
   justify-content:
     space-between;
 
-  gap: 10px;
+  gap:
+    10px;
 
-  flex-wrap: wrap;
+  flex-wrap:
+    wrap;
 
   padding:
-    11px
-    0;
+    11px 0;
 
   border-bottom:
     1px solid
     var(--line-soft);
 
-  font-size: 13px;
+  font-size:
+    13px;
 }
 
 .row:last-child {
-  border-bottom: 0;
+  border-bottom:
+    0;
 }
+
 
 /* =========================================================
    CHIPS
    ========================================================= */
 
 .chips {
-  display: flex;
+  display:
+    flex;
 
-  flex-wrap: wrap;
+  flex-wrap:
+    wrap;
 
-  gap: 7px;
+  gap:
+    7px;
 }
 
 .chip {
-  display: inline-flex;
+  min-height:
+    34px;
 
-  align-items: center;
+  display:
+    inline-flex;
 
-  min-height: 34px;
+  align-items:
+    center;
 
-  margin: 0;
+  margin:
+    0;
 
   padding:
-    7px
-    11px;
+    7px 11px;
 
   border:
     1px solid
     #193754;
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   background:
     #051426;
@@ -616,9 +757,11 @@ button.go:active {
   color:
     var(--txt-soft);
 
-  font-size: 12px;
+  font-size:
+    12px;
 
-  text-align: start;
+  text-align:
+    start;
 
   transition:
     border-color 0.18s ease,
@@ -633,6 +776,7 @@ button.go:active {
     rgba(255, 105, 0, 0.06);
 }
 
+
 /* =========================================================
    MUTED TEXT
    ========================================================= */
@@ -641,21 +785,27 @@ button.go:active {
   color:
     var(--mut);
 
-  font-size: 12px;
+  font-size:
+    12px;
 
-  line-height: 1.6;
+  line-height:
+    1.6;
 }
+
 
 /* =========================================================
    DESCRIPTION PREVIEW
    ========================================================= */
 
 .prev {
-  min-height: 80px;
+  min-height:
+    80px;
 
-  padding: 15px;
+  padding:
+    15px;
 
-  overflow-wrap: anywhere;
+  overflow-wrap:
+    anywhere;
 
   border:
     1px solid
@@ -670,29 +820,36 @@ button.go:active {
   color:
     #111827;
 
-  font-size: 14px;
+  font-size:
+    14px;
 
-  line-height: 1.75;
+  line-height:
+    1.75;
 }
+
 
 /* =========================================================
    FOOTER
    ========================================================= */
 
 .foot {
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
-  justify-content: center;
+  align-items:
+    center;
 
-  gap: 8px;
+  justify-content:
+    center;
 
-  margin-top: 22px;
+  gap:
+    8px;
+
+  margin-top:
+    22px;
 
   padding:
-    23px
-    0
-    34px;
+    23px 0 34px;
 
   border-top:
     1px solid
@@ -701,18 +858,25 @@ button.go:active {
   color:
     var(--mut);
 
-  font-size: 11px;
+  font-size:
+    11px;
 
-  text-align: center;
+  text-align:
+    center;
 }
 
 .foot img {
-  width: 24px;
-  height: 24px;
+  width:
+    24px;
 
-  object-fit: cover;
+  height:
+    24px;
 
-  border-radius: 8px;
+  object-fit:
+    cover;
+
+  border-radius:
+    8px;
 }
 
 .foot b {
@@ -720,79 +884,98 @@ button.go:active {
     var(--txt);
 }
 
+
 /* =========================================================
    NICHE RESULTS
    ========================================================= */
 
 .nrow {
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
   justify-content:
     space-between;
 
-  gap: 10px;
+  gap:
+    10px;
 
   padding:
-    12px
-    0;
+    12px 0;
 
   border-bottom:
     1px solid
     var(--line-soft);
 
-  font-size: 13px;
+  font-size:
+    13px;
 }
 
 .nrow:last-child {
-  border-bottom: 0;
+  border-bottom:
+    0;
 }
 
 .nicheText {
-  min-width: 0;
+  min-width:
+    0;
 
-  overflow-wrap: anywhere;
+  overflow-wrap:
+    anywhere;
 
   color:
     var(--txt-soft);
 }
 
 .nicheActions {
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  gap: 6px;
+  gap:
+    6px;
 
-  flex: 0 0 auto;
+  flex:
+    0 0 auto;
 }
+
 
 /* =========================================================
    STATUS BADGES
    ========================================================= */
 
 .badge {
-  display: inline-flex;
+  min-height:
+    27px;
 
-  align-items: center;
-  justify-content: center;
+  display:
+    inline-flex;
 
-  min-height: 27px;
+  align-items:
+    center;
+
+  justify-content:
+    center;
 
   padding:
-    4px
-    8px;
+    4px 8px;
 
   border:
     1px solid
     var(--line);
 
-  border-radius: 999px;
+  border-radius:
+    999px;
 
-  font-size: 10px;
+  font-size:
+    10px;
 
-  white-space: nowrap;
+  white-space:
+    nowrap;
 }
 
 .b-high {
@@ -829,29 +1012,32 @@ button.go:active {
 }
 
 .b-none {
-  color:
-    var(--mut);
-
   background:
     #061426;
+
+  color:
+    var(--mut);
 }
 
 .confidence {
-  display: inline-flex;
+  display:
+    inline-flex;
 
-  margin-top: 12px;
+  margin-top:
+    12px;
 }
+
 
 /* =========================================================
    SECONDARY BUTTON
    ========================================================= */
 
 .mini {
-  min-height: 35px;
+  min-height:
+    35px;
 
   padding:
-    7px
-    11px;
+    7px 11px;
 
   border:
     1px solid
@@ -866,8 +1052,11 @@ button.go:active {
   color:
     #ff9853;
 
-  font-size: 11px;
-  font-weight: 800;
+  font-size:
+    11px;
+
+  font-weight:
+    800;
 
   transition:
     background 0.18s ease,
@@ -883,26 +1072,34 @@ button.go:active {
 }
 
 .mini.wide {
-  width: 100%;
+  width:
+    100%;
 
-  margin-top: 9px;
+  margin-top:
+    9px;
 }
+
 
 /* =========================================================
    ACTION ROW
    ========================================================= */
 
 .actionRow {
-  display: flex;
+  display:
+    flex;
 
-  gap: 8px;
+  gap:
+    8px;
 
-  margin-top: 11px;
+  margin-top:
+    11px;
 }
 
 .resultSection {
-  margin-top: 13px;
+  margin-top:
+    13px;
 }
+
 
 /* =========================================================
    INFORMATION BOX
@@ -910,12 +1107,10 @@ button.go:active {
 
 .trustNote {
   margin:
-    10px
-    0;
+    10px 0;
 
   padding:
-    12px
-    13px;
+    12px 13px;
 
   border:
     1px solid
@@ -934,25 +1129,26 @@ button.go:active {
 
 .trustNote p {
   margin:
-    0
-    0
-    5px;
+    0 0 5px;
 
   color:
     var(--txt-soft);
 
-  line-height: 1.55;
+  line-height:
+    1.55;
 }
 
 .trustNote p:last-child {
-  margin-bottom: 0;
+  margin-bottom:
+    0;
 }
 
 .trustNote small {
   color:
     var(--mut);
 
-  line-height: 1.55;
+  line-height:
+    1.55;
 }
 
 .warnNote {
@@ -963,18 +1159,20 @@ button.go:active {
     rgba(255, 105, 0, 0.07);
 }
 
+
 /* =========================================================
    BOOK RESULTS
    ========================================================= */
 
 .bookRow {
-  display: grid;
+  display:
+    grid;
 
-  gap: 4px;
+  gap:
+    4px;
 
   padding:
-    11px
-    0;
+    11px 0;
 
   border-bottom:
     1px solid
@@ -982,58 +1180,68 @@ button.go:active {
 }
 
 .bookRow:last-child {
-  border-bottom: 0;
+  border-bottom:
+    0;
 }
 
 .bookRow b {
   color:
     var(--txt-soft);
 
-  font-size: 13px;
+  font-size:
+    13px;
 
-  line-height: 1.5;
+  line-height:
+    1.5;
 }
 
 .legend,
 .disclaimer {
-  margin-top: 9px;
+  margin-top:
+    9px;
 
   color:
     #74869e;
 
-  font-size: 10px;
+  font-size:
+    10px;
 
-  line-height: 1.6;
+  line-height:
+    1.6;
 }
+
 
 /* =========================================================
    FORMATTER
    ========================================================= */
 
 .formatterHead {
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
   justify-content:
     space-between;
 
-  gap: 8px;
+  gap:
+    8px;
 }
 
 .formatterHead h3 {
   margin:
-    18px
-    0
-    10px;
+    18px 0 10px;
 }
+
 
 /* =========================================================
    SCROLLBAR
    ========================================================= */
 
 * {
-  scrollbar-width: thin;
+  scrollbar-width:
+    thin;
 
   scrollbar-color:
     #1a3552
@@ -1041,8 +1249,11 @@ button.go:active {
 }
 
 *::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width:
+    7px;
+
+  height:
+    7px;
 }
 
 *::-webkit-scrollbar-track {
@@ -1051,7 +1262,8 @@ button.go:active {
 }
 
 *::-webkit-scrollbar-thumb {
-  border-radius: 999px;
+  border-radius:
+    999px;
 
   background:
     #1a3552;
@@ -1062,80 +1274,126 @@ button.go:active {
     #254b71;
 }
 
+
 /* =========================================================
    SELECTION
    ========================================================= */
 
 ::selection {
   background:
-    rgba(255, 105, 0, 0.28);
+    rgba(67, 136, 255, 0.3);
 
   color:
     #ffffff;
 }
 
+
 /* =========================================================
-   RTL
+   RTL / LTR
    ========================================================= */
 
 html[dir="rtl"] body {
-  direction: rtl;
+  direction:
+    rtl;
 }
 
 html[dir="ltr"] body {
-  direction: ltr;
+  direction:
+    ltr;
 }
+
+
+/* =========================================================
+   NEW HOME DESIGN ISOLATION
+   ========================================================= */
+
+.awd-app {
+  isolation:
+    isolate;
+
+  background-color:
+    #02060d;
+}
+
+.awd-app a,
+.awd-app button {
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+
+/* يمنع Flash في انتقالات المتصفح الحديثة */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration:
+    0s;
+
+  background:
+    #02060d;
+}
+
 
 /* =========================================================
    MOBILE
    ========================================================= */
 
-@media (
-  max-width: 620px
-) {
+@media (max-width: 620px) {
+
+  html,
+  body {
+    background-color:
+      #02060d;
+  }
+
   .wrap {
-    width: 100%;
+    width:
+      100%;
 
     padding:
-      12px
-      13px;
+      12px 13px;
   }
 
   .wrap > header {
-    padding-top: 8px;
+    padding-top:
+      8px;
   }
 
   .tabs {
-    display: grid;
+    display:
+      grid;
 
     grid-template-columns:
       repeat(
         2,
-        minmax(
-          0,
-          1fr
-        )
+        minmax(0, 1fr)
       );
 
-    gap: 7px;
+    gap:
+      7px;
 
-    overflow: visible;
+    overflow:
+      visible;
   }
 
   .tab {
-    width: 100%;
+    width:
+      100%;
 
-    min-height: 43px;
+    min-height:
+      43px;
 
     padding:
-      8px
-      7px;
+      8px 7px;
 
-    white-space: normal;
+    white-space:
+      normal;
 
-    font-size: 11px;
+    font-size:
+      11px;
 
-    line-height: 1.3;
+    line-height:
+      1.3;
   }
 
   .tab:first-child {
@@ -1145,10 +1403,10 @@ html[dir="ltr"] body {
 
   .card {
     margin:
-      10px
-      0;
+      10px 0;
 
-    padding: 13px;
+    padding:
+      13px;
 
     border-radius:
       17px;
@@ -1157,38 +1415,45 @@ html[dir="ltr"] body {
   input,
   select,
   textarea {
-    min-height: 46px;
+    min-height:
+      46px;
 
     padding:
-      10px
-      11px;
+      10px 11px;
 
-    font-size: 14px;
+    font-size:
+      14px;
   }
 
   button.go {
-    min-height: 47px;
+    min-height:
+      47px;
 
-    font-size: 14px;
+    font-size:
+      14px;
   }
 
   .grid {
     grid-template-columns:
       1fr;
 
-    gap: 8px;
+    gap:
+      8px;
   }
 
   .fullKpi {
-    grid-column: auto;
+    grid-column:
+      auto;
   }
 
   .kpi {
-    padding: 11px;
+    padding:
+      11px;
   }
 
   .kpi b {
-    font-size: 18px;
+    font-size:
+      18px;
   }
 
   .nrow {
@@ -1200,65 +1465,98 @@ html[dir="ltr"] body {
   }
 
   .nicheActions {
-    width: 100%;
+    width:
+      100%;
 
     justify-content:
       space-between;
   }
 
   .actionRow {
-    display: grid;
+    display:
+      grid;
 
     grid-template-columns:
-      1fr
-      1fr;
+      1fr 1fr;
 
-    gap: 7px;
+    gap:
+      7px;
   }
 
   .actionRow .mini {
-    width: 100%;
+    width:
+      100%;
   }
 
   .formatterHead {
-    align-items: center;
+    align-items:
+      center;
   }
 
   .prev {
-    padding: 12px;
+    padding:
+      12px;
 
-    font-size: 13px;
+    font-size:
+      13px;
   }
 }
+
 
 /* =========================================================
    VERY SMALL PHONES
    ========================================================= */
 
-@media (
-  max-width: 380px
-) {
+@media (max-width: 380px) {
+
   .wrap {
-    padding-inline: 10px;
+    padding-inline:
+      10px;
   }
 
   .card {
-    padding: 11px;
+    padding:
+      11px;
   }
 
   .tab {
-    font-size: 10px;
+    font-size:
+      10px;
   }
 
   .nicheActions {
-    gap: 4px;
+    gap:
+      4px;
   }
 
   .mini {
     padding:
-      7px
-      8px;
+      7px 8px;
 
-    font-size: 10px;
+    font-size:
+      10px;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+
+  html {
+    scroll-behavior:
+      auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior:
+      auto !important;
   }
 }
