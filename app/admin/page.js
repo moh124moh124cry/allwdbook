@@ -7,328 +7,225 @@ import {
   useState,
 } from "react";
 
-import {
-  useRouter,
-} from "next/navigation";
-
-import {
-  getSupabase,
-} from "../../lib/supabase";
+import { useRouter } from "next/navigation";
+import { getSupabase } from "../../lib/supabase";
 
 
-function formatNumber(value) {
-  return Number(value || 0)
-    .toLocaleString("en-US");
+function number(value) {
+  return Number(value || 0).toLocaleString("en-US");
+}
+
+
+function planTitle(plan) {
+  return (
+    plan?.nameAr ||
+    plan?.nameEn ||
+    plan?.id ||
+    "خطة"
+  );
 }
 
 
 export default function AdminPage() {
-  const router =
-    useRouter();
+  const router = useRouter();
 
-  const [
-    session,
-    setSession,
-  ] =
-    useState(null);
+  const [session, setSession] = useState(null);
 
-  const [
-    overview,
-    setOverview,
-  ] =
-    useState(null);
+  const [overview, setOverview] = useState(null);
+  const [plans, setPlans] = useState([]);
+  const [lifetimeItems, setLifetimeItems] = useState([]);
 
-  const [
-    lifetimeItems,
-    setLifetimeItems,
-  ] =
-    useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const [
-    email,
-    setEmail,
-  ] =
-    useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-  const [
-    note,
-    setNote,
-  ] =
-    useState("");
+  /* manual grant */
 
-  const [
-    loading,
-    setLoading,
-  ] =
-    useState(true);
+  const [grantPlanId, setGrantPlanId] = useState("");
+  const [grantEmail, setGrantEmail] = useState("");
+  const [grantNote, setGrantNote] = useState("");
+  const [grantResult, setGrantResult] = useState(null);
 
-  const [
-    saving,
-    setSaving,
-  ] =
-    useState(false);
+  /* legacy lifetime */
 
-  const [
-    message,
-    setMessage,
-  ] =
-    useState("");
-
-  const [
-    error,
-    setError,
-  ] =
-    useState("");
+  const [lifeEmail, setLifeEmail] = useState("");
+  const [lifeNote, setLifeNote] = useState("");
 
 
   /* =======================================================
      API
      ======================================================= */
 
-  const apiRequest =
-    useCallback(
-      async (
-        path,
-        options = {},
-      ) => {
-        if (
-          !session
-            ?.access_token
-        ) {
-          throw new Error(
-            "NO_SESSION",
-          );
-        }
+  const apiRequest = useCallback(
+    async (path, options = {}) => {
+      if (!session?.access_token) {
+        throw new Error("NO_SESSION");
+      }
 
+      const response = await fetch(path, {
+        ...options,
 
-        const response =
-          await fetch(
-            path,
-            {
-              ...options,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          ...(options.headers || {}),
+        },
 
-              headers: {
-                "Content-Type":
-                  "application/json",
+        cache: "no-store",
+      });
 
-                Authorization:
-                  `Bearer ${session.access_token}`,
+      const data = await response
+        .json()
+        .catch(() => ({}));
 
-                ...(
-                  options.headers ||
-                  {}
-                ),
-              },
+      if (!response.ok) {
+        const err = new Error(
+          data?.error || "REQUEST_FAILED"
+        );
 
-              cache:
-                "no-store",
-            },
-          );
+        err.status = response.status;
 
+        throw err;
+      }
 
-        const data =
-          await response
-            .json()
-            .catch(
-              () => ({}),
-            );
-
-
-        if (
-          !response.ok
-        ) {
-          const requestError =
-            new Error(
-              data?.error ||
-              "REQUEST_FAILED",
-            );
-
-          requestError.status =
-            response.status;
-
-          throw requestError;
-        }
-
-
-        return data;
-      },
-      [session],
-    );
+      return data;
+    },
+    [session]
+  );
 
 
   /* =======================================================
-     LOAD DASHBOARD
+     LOAD
      ======================================================= */
 
-  const loadDashboard =
-    useCallback(
-      async () => {
-        if (
-          !session
-            ?.access_token
-        ) {
-          return;
-        }
+  const loadDashboard = useCallback(async () => {
+    if (!session?.access_token) return;
 
+    setLoading(true);
+    setError("");
 
-        setLoading(true);
-        setError("");
+    try {
+      const [
+        overviewData,
+        lifetimeData,
+        grantData,
+      ] = await Promise.all([
+        apiRequest("/api/admin/overview"),
+        apiRequest("/api/admin/lifetime"),
+        apiRequest("/api/admin/grant"),
+      ]);
 
+      setOverview(overviewData || null);
 
-        try {
-          const [
-            overviewData,
-            lifetimeData,
-          ] =
-            await Promise.all([
-              apiRequest(
-                "/api/admin/overview",
-              ),
+      setLifetimeItems(
+        Array.isArray(lifetimeData?.items)
+          ? lifetimeData.items
+          : []
+      );
 
-              apiRequest(
-                "/api/admin/lifetime",
-              ),
-            ]);
+      /*
+       * لا نظهر free.
+       * ونخفي Founders Trial من المنح اليدوي
+       * لأنه نظام تجربة مستقل.
+       */
+      const loadedPlans = Array.isArray(grantData?.plans)
+        ? grantData.plans.filter(
+            (plan) =>
+              plan?.id !== "free" &&
+              plan?.id !== "founders_trial"
+          )
+        : [];
 
+      setPlans(loadedPlans);
 
-          setOverview(
-            overviewData ||
-            null,
-          );
+      if (
+        !grantPlanId &&
+        loadedPlans.length
+      ) {
+        setGrantPlanId(
+          loadedPlans[0].id
+        );
+      }
+    } catch (err) {
+      console.error(
+        "Admin load failed:",
+        err
+      );
 
-
-          setLifetimeItems(
-            Array.isArray(
-              lifetimeData
-                ?.items,
-            )
-              ? lifetimeData.items
-              : [],
-          );
-        } catch (
-          loadError
-        ) {
-          console.error(
-            "Admin dashboard load failed:",
-            loadError,
-          );
-
-
-          if (
-            loadError
-              ?.status ===
-              401 ||
-            loadError
-              ?.status ===
-              403
-          ) {
-            setError(
-              "ليس لديك صلاحية الدخول إلى لوحة الإدارة.",
-            );
-          } else {
-            setError(
-              "تعذر تحميل بيانات لوحة الإدارة.",
-            );
-          }
-        } finally {
-          setLoading(false);
-        }
-      },
-      [
-        apiRequest,
-        session,
-      ],
-    );
+      if (
+        err?.status === 401 ||
+        err?.status === 403
+      ) {
+        setError(
+          "ليس لديك صلاحية الدخول إلى لوحة الإدارة."
+        );
+      } else {
+        setError(
+          "تعذر تحميل بيانات لوحة الإدارة."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    apiRequest,
+    session,
+    grantPlanId,
+  ]);
 
 
   /* =======================================================
-     INITIAL SESSION
+     SESSION
      ======================================================= */
 
   useEffect(() => {
-    let mounted =
-      true;
+    let mounted = true;
 
-
-    async function initialize() {
+    async function start() {
       try {
-        const supabase =
-          getSupabase();
-
+        const supabase = getSupabase();
 
         const {
           data: {
-            session:
-              currentSession,
+            session: currentSession,
           },
         } =
-          await supabase.auth
-            .getSession();
+          await supabase.auth.getSession();
 
+        if (!mounted) return;
 
-        if (!mounted) {
-          return;
-        }
-
-
-        /*
-         * جلسة Anonymous العادية
-         * ليست جلسة Admin.
-         */
         if (
           !currentSession ||
-          !currentSession
-            ?.user
-            ?.email
+          !currentSession?.user?.email
         ) {
-          router.replace(
-            "/login",
-          );
-
+          router.replace("/login");
           return;
         }
 
-
-        setSession(
-          currentSession,
-        );
-      } catch (
-        sessionError
-      ) {
-        console.error(
-          "Admin session failed:",
-          sessionError,
-        );
-
-
+        setSession(currentSession);
+      } catch {
         if (mounted) {
           setError(
-            "تعذر التحقق من جلسة الإدارة.",
+            "تعذر التحقق من جلسة الإدارة."
           );
 
-          setLoading(
-            false,
-          );
+          setLoading(false);
         }
       }
     }
 
-
-    initialize();
-
+    start();
 
     return () => {
-      mounted =
-        false;
+      mounted = false;
     };
   }, [router]);
 
 
   useEffect(() => {
-    if (
-      session
-        ?.access_token
-    ) {
+    if (session?.access_token) {
       loadDashboard();
     }
   }, [
@@ -341,211 +238,160 @@ export default function AdminPage() {
      STATS
      ======================================================= */
 
-  const stats =
-    useMemo(
-      () => [
-        {
-          icon: "👥",
+  const stats = useMemo(
+    () => [
+      {
+        icon: "👥",
+        label: "زوار اليوم",
+        value:
+          overview?.analytics?.visitorsToday,
+      },
 
-          title:
-            "زوار اليوم",
+      {
+        icon: "🌍",
+        label: "إجمالي الزوار",
+        value:
+          overview?.analytics?.visitorsTotal,
+      },
 
-          value:
-            overview
-              ?.analytics
-              ?.visitorsToday,
-        },
+      {
+        icon: "👁️",
+        label: "مشاهدات اليوم",
+        value:
+          overview?.analytics?.pageViewsToday,
+      },
 
-        {
-          icon: "🌍",
+      {
+        icon: "📈",
+        label: "إجمالي المشاهدات",
+        value:
+          overview?.analytics?.pageViewsTotal,
+      },
 
-          title:
-            "إجمالي الزوار",
+      {
+        icon: "🔑",
+        label: "AWD-KEY",
+        value:
+          overview?.counts?.accessKeys,
+      },
 
-          value:
-            overview
-              ?.analytics
-              ?.visitorsTotal,
-        },
+      {
+        icon: "✅",
+        label: "المفاتيح النشطة",
+        value:
+          overview?.counts?.activeAccessKeys,
+      },
 
-        {
-          icon: "👁️",
+      {
+        icon: "📱",
+        label: "الأجهزة النشطة",
+        value:
+          overview?.counts?.activeDevices,
+      },
 
-          title:
-            "مشاهدات اليوم",
+      {
+        icon: "💳",
+        label: "الاشتراكات",
+        value:
+          overview?.counts?.subscriptions,
+      },
 
-          value:
-            overview
-              ?.analytics
-              ?.pageViewsToday,
-        },
+      {
+        icon: "👑",
+        label: "Lifetime",
+        value:
+          overview?.counts?.lifetime,
+      },
 
-        {
-          icon: "📈",
-
-          title:
-            "إجمالي المشاهدات",
-
-          value:
-            overview
-              ?.analytics
-              ?.pageViewsTotal,
-        },
-
-        {
-          icon: "🔑",
-
-          title:
-            "AWD-KEY",
-
-          value:
-            overview
-              ?.counts
-              ?.accessKeys,
-        },
-
-        {
-          icon: "✅",
-
-          title:
-            "المفاتيح النشطة",
-
-          value:
-            overview
-              ?.counts
-              ?.activeAccessKeys,
-        },
-
-        {
-          icon: "📱",
-
-          title:
-            "الأجهزة النشطة",
-
-          value:
-            overview
-              ?.counts
-              ?.activeDevices,
-        },
-
-        {
-          icon: "💳",
-
-          title:
-            "الاشتراكات",
-
-          value:
-            overview
-              ?.counts
-              ?.subscriptions,
-        },
-
-        {
-          icon: "👑",
-
-          title:
-            "Lifetime",
-
-          value:
-            overview
-              ?.counts
-              ?.lifetime,
-        },
-
-        {
-          icon: "📦",
-
-          title:
-            "الخطط",
-
-          value:
-            overview
-              ?.counts
-              ?.plans,
-        },
-      ],
-      [overview],
-    );
+      {
+        icon: "📦",
+        label: "الخطط",
+        value:
+          overview?.counts?.plans,
+      },
+    ],
+    [overview]
+  );
 
 
   /* =======================================================
-     ADD LIFETIME
+     GRANT PLAN
      ======================================================= */
 
-  async function addLifetime(
-    event,
-  ) {
+  async function grantPlan(event) {
     event.preventDefault();
 
-    setMessage("");
     setError("");
+    setMessage("");
+    setGrantResult(null);
 
-
-    const cleanEmail =
-      String(
-        email || "",
-      )
-        .trim()
-        .toLowerCase();
-
-
-    if (!cleanEmail) {
-      setError(
-        "أدخل البريد الإلكتروني.",
-      );
-
+    if (!grantPlanId) {
+      setError("اختر الخطة أولًا.");
       return;
     }
 
-
     setSaving(true);
 
-
     try {
-      await apiRequest(
-        "/api/admin/lifetime",
-        {
-          method:
-            "POST",
+      const data =
+        await apiRequest(
+          "/api/admin/grant",
+          {
+            method: "POST",
 
-          body:
-            JSON.stringify({
+            body: JSON.stringify({
+              planId: grantPlanId,
+
               email:
-                cleanEmail,
+                String(
+                  grantEmail || ""
+                )
+                  .trim()
+                  .toLowerCase(),
 
               note:
                 String(
-                  note || "",
+                  grantNote || ""
                 ).trim(),
             }),
-        },
-      );
+          }
+        );
 
-
-      setEmail("");
-      setNote("");
-
+      setGrantResult(data);
 
       setMessage(
-        "✅ تم تفعيل Lifetime Pro بنجاح.",
+        `✅ تم منح ${planTitle(
+          data?.plan
+        )} بنجاح.`
       );
 
+      setGrantEmail("");
+      setGrantNote("");
 
       await loadDashboard();
-    } catch (
-      saveError
-    ) {
+    } catch (err) {
+      console.error(
+        "Grant plan failed:",
+        err
+      );
+
       if (
-        saveError
-          ?.message ===
+        err?.message ===
         "INVALID_EMAIL"
       ) {
         setError(
-          "البريد الإلكتروني غير صحيح.",
+          "البريد الإلكتروني غير صحيح."
+        );
+      } else if (
+        err?.message ===
+        "PLAN_NOT_FOUND"
+      ) {
+        setError(
+          "الخطة غير موجودة أو غير مفعلة."
         );
       } else {
         setError(
-          "تعذر تفعيل Lifetime Pro.",
+          "تعذر منح الخطة."
         );
       }
     } finally {
@@ -554,54 +400,121 @@ export default function AdminPage() {
   }
 
 
-  /* =======================================================
-     REMOVE LIFETIME
-     ======================================================= */
+  async function copyGrantCode() {
+    const code =
+      grantResult?.code || "";
 
-  async function removeLifetime(
-    targetEmail,
-  ) {
-    const confirmed =
-      window.confirm(
-        `هل تريد حذف Lifetime من:\n${targetEmail} ؟`,
+    if (!code) return;
+
+    try {
+      await navigator.clipboard.writeText(
+        code
       );
 
+      setMessage(
+        "📋 تم نسخ AWD-KEY."
+      );
+    } catch {
+      setError(
+        "تعذر النسخ تلقائيًا. اضغط مطولًا على الرمز لنسخه."
+      );
+    }
+  }
 
-    if (!confirmed) {
+
+  /* =======================================================
+     LEGACY LIFETIME
+     ======================================================= */
+
+  async function addLifetime(event) {
+    event.preventDefault();
+
+    setError("");
+    setMessage("");
+
+    const email =
+      String(lifeEmail || "")
+        .trim()
+        .toLowerCase();
+
+    if (!email) {
+      setError(
+        "أدخل البريد الإلكتروني."
+      );
+
       return;
     }
 
-
-    setMessage("");
-    setError("");
     setSaving(true);
-
 
     try {
       await apiRequest(
         "/api/admin/lifetime",
         {
-          method:
-            "DELETE",
+          method: "POST",
 
-          body:
-            JSON.stringify({
-              email:
-                targetEmail,
-            }),
-        },
+          body: JSON.stringify({
+            email,
+
+            note:
+              String(
+                lifeNote || ""
+              ).trim(),
+          }),
+        }
       );
 
+      setLifeEmail("");
+      setLifeNote("");
 
       setMessage(
-        "تم حذف Lifetime من الحساب.",
+        "✅ تم تفعيل Lifetime القديم بنجاح."
       );
-
 
       await loadDashboard();
     } catch {
       setError(
-        "تعذر حذف Lifetime.",
+        "تعذر تفعيل Lifetime."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+
+  async function removeLifetime(email) {
+    const confirmed =
+      window.confirm(
+        `هل تريد حذف Lifetime من:\n${email} ؟`
+      );
+
+    if (!confirmed) return;
+
+    setSaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      await apiRequest(
+        "/api/admin/lifetime",
+        {
+          method: "DELETE",
+
+          body:
+            JSON.stringify({
+              email,
+            }),
+        }
+      );
+
+      setMessage(
+        "تم حذف Lifetime."
+      );
+
+      await loadDashboard();
+    } catch {
+      setError(
+        "تعذر حذف Lifetime."
       );
     } finally {
       setSaving(false);
@@ -618,8 +531,7 @@ export default function AdminPage() {
       const supabase =
         getSupabase();
 
-      await supabase.auth
-        .signOut();
+      await supabase.auth.signOut();
     } finally {
       router.replace("/");
       router.refresh();
@@ -633,30 +545,22 @@ export default function AdminPage() {
 
   return (
     <main
-      className="admin-page"
+      className="page"
       dir="rtl"
     >
-      <div className="admin-wrap">
+      <div className="wrap">
 
-        {/* ===============================================
-            HEADER
-            =============================================== */}
+        <header className="hero">
 
-        <header className="admin-header">
-
-          <div className="admin-logo">
-            <img
-              src="/logov3.png"
-              alt="AllWDbook"
-            />
-          </div>
-
+          <img
+            src="/logov3.png"
+            alt="AllWDbook"
+          />
 
           <div>
-
-            <div className="admin-badge">
+            <span className="badge">
               🛡️ لوحة الإدارة
-            </div>
+            </span>
 
             <h1>
               AllWDbook Admin
@@ -666,19 +570,15 @@ export default function AdminPage() {
               إدارة المنصة والوصول
               والإحصاءات
             </p>
-
           </div>
 
         </header>
 
 
-        <div className="admin-actions">
+        <div className="topActions">
 
           <button
-            type="button"
-            onClick={
-              loadDashboard
-            }
+            onClick={loadDashboard}
             disabled={
               loading ||
               saving
@@ -687,13 +587,9 @@ export default function AdminPage() {
             🔄 تحديث البيانات
           </button>
 
-
           <button
-            type="button"
-            onClick={
-              signOut
-            }
-            className="danger-light"
+            className="logout"
+            onClick={signOut}
           >
             تسجيل الخروج
           </button>
@@ -701,61 +597,41 @@ export default function AdminPage() {
         </div>
 
 
-        {session
-          ?.user
-          ?.email && (
-          <div className="admin-email">
-            {
-              session.user
-                .email
-            }
+        {session?.user?.email && (
+          <div className="adminEmail">
+            {session.user.email}
           </div>
         )}
 
 
-        {/* ===============================================
-            MESSAGES
-            =============================================== */}
-
         {message && (
-          <div className="message success">
+          <div className="notice good">
             {message}
           </div>
         )}
 
 
         {error && (
-          <div className="message error">
+          <div className="notice bad">
             {error}
           </div>
         )}
 
 
-        {/* ===============================================
-            LOADING
-            =============================================== */}
-
         {loading ? (
-          <section className="panel loading-panel">
-
-            <div className="spinner" />
-
-            <strong>
-              جارٍ تحميل لوحة الإدارة...
-            </strong>
-
-          </section>
+          <div className="panel loading">
+            جارٍ تحميل لوحة الإدارة...
+          </div>
         ) : (
           <>
 
-            {/* ===========================================
+            {/* =========================
                 OVERVIEW
-                =========================================== */}
+                ========================= */}
 
-            <section className="section-block">
+            <section>
 
-              <div className="section-title">
-
+              <div className="titleRow">
                 <div>
                   <h2>
                     📊 نظرة عامة
@@ -763,52 +639,233 @@ export default function AdminPage() {
 
                   <p>
                     الإحصاءات الحالية
-                    لمنصة AllWDbook
                   </p>
                 </div>
 
-                <span className="live-dot">
+                <span className="live">
                   مباشر
                 </span>
-
               </div>
 
 
-              <div className="stats-grid">
+              <div className="stats">
 
-                {stats.map(
-                  (
-                    item,
-                  ) => (
-                    <article
-                      className="stat-card"
-                      key={
-                        item.title
+                {stats.map((item) => (
+                  <article
+                    key={item.label}
+                    className="stat"
+                  >
+                    <div className="icon">
+                      {item.icon}
+                    </div>
+
+                    <small>
+                      {item.label}
+                    </small>
+
+                    <strong>
+                      {number(
+                        item.value
+                      )}
+                    </strong>
+                  </article>
+                ))}
+
+              </div>
+
+            </section>
+
+
+            {/* =========================
+                GRANT PLAN
+                ========================= */}
+
+            <section>
+
+              <div className="titleRow">
+                <div>
+                  <h2>
+                    🎁 منح خطة يدويًا
+                  </h2>
+
+                  <p>
+                    إنشاء AWD-KEY حقيقي
+                    لأي خطة مدفوعة
+                  </p>
+                </div>
+              </div>
+
+
+              <div className="panel">
+
+                <form
+                  onSubmit={grantPlan}
+                >
+
+                  <label>
+                    الخطة
+                  </label>
+
+                  <select
+                    value={
+                      grantPlanId
+                    }
+                    disabled={
+                      saving
+                    }
+                    onChange={(e) =>
+                      setGrantPlanId(
+                        e.target.value
+                      )
+                    }
+                  >
+
+                    {plans.map(
+                      (plan) => (
+                        <option
+                          key={plan.id}
+                          value={plan.id}
+                        >
+                          {planTitle(
+                            plan
+                          )}
+                          {plan.price != null
+                            ? ` — $${plan.price}`
+                            : ""}
+                        </option>
+                      )
+                    )}
+
+                  </select>
+
+
+                  <label>
+                    بريد العميل — اختياري
+                  </label>
+
+                  <input
+                    type="email"
+                    dir="ltr"
+                    inputMode="email"
+                    placeholder="user@example.com"
+                    value={
+                      grantEmail
+                    }
+                    disabled={
+                      saving
+                    }
+                    onChange={(e) =>
+                      setGrantEmail(
+                        e.target.value
+                      )
+                    }
+                  />
+
+
+                  <label>
+                    ملاحظة — اختيارية
+                  </label>
+
+                  <input
+                    type="text"
+                    maxLength={300}
+                    placeholder="Gift / Partner / Support..."
+                    value={
+                      grantNote
+                    }
+                    disabled={
+                      saving
+                    }
+                    onChange={(e) =>
+                      setGrantNote(
+                        e.target.value
+                      )
+                    }
+                  />
+
+
+                  <button
+                    className="primary"
+                    type="submit"
+                    disabled={
+                      saving ||
+                      !grantPlanId
+                    }
+                  >
+                    {saving
+                      ? "جارٍ إنشاء المفتاح..."
+                      : "🔑 إنشاء ومنح الخطة"}
+                  </button>
+
+                </form>
+
+
+                {grantResult?.code && (
+                  <div className="grantResult">
+
+                    <div className="check">
+                      ✅
+                    </div>
+
+                    <h3>
+                      تم منح الخطة
+                    </h3>
+
+                    <p>
+                      {planTitle(
+                        grantResult.plan
+                      )}
+                    </p>
+
+
+                    <div
+                      className="code"
+                      dir="ltr"
+                    >
+                      {
+                        grantResult.code
+                      }
+                    </div>
+
+
+                    <div className="resultInfo">
+
+                      <span>
+                        📱 الأجهزة:
+                        {" "}
+                        {
+                          grantResult.maxActivations
+                        }
+                      </span>
+
+                      <span>
+                        ⏳ الانتهاء:
+                        {" "}
+                        {grantResult.lifetime
+                          ? "دائم"
+                          : grantResult.expiresAt
+                          ? new Date(
+                              grantResult.expiresAt
+                            ).toLocaleDateString(
+                              "ar-DZ"
+                            )
+                          : "—"}
+                      </span>
+
+                    </div>
+
+
+                    <button
+                      type="button"
+                      className="copy"
+                      onClick={
+                        copyGrantCode
                       }
                     >
+                      📋 نسخ AWD-KEY
+                    </button>
 
-                      <div className="stat-icon">
-                        {
-                          item.icon
-                        }
-                      </div>
-
-                      <div className="stat-title">
-                        {
-                          item.title
-                        }
-                      </div>
-
-                      <strong className="stat-value">
-                        {
-                          formatNumber(
-                            item.value,
-                          )
-                        }
-                      </strong>
-
-                    </article>
-                  ),
+                  </div>
                 )}
 
               </div>
@@ -816,123 +873,58 @@ export default function AdminPage() {
             </section>
 
 
-            {/* ===========================================
-                MANAGEMENT SHORTCUTS
-                =========================================== */}
+            {/* =========================
+                MANAGEMENT
+                ========================= */}
 
-            <section className="section-block">
+            <section>
 
-              <div className="section-title">
-
+              <div className="titleRow">
                 <div>
                   <h2>
                     ⚙️ إدارة المنصة
                   </h2>
 
                   <p>
-                    الوحدات الإدارية
-                    التي سنربطها تدريجيًا
+                    الأقسام الإدارية
+                    التالية
                   </p>
                 </div>
-
               </div>
 
 
-              <div className="management-grid">
+              <div className="management">
 
-                <div className="management-card">
-
-                  <span>
-                    🔑
-                  </span>
-
-                  <div>
-                    <strong>
-                      مفاتيح AWD-KEY
-                    </strong>
-
-                    <small>
-                      البحث، الإلغاء،
-                      الخطط والأجهزة
-                    </small>
-                  </div>
-
-                  <em>
-                    قريبًا
-                  </em>
-
+                <div>
+                  <b>🔑 مفاتيح AWD-KEY</b>
+                  <small>
+                    البحث والإلغاء والخطط
+                  </small>
+                  <em>التالي</em>
                 </div>
 
-
-                <div className="management-card">
-
-                  <span>
-                    📱
-                  </span>
-
-                  <div>
-                    <strong>
-                      إدارة الأجهزة
-                    </strong>
-
-                    <small>
-                      حذف جهاز أو
-                      إعادة ضبط الأجهزة
-                    </small>
-                  </div>
-
-                  <em>
-                    قريبًا
-                  </em>
-
+                <div>
+                  <b>📱 إدارة الأجهزة</b>
+                  <small>
+                    حذف وإعادة ضبط الأجهزة
+                  </small>
+                  <em>قريبًا</em>
                 </div>
 
-
-                <div className="management-card">
-
-                  <span>
-                    👤
-                  </span>
-
-                  <div>
-                    <strong>
-                      العملاء
-                    </strong>
-
-                    <small>
-                      البحث بالبريد
-                      والخطط المملوكة
-                    </small>
-                  </div>
-
-                  <em>
-                    قريبًا
-                  </em>
-
+                <div>
+                  <b>👤 العملاء</b>
+                  <small>
+                    البحث بالبريد والخطط
+                  </small>
+                  <em>قريبًا</em>
                 </div>
 
-
-                <div className="management-card">
-
-                  <span>
-                    🛡️
-                  </span>
-
-                  <div>
-                    <strong>
-                      السجل الأمني
-                    </strong>
-
-                    <small>
-                      التفعيل والاستعادة
-                      وتغييرات الوصول
-                    </small>
-                  </div>
-
-                  <em>
-                    قريبًا
-                  </em>
-
+                <div>
+                  <b>🛡️ السجل الأمني</b>
+                  <small>
+                    التفعيل والاستعادة
+                  </small>
+                  <em>قريبًا</em>
                 </div>
 
               </div>
@@ -940,41 +932,33 @@ export default function AdminPage() {
             </section>
 
 
-            {/* ===========================================
-                LIFETIME
-                =========================================== */}
+            {/* =========================
+                LEGACY LIFETIME
+                ========================= */}
 
-            <section className="section-block">
+            <section>
 
-              <div className="section-title">
-
+              <div className="titleRow">
                 <div>
                   <h2>
-                    👑 Lifetime Pro
+                    👑 Lifetime القديم
                   </h2>
 
                   <p>
-                    الإدارة اليدوية
-                    للحسابات الدائمة
+                    للتوافق مع الحسابات
+                    القديمة فقط
                   </p>
                 </div>
 
-
-                <span className="count-badge">
+                <span className="count">
                   {
                     lifetimeItems.length
                   }
                 </span>
-
               </div>
 
 
               <div className="panel">
-
-                <h3>
-                  ➕ إضافة Lifetime
-                </h3>
-
 
                 <form
                   onSubmit={
@@ -988,22 +972,17 @@ export default function AdminPage() {
 
                   <input
                     type="email"
-                    inputMode="email"
                     dir="ltr"
                     placeholder="user@example.com"
                     value={
-                      email
+                      lifeEmail
                     }
                     disabled={
                       saving
                     }
-                    onChange={(
-                      event,
-                    ) =>
-                      setEmail(
-                        event
-                          .target
-                          .value,
+                    onChange={(e) =>
+                      setLifeEmail(
+                        e.target.value
                       )
                     }
                   />
@@ -1015,23 +994,17 @@ export default function AdminPage() {
 
                   <input
                     type="text"
-                    maxLength={
-                      300
-                    }
+                    maxLength={300}
                     placeholder="Owner / Partner / Gift"
                     value={
-                      note
+                      lifeNote
                     }
                     disabled={
                       saving
                     }
-                    onChange={(
-                      event,
-                    ) =>
-                      setNote(
-                        event
-                          .target
-                          .value,
+                    onChange={(e) =>
+                      setLifeNote(
+                        e.target.value
                       )
                     }
                   />
@@ -1039,14 +1012,10 @@ export default function AdminPage() {
 
                   <button
                     type="submit"
-                    className="primary-button"
-                    disabled={
-                      saving
-                    }
+                    className="primary"
+                    disabled={saving}
                   >
-                    {saving
-                      ? "جارٍ التنفيذ..."
-                      : "👑 تفعيل Lifetime Pro"}
+                    👑 تفعيل Lifetime القديم
                   </button>
 
                 </form>
@@ -1054,76 +1023,55 @@ export default function AdminPage() {
               </div>
 
 
-              <div className="panel lifetime-list">
+              <div className="panel list">
 
                 <h3>
                   ♾️ الحسابات الحالية
                 </h3>
 
 
-                {lifetimeItems
-                  .length ===
-                0 ? (
+                {lifetimeItems.length === 0 ? (
                   <div className="empty">
-                    لا توجد حسابات
-                    Lifetime حتى الآن.
+                    لا توجد حسابات Lifetime.
                   </div>
                 ) : (
-                  <div className="lifetime-grid">
+                  lifetimeItems.map(
+                    (item) => (
+                      <article
+                        className="life"
+                        key={item.id}
+                      >
+                        <strong
+                          dir="ltr"
+                        >
+                          {item.email}
+                        </strong>
 
-                    {lifetimeItems.map(
-                      (
-                        item,
-                      ) => (
-                        <article
-                          className="lifetime-card"
-                          key={
-                            item.id
+                        {item.note && (
+                          <p>
+                            {item.note}
+                          </p>
+                        )}
+
+                        <span>
+                          ✅ Lifetime Pro مفعل
+                        </span>
+
+                        <button
+                          onClick={() =>
+                            removeLifetime(
+                              item.email
+                            )
+                          }
+                          disabled={
+                            saving
                           }
                         >
-
-                          <strong
-                            dir="ltr"
-                          >
-                            {
-                              item.email
-                            }
-                          </strong>
-
-
-                          {item.note && (
-                            <p>
-                              {
-                                item.note
-                              }
-                            </p>
-                          )}
-
-
-                          <span>
-                            ✅ Lifetime Pro مفعل
-                          </span>
-
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              removeLifetime(
-                                item.email,
-                              )
-                            }
-                            disabled={
-                              saving
-                            }
-                          >
-                            حذف Lifetime
-                          </button>
-
-                        </article>
-                      ),
-                    )}
-
-                  </div>
+                          حذف Lifetime
+                        </button>
+                      </article>
+                    )
+                  )
                 )}
 
               </div>
@@ -1131,29 +1079,22 @@ export default function AdminPage() {
             </section>
 
 
-            {/* ===========================================
-                FOOTER
-                =========================================== */}
-
-            <footer className="admin-footer">
+            <footer>
+              <b>
+                AllWDbook Admin
+              </b>
 
               <span>
-                AllWDbook Admin
-              </span>
-
-              <small>
                 آخر تحديث:
                 {" "}
-                {overview
-                  ?.generatedAt
+                {overview?.generatedAt
                   ? new Date(
-                      overview.generatedAt,
+                      overview.generatedAt
                     ).toLocaleString(
-                      "ar-DZ",
+                      "ar-DZ"
                     )
                   : "—"}
-              </small>
-
+              </span>
             </footer>
 
           </>
@@ -1164,1015 +1105,415 @@ export default function AdminPage() {
 
       <style jsx>{`
 
-        .admin-page,
-        .admin-page * {
-          box-sizing:
-            border-box;
+        * {
+          box-sizing: border-box;
         }
 
-
-        .admin-page {
-          min-height:
-            100dvh;
-
-          padding:
-            22px 14px 60px;
-
+        .page {
+          min-height: 100dvh;
+          padding: 14px 12px 60px;
           background:
             radial-gradient(
-              circle at
-              50% -10%,
-              rgba(
-                255,
-                111,
-                0,
-                0.13
-              ),
-              transparent
-              32%
+              circle at 50% -5%,
+              rgba(255, 106, 0, .12),
+              transparent 28%
             ),
-            #030d19;
-
-          color:
-            #ffffff;
+            #03101d;
+          color: #fff;
         }
 
-
-        .admin-wrap {
-          width:
-            min(
-              100%,
-              850px
-            );
-
-          margin:
-            0 auto;
+        .wrap {
+          width: min(100%, 850px);
+          margin: auto;
         }
 
-
-        .admin-header {
-          display:
-            flex;
-
-          align-items:
-            center;
-
-          gap:
-            15px;
-
-          padding:
-            18px;
-
-          border:
-            1px solid
-            #233b5b;
-
-          border-radius:
-            24px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #0f2038,
-              #071525
-            );
-
-          box-shadow:
-            0 24px 60px
-            rgba(
-              0,
-              0,
-              0,
-              0.28
-            );
+        .hero {
+          display: flex;
+          gap: 14px;
+          align-items: center;
+          padding: 18px;
+          border: 1px solid #29425f;
+          border-radius: 24px;
+          background: #0d2036;
         }
 
-
-        .admin-logo {
-          width:
-            72px;
-
-          height:
-            72px;
-
-          flex:
-            0 0 auto;
-
-          padding:
-            4px;
-
-          border-radius:
-            19px;
-
-          background:
-            rgba(
-              255,
-              109,
-              0,
-              0.1
-            );
+        .hero img {
+          width: 74px;
+          height: 74px;
+          object-fit: cover;
+          border-radius: 19px;
         }
 
-
-        .admin-logo img {
-          width:
-            100%;
-
-          height:
-            100%;
-
-          display:
-            block;
-
-          border-radius:
-            16px;
-
-          object-fit:
-            cover;
+        .badge {
+          display: inline-block;
+          padding: 5px 10px;
+          border: 1px solid #6d512b;
+          border-radius: 999px;
+          color: #ffc369;
+          font-size: 10px;
         }
-
-
-        .admin-badge {
-          width:
-            fit-content;
-
-          margin-bottom:
-            6px;
-
-          padding:
-            5px 9px;
-
-          border:
-            1px solid
-            rgba(
-              255,
-              169,
-              66,
-              0.28
-            );
-
-          border-radius:
-            999px;
-
-          color:
-            #ffc263;
-
-          font-size:
-            10px;
-
-          font-weight:
-            800;
-        }
-
 
         h1 {
-          margin:
-            0;
-
-          font-size:
-            27px;
+          margin: 7px 0 3px;
+          font-size: 25px;
         }
 
-
-        .admin-header p {
-          margin:
-            6px 0 0;
-
-          color:
-            #8699b2;
-
-          font-size:
-            12px;
+        .hero p,
+        .titleRow p {
+          margin: 0;
+          color: #8092a8;
+          font-size: 11px;
         }
 
-
-        .admin-actions {
-          display:
-            grid;
-
-          grid-template-columns:
-            1fr 1fr;
-
-          gap:
-            10px;
-
-          margin-top:
-            12px;
+        .topActions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-top: 12px;
         }
 
-
-        .admin-actions button {
-          min-height:
-            46px;
-
-          border:
-            1px solid
-            #29415f;
-
-          border-radius:
-            13px;
-
-          background:
-            #0d1d31;
-
-          color:
-            #dce6f2;
-
-          font-weight:
-            800;
+        button {
+          cursor: pointer;
         }
 
-
-        .admin-actions
-        .danger-light {
-          color:
-            #ffadb3;
-
-          border-color:
-            #5a3038;
-
-          background:
-            #24161b;
+        .topActions button {
+          min-height: 48px;
+          border: 1px solid #29425f;
+          border-radius: 14px;
+          background: #10243b;
+          color: #fff;
+          font-weight: 800;
         }
 
-
-        .admin-email {
-          margin-top:
-            10px;
-
-          padding:
-            9px 12px;
-
-          border:
-            1px solid
-            #213752;
-
-          border-radius:
-            12px;
-
-          background:
-            #071424;
-
-          color:
-            #8295ae;
-
-          direction:
-            ltr;
-
-          text-align:
-            center;
-
-          overflow-wrap:
-            anywhere;
-
-          font-size:
-            11px;
+        .topActions .logout {
+          border-color: #68363d;
+          background: #2a181d;
+          color: #ffb1b7;
         }
 
-
-        .message {
-          margin-top:
-            12px;
-
-          padding:
-            12px;
-
-          border-radius:
-            13px;
-
-          text-align:
-            center;
-
-          font-size:
-            12px;
-
-          line-height:
-            1.7;
+        .adminEmail {
+          margin-top: 10px;
+          padding: 10px;
+          border: 1px solid #29405d;
+          border-radius: 12px;
+          text-align: center;
+          direction: ltr;
+          color: #8da0b7;
+          background: #071726;
+          font-size: 11px;
         }
 
-
-        .message.success {
-          border:
-            1px solid
-            #216344;
-
-          background:
-            #0d2d20;
-
-          color:
-            #7ae4aa;
+        section {
+          margin-top: 23px;
         }
 
-
-        .message.error {
-          border:
-            1px solid
-            #74323b;
-
-          background:
-            #31171c;
-
-          color:
-            #ffadb5;
+        .titleRow {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 11px;
         }
 
-
-        .section-block {
-          margin-top:
-            20px;
+        .titleRow h2 {
+          margin: 0 0 4px;
+          font-size: 20px;
         }
 
-
-        .section-title {
-          display:
-            flex;
-
-          align-items:
-            center;
-
-          justify-content:
-            space-between;
-
-          gap:
-            10px;
-
-          margin-bottom:
-            11px;
+        .live,
+        .count {
+          padding: 6px 10px;
+          border: 1px solid #25684a;
+          border-radius: 999px;
+          background: #0d3324;
+          color: #79e4ac;
+          font-size: 10px;
         }
 
-
-        .section-title h2 {
-          margin:
-            0;
-
-          font-size:
-            19px;
+        .stats {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
         }
 
-
-        .section-title p {
-          margin:
-            4px 0 0;
-
-          color:
-            #71869f;
-
-          font-size:
-            10px;
+        .stat {
+          min-height: 124px;
+          padding: 14px;
+          border: 1px solid #29415f;
+          border-radius: 18px;
+          background: #0b1d31;
         }
 
-
-        .live-dot,
-        .count-badge {
-          padding:
-            6px 9px;
-
-          border:
-            1px solid
-            #236147;
-
-          border-radius:
-            999px;
-
-          background:
-            #0b2d20;
-
-          color:
-            #72dfa9;
-
-          font-size:
-            9px;
-
-          font-style:
-            normal;
-
-          font-weight:
-            900;
+        .icon {
+          width: 42px;
+          height: 42px;
+          display: grid;
+          place-items: center;
+          border: 1px solid #315172;
+          border-radius: 13px;
+          background: #122a44;
+          font-size: 19px;
+          margin-bottom: 14px;
         }
 
-
-        .stats-grid {
-          display:
-            grid;
-
-          grid-template-columns:
-            repeat(
-              2,
-              minmax(
-                0,
-                1fr
-              )
-            );
-
-          gap:
-            10px;
+        .stat small {
+          display: block;
+          color: #7f91a8;
+          font-size: 10px;
         }
 
-
-        .stat-card {
-          min-height:
-            128px;
-
-          padding:
-            14px;
-
-          border:
-            1px solid
-            #233a58;
-
-          border-radius:
-            18px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #0d1d31,
-              #071522
-            );
+        .stat strong {
+          display: block;
+          margin-top: 5px;
+          font-size: 24px;
+          direction: ltr;
+          text-align: right;
         }
-
-
-        .stat-icon {
-          width:
-            39px;
-
-          height:
-            39px;
-
-          display:
-            grid;
-
-          place-items:
-            center;
-
-          margin-bottom:
-            14px;
-
-          border:
-            1px solid
-            #294568;
-
-          border-radius:
-            12px;
-
-          background:
-            #122841;
-
-          font-size:
-            18px;
-        }
-
-
-        .stat-title {
-          color:
-            #8194ac;
-
-          font-size:
-            10px;
-        }
-
-
-        .stat-value {
-          display:
-            block;
-
-          margin-top:
-            5px;
-
-          color:
-            white;
-
-          font-size:
-            25px;
-
-          direction:
-            ltr;
-
-          text-align:
-            right;
-        }
-
-
-        .management-grid {
-          display:
-            grid;
-
-          gap:
-            9px;
-        }
-
-
-        .management-card {
-          display:
-            grid;
-
-          grid-template-columns:
-            42px 1fr auto;
-
-          align-items:
-            center;
-
-          gap:
-            11px;
-
-          padding:
-            12px;
-
-          border:
-            1px solid
-            #233a58;
-
-          border-radius:
-            16px;
-
-          background:
-            #0a192b;
-        }
-
-
-        .management-card
-        > span {
-          width:
-            42px;
-
-          height:
-            42px;
-
-          display:
-            grid;
-
-          place-items:
-            center;
-
-          border:
-            1px solid
-            #294563;
-
-          border-radius:
-            12px;
-
-          background:
-            #10253e;
-
-          font-size:
-            18px;
-        }
-
-
-        .management-card strong {
-          display:
-            block;
-
-          font-size:
-            12px;
-        }
-
-
-        .management-card small {
-          display:
-            block;
-
-          margin-top:
-            3px;
-
-          color:
-            #72869f;
-
-          font-size:
-            9px;
-        }
-
-
-        .management-card em {
-          padding:
-            5px 7px;
-
-          border-radius:
-            999px;
-
-          background:
-            #17263a;
-
-          color:
-            #7e92ab;
-
-          font-size:
-            8px;
-
-          font-style:
-            normal;
-        }
-
 
         .panel {
-          padding:
-            16px;
-
-          border:
-            1px solid
-            #253c5b;
-
-          border-radius:
-            18px;
-
-          background:
-            #0c1c30;
+          padding: 16px;
+          border: 1px solid #29425f;
+          border-radius: 20px;
+          background: #0c1f34;
         }
-
-
-        .panel
-        + .panel {
-          margin-top:
-            11px;
-        }
-
-
-        .panel h3 {
-          margin:
-            0 0 14px;
-
-          font-size:
-            15px;
-        }
-
 
         label {
-          display:
-            block;
-
-          margin:
-            12px 2px 7px;
-
-          color:
-            #aab8c9;
-
-          font-size:
-            10px;
-
-          font-weight:
-            800;
+          display: block;
+          margin: 13px 2px 7px;
+          color: #aebdce;
+          font-size: 11px;
+          font-weight: 800;
         }
 
-
-        input {
-          width:
-            100%;
-
-          min-height:
-            52px;
-
-          padding:
-            11px 13px;
-
-          border:
-            1px solid
-            #2a4262;
-
-          border-radius:
-            13px;
-
-          outline:
-            none;
-
-          background:
-            #051320;
-
-          color:
-            white;
-
-          font-size:
-            14px;
+        input,
+        select {
+          width: 100%;
+          min-height: 52px;
+          padding: 11px 13px;
+          border: 1px solid #304a68;
+          border-radius: 13px;
+          background: #061522;
+          color: #fff;
+          outline: none;
+          font-size: 14px;
         }
 
-
-        input:focus {
-          border-color:
-            #ff6d00;
-
-          box-shadow:
-            0 0 0 3px
-            rgba(
-              255,
-              109,
-              0,
-              0.08
-            );
+        select {
+          direction: rtl;
         }
 
-
-        .primary-button {
-          width:
-            100%;
-
-          min-height:
-            52px;
-
-          margin-top:
-            15px;
-
-          border:
-            0;
-
-          border-radius:
-            13px;
-
+        .primary {
+          width: 100%;
+          min-height: 53px;
+          margin-top: 16px;
+          border: 0;
+          border-radius: 14px;
           background:
             linear-gradient(
               135deg,
-              #ff6900,
-              #ff842d
+              #ff6800,
+              #ff862f
             );
-
-          color:
-            white;
-
-          font-size:
-            13px;
-
-          font-weight:
-            900;
+          color: #fff;
+          font-weight: 900;
+          font-size: 14px;
         }
-
 
         button:disabled {
-          opacity:
-            0.55;
+          opacity: .55;
+          cursor: wait;
         }
 
-
-        .lifetime-grid {
-          display:
-            grid;
-
-          gap:
-            9px;
+        .grantResult {
+          margin-top: 18px;
+          padding: 17px;
+          border: 1px solid #267755;
+          border-radius: 18px;
+          background: #08291f;
+          text-align: center;
         }
 
-
-        .lifetime-card {
-          padding:
-            13px;
-
-          border:
-            1px solid
-            #263d5c;
-
-          border-radius:
-            14px;
-
-          background:
-            #061421;
+        .check {
+          font-size: 34px;
         }
 
-
-        .lifetime-card strong {
-          display:
-            block;
-
-          text-align:
-            left;
-
-          overflow-wrap:
-            anywhere;
-
-          font-size:
-            12px;
+        .grantResult h3 {
+          margin: 9px 0 4px;
         }
 
-
-        .lifetime-card p {
-          margin:
-            7px 0;
-
-          color:
-            #7f91a8;
-
-          font-size:
-            10px;
+        .grantResult p {
+          margin: 0;
+          color: #8eddb6;
         }
 
-
-        .lifetime-card span {
-          display:
-            block;
-
-          margin-top:
-            7px;
-
-          color:
-            #70dda4;
-
-          font-size:
-            10px;
+        .code {
+          margin-top: 14px;
+          padding: 14px 9px;
+          border: 1px solid #34556b;
+          border-radius: 13px;
+          background: #06131c;
+          color: #ffc66d;
+          font-size: 13px;
+          overflow-wrap: anywhere;
         }
 
-
-        .lifetime-card button {
-          width:
-            100%;
-
-          min-height:
-            40px;
-
-          margin-top:
-            10px;
-
-          border:
-            1px solid
-            #69313a;
-
-          border-radius:
-            11px;
-
-          background:
-            #2b161b;
-
-          color:
-            #ffabb3;
-
-          font-size:
-            10px;
-
-          font-weight:
-            800;
+        .resultInfo {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin-top: 10px;
         }
 
+        .resultInfo span {
+          padding: 8px;
+          border-radius: 10px;
+          background: rgba(255,255,255,.04);
+          color: #a8bac9;
+          font-size: 10px;
+        }
 
+        .copy {
+          width: 100%;
+          min-height: 46px;
+          margin-top: 11px;
+          border: 1px solid #2f7259;
+          border-radius: 12px;
+          background: #0c432f;
+          color: #a5f1cb;
+          font-weight: 900;
+        }
+
+        .management {
+          display: grid;
+          gap: 9px;
+        }
+
+        .management > div {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 4px 10px;
+          padding: 15px;
+          border: 1px solid #29425f;
+          border-radius: 16px;
+          background: #0b1d31;
+        }
+
+        .management b {
+          font-size: 13px;
+        }
+
+        .management small {
+          grid-column: 1;
+          color: #75879d;
+          font-size: 9px;
+        }
+
+        .management em {
+          grid-column: 2;
+          grid-row: 1 / 3;
+          align-self: center;
+          padding: 6px 9px;
+          border-radius: 999px;
+          background: #172b43;
+          color: #92a5bb;
+          font-size: 9px;
+          font-style: normal;
+        }
+
+        .list {
+          margin-top: 11px;
+        }
+
+        .list h3 {
+          margin: 0 0 12px;
+        }
+
+        .life {
+          padding: 13px;
+          margin-top: 9px;
+          border: 1px solid #29425f;
+          border-radius: 14px;
+          background: #061522;
+        }
+
+        .life strong {
+          display: block;
+          direction: ltr;
+          text-align: left;
+          overflow-wrap: anywhere;
+          font-size: 12px;
+        }
+
+        .life p {
+          color: #7d90a6;
+          font-size: 10px;
+        }
+
+        .life span {
+          display: block;
+          margin-top: 7px;
+          color: #78e0a7;
+          font-size: 10px;
+        }
+
+        .life button {
+          width: 100%;
+          min-height: 42px;
+          margin-top: 10px;
+          border: 1px solid #743841;
+          border-radius: 11px;
+          background: #32181d;
+          color: #ffadb5;
+          font-weight: 800;
+        }
+
+        .notice {
+          margin-top: 12px;
+          padding: 12px;
+          border-radius: 13px;
+          text-align: center;
+          font-size: 11px;
+        }
+
+        .good {
+          border: 1px solid #277252;
+          background: #0c3123;
+          color: #8de8b8;
+        }
+
+        .bad {
+          border: 1px solid #74343d;
+          background: #32171c;
+          color: #ffabb4;
+        }
+
+        .loading,
         .empty {
-          padding:
-            25px 10px;
-
-          text-align:
-            center;
-
-          color:
-            #70839a;
-
-          font-size:
-            11px;
+          padding: 35px 12px;
+          text-align: center;
+          color: #8396ac;
         }
 
-
-        .loading-panel {
-          margin-top:
-            20px;
-
-          padding:
-            42px 15px;
-
-          text-align:
-            center;
-
-          color:
-            #8c9db2;
+        footer {
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+          margin-top: 24px;
+          padding: 12px 2px;
+          color: #71849b;
+          font-size: 9px;
         }
 
-
-        .spinner {
-          width:
-            32px;
-
-          height:
-            32px;
-
-          margin:
-            0 auto 15px;
-
-          border:
-            3px solid
-            #20344f;
-
-          border-top-color:
-            #ff6d00;
-
-          border-radius:
-            50%;
-
-          animation:
-            spin
-            0.8s linear
-            infinite;
-        }
-
-
-        @keyframes spin {
-          to {
-            transform:
-              rotate(360deg);
-          }
-        }
-
-
-        .admin-footer {
-          display:
-            flex;
-
-          align-items:
-            center;
-
-          justify-content:
-            space-between;
-
-          gap:
-            10px;
-
-          margin-top:
-            20px;
-
-          padding:
-            12px 2px;
-
-          color:
-            #667a92;
-
-          font-size:
-            9px;
-        }
-
-
-        .admin-footer span {
-          color:
-            #8fa1b7;
-
-          font-weight:
-            800;
-        }
-
-
-        @media (
-          min-width:
-            700px
-        ) {
-
-          .stats-grid {
+        @media (min-width: 700px) {
+          .stats {
             grid-template-columns:
-              repeat(
-                5,
-                minmax(
-                  0,
-                  1fr
-                )
-              );
+              repeat(5, 1fr);
           }
 
-
-          .management-grid {
+          .management {
             grid-template-columns:
-              repeat(
-                2,
-                1fr
-              );
+              1fr 1fr;
           }
-
-        }
-
-
-        @media (
-          max-width:
-            420px
-        ) {
-
-          .admin-page {
-            padding:
-              14px 11px 50px;
-          }
-
-
-          .admin-header {
-            padding:
-              15px;
-
-            border-radius:
-              21px;
-          }
-
-
-          .admin-logo {
-            width:
-              61px;
-
-            height:
-              61px;
-          }
-
-
-          h1 {
-            font-size:
-              21px;
-          }
-
-
-          .stat-card {
-            min-height:
-              118px;
-          }
-
-
-          .stat-value {
-            font-size:
-              22px;
-          }
-
         }
 
       `}</style>
