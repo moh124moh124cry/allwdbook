@@ -9,8 +9,7 @@ const MONETAG_ZONE = "";
 const LOGO = "/logov3.png";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  "https://allwdbook-ex14.vercel.app";
+  "https://www.allwdbook.com";
 
 
 /* =========================================================
