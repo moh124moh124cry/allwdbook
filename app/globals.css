@@ -1599,3 +1599,291 @@ html,
 body {
   background-color: #02060d !important;
 }
+/* =========================================================
+   ALLWDBOOK — CRITICAL FIRST PAINT
+   Prevent header/logo/text flash before homepage CSS loads
+   ========================================================= */
+
+.awd-app {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  background: #02060d;
+  color: #f7f9fd;
+}
+
+.awd-shell {
+  width: min(
+    1160px,
+    calc(100% - 32px)
+  );
+  margin-inline: auto;
+}
+
+.awd-header-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  border-bottom:
+    1px solid
+    rgba(117, 153, 196, 0.12);
+
+  background: #020812;
+}
+
+.awd-header {
+  min-height: 76px;
+
+  display: grid;
+
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+.awd-brand {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+}
+
+.awd-brand-logo {
+  display: block;
+
+  width: 46px !important;
+  height: 46px !important;
+
+  min-width: 46px;
+
+  max-width: 46px !important;
+  max-height: 46px !important;
+
+  flex: 0 0 46px;
+
+  object-fit: cover;
+
+  border-radius: 14px;
+}
+
+.awd-brand-copy {
+  min-width: 0;
+}
+
+.awd-brand-copy strong {
+  display: block;
+
+  margin: 0;
+
+  overflow: hidden;
+
+  color: #ffffff;
+
+  font-size: 21px;
+  font-weight: 900;
+
+  line-height: 1.2;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+.awd-brand-copy small {
+  display: block;
+
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  color: #6f829d;
+
+  font-size: 10px;
+
+  line-height: 1.2;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+.awd-header-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+}
+
+.awd-menu-button,
+.awd-icon-button {
+  width: 44px;
+  height: 44px;
+
+  min-width: 44px;
+
+  display: grid;
+
+  place-items: center;
+
+  padding: 0;
+
+  border:
+    1px solid
+    #172c46;
+
+  border-radius: 14px;
+
+  background: #071425;
+
+  color: #ffffff;
+}
+
+.awd-menu-lines {
+  width: 20px;
+
+  display: grid;
+
+  gap: 5px;
+}
+
+.awd-menu-lines span {
+  display: block;
+
+  width: 20px;
+  height: 2px;
+
+  border-radius: 999px;
+
+  background: #f8fafc;
+}
+
+
+/* أول جزء من الـHero */
+
+.awd-hero-wrap {
+  padding-top: 20px;
+}
+
+.awd-hero {
+  min-height: 430px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.15fr)
+    minmax(240px, 0.85fr);
+
+  align-items: center;
+
+  gap: 30px;
+
+  padding: 48px;
+
+  border:
+    1px solid
+    rgba(89, 130, 181, 0.18);
+
+  border-radius: 30px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #071629,
+      #061224 55%,
+      #030b17
+    );
+}
+
+.awd-hero-visual {
+  position: relative;
+
+  min-height: 310px;
+
+  display: grid;
+
+  place-items: center;
+}
+
+.awd-hero-logo {
+  display: block;
+
+  width: 180px !important;
+  height: 180px !important;
+
+  min-width: 180px;
+
+  max-width: 180px !important;
+  max-height: 180px !important;
+
+  object-fit: cover;
+
+  border-radius: 35px;
+}
+
+
+/* الهاتف */
+
+@media (max-width: 760px) {
+
+  .awd-shell {
+    width:
+      calc(100% - 24px);
+  }
+
+  .awd-header {
+    min-height: 68px;
+
+    gap: 8px;
+  }
+
+  .awd-brand-logo {
+    width: 40px !important;
+    height: 40px !important;
+
+    min-width: 40px;
+
+    max-width: 40px !important;
+    max-height: 40px !important;
+
+    flex-basis: 40px;
+  }
+
+  .awd-brand-copy strong {
+    font-size: 17px;
+  }
+
+  .awd-brand-copy small {
+    font-size: 9px;
+  }
+
+  .awd-menu-button,
+  .awd-icon-button {
+    width: 40px;
+    height: 40px;
+
+    min-width: 40px;
+  }
+
+  .awd-hero {
+    min-height: 0;
+
+    display: block;
+
+    padding: 25px 18px;
+  }
+
+  .awd-hero-visual {
+    display: none;
+  }
+}
