@@ -4,6 +4,11 @@ export const metadata = {
 
   description:
     "سياسة إلغاء واسترداد اشتراكات AllWDbook المدفوعة عبر Lemon Squeezy.",
+
+  alternates: {
+    canonical:
+      "/refund",
+  },
 };
 
 const UPDATED =
