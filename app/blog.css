@@ -1,1 +1,99 @@
+/* app/blog.css */
 
+.blogArticleShell {
+  background: #050505;
+  color: #f5f5f5;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.blogArticleHeader {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.blogLogo {
+  width: 120px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.blogCategory {
+  color: #ff8a00;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.blogArticleHeader h1 {
+  font-size: 42px;
+  line-height: 1.3;
+  margin: 20px 0;
+}
+
+.blogDescription {
+  color: #c7c7c7;
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+.blogReadingTime {
+  color: #ff8a00;
+  margin-top: 15px;
+}
+
+.blogHero {
+  max-width: 1000px;
+  margin: 40px auto;
+}
+
+.blogHero img {
+  width: 100%;
+  border-radius: 18px;
+}
+
+.blogIntro,
+.blogSections,
+.blogTakeaways,
+.blogRelated {
+  max-width: 900px;
+  margin: 40px auto;
+}
+
+.blogArticleShell h2 {
+  color: #ff8a00;
+  margin-bottom: 20px;
+}
+
+.blogArticleShell p,
+.blogArticleShell li {
+  font-size: 18px;
+  line-height: 2;
+  color: #e5e5e5;
+}
+
+.blogTakeaways {
+  background: #101525;
+  border-radius: 18px;
+  padding: 25px;
+}
+
+.blogRelated {
+  border-top: 1px solid #222;
+  padding-top: 30px;
+}
+
+@media (max-width: 768px) {
+  .blogArticleShell {
+    padding: 16px;
+  }
+
+  .blogArticleHeader h1 {
+    font-size: 30px;
+  }
+
+  .blogArticleShell p,
+  .blogArticleShell li {
+    font-size: 16px;
+  }
+}
