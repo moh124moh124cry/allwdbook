@@ -1560,3 +1560,42 @@ html[dir="ltr"] body {
       auto !important;
   }
 }
+/* =========================================================
+   ALLWDBOOK — LOGO FLASH FIX
+   Prevent natural-size logo flash before page CSS loads
+   ========================================================= */
+
+img[src="/logov3.png"] {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 180px;
+  max-height: 180px;
+  object-fit: cover;
+}
+
+.awd-brand-logo {
+  width: 46px !important;
+  height: 46px !important;
+  max-width: 46px !important;
+  max-height: 46px !important;
+}
+
+.awd-drawer-logo {
+  width: 48px !important;
+  height: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+}
+
+.awd-hero-logo {
+  width: 180px !important;
+  height: 180px !important;
+  max-width: 180px !important;
+  max-height: 180px !important;
+}
+
+html,
+body {
+  background-color: #02060d !important;
+}
