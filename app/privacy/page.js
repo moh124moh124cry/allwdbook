@@ -4,10 +4,12 @@ export const metadata = {
 
   description:
     "سياسة خصوصية AllWDbook وتشمل حسابات Supabase واشتراكات Lemon Squeezy والتحليلات وأدوات البحث والذكاء الاصطناعي.",
-};
 
-const UPDATED =
-  "14 August 2026";
+  alternates: {
+    canonical:
+      "/privacy",
+  },
+};
 
 const EMAIL =
   "anesscherfaoui@gmail.com";
