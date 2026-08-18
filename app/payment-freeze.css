@@ -1,0 +1,69 @@
+/* =========================================================
+   ALLWDBOOK — TEMPORARY PAYMENT FREEZE
+   =========================================================
+   Used while payment-provider verification is pending.
+
+   This file only removes NEW purchase controls.
+
+   It does NOT disable:
+   - Existing paid access
+   - Lifetime access
+   - AWD-KEY recovery
+   - Security email recovery
+   - Billing management
+   - Free tools
+
+   Remove these rules or stop importing this file
+   when payments are enabled again.
+   ========================================================= */
+
+
+/* =========================================================
+   ACCOUNT MENU — LIFETIME PURCHASE
+   Keep Lifetime information visible,
+   but remove the purchase button.
+   ========================================================= */
+
+.awd-lifetime-card
+  .awd-account-button.primary {
+  display:
+    none !important;
+}
+
+
+/* =========================================================
+   ACCOUNT MENU — PACKAGE LIST BUTTON
+   The subscription link immediately before this button
+   remains visible and takes the user to the payment-status
+   page instead.
+   ========================================================= */
+
+.awd-account-sheet
+  > a[href="/subscription"]
+  + button.awd-account-button {
+  display:
+    none !important;
+}
+
+
+/* =========================================================
+   ACCOUNT MENU — DIRECT PACKAGE CHECKOUTS
+   Extra safeguard so checkout plan buttons cannot appear.
+   ========================================================= */
+
+.awd-plans-wrap {
+  display:
+    none !important;
+}
+
+
+/* =========================================================
+   DIRECT LEMON SQUEEZY LINKS
+   Additional UI safeguard for any normal anchor that might
+   still point directly to Lemon Squeezy.
+   ========================================================= */
+
+a[href*="lemonsqueezy.com"] {
+  display:
+    none !important;
+}
