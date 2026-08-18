@@ -6,10 +6,12 @@ export const metadata = {
     "سياسة خصوصية AllWDbook وتشمل حسابات Supabase واشتراكات Lemon Squeezy والتحليلات وأدوات البحث والذكاء الاصطناعي.",
 
   alternates: {
-    canonical:
-      "/privacy",
+    canonical: "/privacy",
   },
 };
+
+const UPDATED =
+  "14 August 2026";
 
 const EMAIL =
   "anesscherfaoui@gmail.com";
@@ -17,16 +19,12 @@ const EMAIL =
 const styles = {
   box: {
     background: "#ffffff",
-
     border:
       "2px solid #d9e2ef",
-
     borderRadius: 16,
     padding: 20,
     marginBottom: 18,
-
     color: "#172033",
-
     boxShadow:
       "0 16px 42px rgba(0,0,0,.22)",
   },
@@ -58,14 +56,11 @@ const styles = {
 
   note: {
     background: "#eafaf1",
-
     border:
       "1px solid #7ecb99",
-
     borderRadius: 11,
     padding: 12,
     marginTop: 12,
-
     fontSize: 13,
     lineHeight: 1.8,
     color: "#215c38",
