@@ -895,13 +895,38 @@ export default function AdminPage() {
 
               <div className="management">
 
-                <div>
-                  <b>🔑 مفاتيح AWD-KEY</b>
-                  <small>
-                    البحث والإلغاء والخطط
-                  </small>
-                  <em>التالي</em>
-                </div>
+                <div
+  role="button"
+  tabIndex={0}
+  onClick={() =>
+    router.push(
+      "/admin/access-keys"
+    )
+  }
+  onKeyDown={(event) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+
+      router.push(
+        "/admin/access-keys"
+      );
+    }
+  }}
+  style={{
+    cursor: "pointer",
+  }}
+>
+  <b>🔑 مفاتيح AWD-KEY</b>
+
+  <small>
+    البحث والإلغاء والخطط والأجهزة
+  </small>
+
+  <em>فتح ←</em>
+</div>
 
                 <div>
                   <b>📱 إدارة الأجهزة</b>
