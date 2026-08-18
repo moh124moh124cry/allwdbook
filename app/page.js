@@ -3422,19 +3422,60 @@ export default function Home() {
 
             {/* شعار واحد فقط */}
 
-            <div className="awd-brand">
+            <div
+              className="awd-brand"
+              style={{
+                minWidth: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: 11,
+                overflow: "hidden",
+              }}
+            >
               <img
                 className="awd-brand-logo"
                 src="/logov3.png"
                 alt="AllWDbook"
+                width="46"
+                height="46"
+                style={{
+                  display: "block",
+                  flex: "0 0 auto",
+                  objectFit: "cover",
+                  borderRadius: 14,
+                }}
               />
 
-              <div className="awd-brand-copy">
-                <strong>
+              <div
+                className="awd-brand-copy"
+                style={{
+                  minWidth: 0,
+                  overflow: "hidden",
+                }}
+              >
+                <strong
+                  style={{
+                    display: "block",
+                    margin: 0,
+                    lineHeight: 1.2,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
                   AllWDbook
                 </strong>
 
-                <small>
+                <small
+                  style={{
+                    display: "block",
+                    marginTop: 2,
+                    lineHeight: 1.2,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
                   KDP Tools & Digital Publishing
                 </small>
               </div>
@@ -4892,3 +4933,4 @@ function Calc({
     </div>
   );
 }
+
