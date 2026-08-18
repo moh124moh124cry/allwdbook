@@ -928,13 +928,38 @@ export default function AdminPage() {
   <em>فتح ←</em>
 </div>
 
-                <div>
-                  <b>📱 إدارة الأجهزة</b>
-                  <small>
-                    حذف وإعادة ضبط الأجهزة
-                  </small>
-                  <em>قريبًا</em>
-                </div>
+                <div
+  role="button"
+  tabIndex={0}
+  onClick={() =>
+    router.push(
+      "/admin/devices"
+    )
+  }
+  onKeyDown={(event) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+
+      router.push(
+        "/admin/devices"
+      );
+    }
+  }}
+  style={{
+    cursor: "pointer",
+  }}
+>
+  <b>📱 إدارة الأجهزة</b>
+
+  <small>
+    حذف وإعادة ضبط الأجهزة المرتبطة بالمفاتيح
+  </small>
+
+  <em>فتح ←</em>
+</div>
 
                 <div
   role="button"
