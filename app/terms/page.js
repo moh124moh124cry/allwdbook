@@ -4,6 +4,11 @@ export const metadata = {
 
   description:
     "شروط استخدام AllWDbook وخدمات الاشتراك وأدوات Amazon KDP المقدمة من All World Digital.",
+
+  alternates: {
+    canonical:
+      "/terms",
+  },
 };
 
 const UPDATED =
