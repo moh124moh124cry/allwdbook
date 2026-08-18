@@ -1,6 +1,5 @@
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  "https://allwdbook-ex14.vercel.app";
+  "https://www.allwdbook.com";
 
 export default function robots() {
   return {
@@ -8,10 +7,18 @@ export default function robots() {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/"]
-      }
+
+        disallow: [
+          "/api/",
+          "/admin/",
+          "/login",
+        ],
+      },
     ],
-    sitemap: `${SITE_URL}/sitemap.xml`,
-    host: SITE_URL
+
+    sitemap:
+      `${SITE_URL}/sitemap.xml`,
+
+    host: SITE_URL,
   };
 }
