@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import { T } from "../lib/i18n";
 import { NICHE_CATEGORIES } from "../lib/niches";
@@ -473,14 +474,41 @@ export default function Home() {
   }
 
   function scrollToTools() {
-    document
-      .getElementById(
-        "awd-tools",
-      )
-      ?.scrollIntoView({
+    setDrawerOpen(false);
+
+    window.setTimeout(() => {
+      const section =
+        document.getElementById(
+          "awd-tools",
+        );
+
+      if (!section) {
+        return;
+      }
+
+      const top =
+        section.getBoundingClientRect()
+          .top +
+        window.scrollY -
+        88;
+
+      window.scrollTo({
+        top: Math.max(0, top),
         behavior: "smooth",
-        block: "start",
       });
+    }, 80);
+  }
+
+  function goHome() {
+    setDrawerOpen(false);
+    setTab(null);
+
+    window.setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }, 50);
   }
 
   /* =======================================================
@@ -542,6 +570,15 @@ export default function Home() {
         select,
         textarea {
           font: inherit;
+        }
+
+        a,
+        button {
+          -webkit-tap-highlight-color:
+            transparent;
+
+          touch-action:
+            manipulation;
         }
 
         .awd-app,
@@ -1497,7 +1534,6 @@ export default function Home() {
 
         .awd-hero h1 {
           max-width: 730px;
-
           margin: 0;
 
           color:
@@ -1928,6 +1964,13 @@ export default function Home() {
         .awd-view-all {
           flex: 0 0 auto;
 
+          padding: 0;
+
+          border: 0;
+
+          background:
+            transparent;
+
           color:
             #ff8a38;
 
@@ -1937,6 +1980,8 @@ export default function Home() {
           font-size: 13px;
 
           font-weight: 900;
+
+          cursor: pointer;
         }
 
         /* ===============================================
@@ -1997,8 +2042,7 @@ export default function Home() {
         }
 
         .awd-tool-card:hover {
-          transform:
-            translateY(-2px);
+          transform:            translateY(-2px);
 
           border-color:
             rgba(
@@ -2333,6 +2377,10 @@ export default function Home() {
         .awd-upgrade {
           min-height: 45px;
 
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+
           padding-inline: 18px;
 
           border: 1px solid
@@ -2352,6 +2400,9 @@ export default function Home() {
           font-size: 13px;
 
           font-weight: 900;
+
+          text-decoration:
+            none;
 
           cursor: pointer;
         }
@@ -2497,8 +2548,7 @@ export default function Home() {
           grid-template-columns:
             repeat(
               4,
-              minmax(
-                0,
+              minmax(                0,
                 1fr
               )
             );
@@ -2536,6 +2586,7 @@ export default function Home() {
         }
 
         .awd-nav-link {
+          width: 100%;
           min-height: 60px;
 
           display: flex;
@@ -2550,7 +2601,14 @@ export default function Home() {
 
           gap: 4px;
 
+          padding: 0;
+
+          border: 0;
+
           border-radius: 15px;
+
+          background:
+            transparent;
 
           color:
             #61728a;
@@ -2558,7 +2616,12 @@ export default function Home() {
           text-decoration:
             none;
 
+          text-align:
+            center;
+
           font-size: 10px;
+
+          cursor: pointer;
         }
 
         .awd-nav-icon {
@@ -2997,8 +3060,7 @@ export default function Home() {
           <img
             className="awd-drawer-logo"
             src="/logov3.png"
-            alt="AllWDbook"
-          />
+            alt="AllWDbook"          />
 
           <div className="awd-drawer-brand">
             <strong>
@@ -3033,9 +3095,10 @@ export default function Home() {
           </span>
 
           <nav className="awd-menu-links">
-            <a
-              href="/"
+            <button
+              type="button"
               className="awd-menu-link active"
+              onClick={goHome}
             >
               <span className="awd-menu-icon">
                 🏠
@@ -3054,11 +3117,12 @@ export default function Home() {
                     : "AllWDbook dashboard"}
                 </small>
               </span>
-            </a>
+            </button>
 
-            <a
-              href="/tools"
+            <button
+              type="button"
               className="awd-menu-link"
+              onClick={scrollToTools}
             >
               <span className="awd-menu-icon">
                 🧰
@@ -3077,11 +3141,14 @@ export default function Home() {
                     : "Publishing toolkit"}
                 </small>
               </span>
-            </a>
+            </button>
 
-            <a
+            <Link
               href="/subscription"
               className="awd-menu-link"
+              onClick={() =>
+                setDrawerOpen(false)
+              }
             >
               <span className="awd-menu-icon">
                 👑
@@ -3100,11 +3167,14 @@ export default function Home() {
                     : "Manage your access"}
                 </small>
               </span>
-            </a>
+            </Link>
 
-            <a
+            <Link
               href="/blog"
               className="awd-menu-link"
+              onClick={() =>
+                setDrawerOpen(false)
+              }
             >
               <span className="awd-menu-icon">
                 📰
@@ -3123,7 +3193,7 @@ export default function Home() {
                     : "Publishing guides"}
                 </small>
               </span>
-            </a>
+            </Link>
           </nav>
         </section>
 
@@ -3245,9 +3315,12 @@ export default function Home() {
           </span>
 
           <nav className="awd-menu-links">
-            <a
+            <Link
               href="/about"
               className="awd-menu-link"
+              onClick={() =>
+                setDrawerOpen(false)
+              }
             >
               <span className="awd-menu-icon">
                 ℹ️
@@ -3258,11 +3331,14 @@ export default function Home() {
                   ? "حول AllWDbook"
                   : "About AllWDbook"}
               </span>
-            </a>
+            </Link>
 
-            <a
+            <Link
               href="/privacy"
               className="awd-menu-link"
+              onClick={() =>
+                setDrawerOpen(false)
+              }
             >
               <span className="awd-menu-icon">
                 🔒
@@ -3273,11 +3349,14 @@ export default function Home() {
                   ? "الخصوصية"
                   : "Privacy"}
               </span>
-            </a>
+            </Link>
 
-            <a
+            <Link
               href="/terms"
               className="awd-menu-link"
+              onClick={() =>
+                setDrawerOpen(false)
+              }
             >
               <span className="awd-menu-icon">
                 📄
@@ -3288,11 +3367,14 @@ export default function Home() {
                   ? "الشروط"
                   : "Terms"}
               </span>
-            </a>
+            </Link>
 
-            <a
+            <Link
               href="/refund"
               className="awd-menu-link"
+              onClick={() =>
+                setDrawerOpen(false)
+              }
             >
               <span className="awd-menu-icon">
                 ↩️
@@ -3303,7 +3385,7 @@ export default function Home() {
                   ? "سياسة الاسترداد"
                   : "Refund Policy"}
               </span>
-            </a>
+            </Link>
           </nav>
         </section>
       </aside>
@@ -3497,8 +3579,7 @@ export default function Home() {
                     _,
                     index,
                   ) => (
-                    <button
-                      key={
+                    <button                      key={
                         index
                       }
                       type="button"
@@ -3582,14 +3663,15 @@ export default function Home() {
               </p>
             </div>
 
-            <a
-              href="/tools"
+            <button
+              type="button"
               className="awd-view-all"
+              onClick={scrollToTools}
             >
               {isAr
                 ? "عرض الكل ←"
                 : "View all →"}
-            </a>
+            </button>
           </div>
 
           <div className="awd-tools-grid">
@@ -3681,19 +3763,15 @@ export default function Home() {
               </span>
             </div>
 
-            <button
-              type="button"
+            <Link
+              href="/subscription"
               className="awd-upgrade"
-              onClick={() => {
-                window.location.href =
-                  "/subscription";
-              }}
             >
               {isAr
                 ? "ترقية"
                 : "Upgrade"}{" "}
               ⚡
-            </button>
+            </Link>
           </div>
 
           <div className="awd-progress">
@@ -3814,9 +3892,10 @@ export default function Home() {
           =================================================== */}
 
       <nav className="awd-bottom-nav">
-        <a
-          href="/tools"
+        <button
+          type="button"
           className="awd-nav-link"
+          onClick={scrollToTools}
         >
           <span className="awd-nav-icon">
             🧰
@@ -3827,11 +3906,12 @@ export default function Home() {
               ? "الأدوات"
               : "Tools"}
           </span>
-        </a>
+        </button>
 
-        <a
-          href="/"
+        <button
+          type="button"
           className="awd-nav-link active"
+          onClick={goHome}
         >
           <span className="awd-nav-icon">
             🏠
@@ -3842,9 +3922,9 @@ export default function Home() {
               ? "الرئيسية"
               : "Home"}
           </span>
-        </a>
+        </button>
 
-        <a
+        <Link
           href="/subscription"
           className="awd-nav-link"
         >
@@ -3857,9 +3937,9 @@ export default function Home() {
               ? "الاشتراك"
               : "Plan"}
           </span>
-        </a>
+        </Link>
 
-        <a
+        <Link
           href="/blog"
           className="awd-nav-link"
         >
@@ -3872,7 +3952,7 @@ export default function Home() {
               ? "المدونة"
               : "Blog"}
           </span>
-        </a>
+        </Link>
       </nav>
     </main>
   );
@@ -3997,8 +4077,7 @@ function Niches({
       );
 
     const data =
-      await response
-        .json()
+      await response        .json()
         .catch(
           () => ({}),
         );
@@ -4497,8 +4576,7 @@ function Formatter({
         rows={8}
         maxLength={
           4000
-        }
-        value={value}
+        }        value={value}
         onChange={(event) =>
           setValue(
             event.target
