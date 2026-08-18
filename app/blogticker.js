@@ -1,54 +1,29 @@
 "use client";
 
+import Link from "next/link";
+
 export default function BlogTicker({
   isAr = true,
 }) {
-  const posts = isAr
-    ? [
-        {
-          title:
-            "كيف تختار الكلمات المفتاحية المناسبة لكتابك على Amazon KDP؟",
-        },
-        {
-          title:
-            "كيف تبحث عن Micro-Niche واعد قبل نشر كتابك؟",
-        },
-        {
-          title:
-            "دليل مقاسات أغلفة Amazon KDP",
-        },
-        {
-          title:
-            "كيف تحسب تكلفة الطباعة وأرباح كتابك؟",
-        },
-      ]
-    : [
-        {
-          title:
-            "How to choose the right Amazon KDP keywords",
-        },
-        {
-          title:
-            "How to research a promising Micro-Niche",
-        },
-        {
-          title:
-            "Amazon KDP cover size guide",
-        },
-        {
-          title:
-            "How to estimate printing costs and royalties",
-        },
-      ];
+  const post = isAr
+    ? {
+        title:
+          "لماذا أنشأت AllWDbook؟ المشكلة التي أردت حلها للناشرين",
+        href:
+          "/ar/blog/why-i-created-allwdbook",
+      }
+    : {
+        title:
+          "Why I Created AllWDbook: The Problem I Wanted to Solve for Publishers",
+        href:
+          "/en/blog/why-i-created-allwdbook",
+      };
 
-  /*
-   * نكرر العناصر مرتين
-   * للحصول على حركة مستمرة بلا فراغ.
-   */
-  const tickerItems = [
-    ...posts,
-    ...posts,
-  ];
+  const tickerItems =
+    Array.from(
+      { length: 6 },
+      () => post
+    );
 
   return (
     <div
@@ -60,69 +35,54 @@ export default function BlogTicker({
           : "Latest blog articles"
       }
     >
-      <div className="awd-blog-ticker-label">
-        <span className="awd-blog-live-dot" />
-
-        <strong>
-          {isAr
-            ? "من المدونة"
-            : "From the Blog"}
-        </strong>
-
-        <span>📰</span>
-      </div>
-
       <div className="awd-blog-ticker-window">
         <div className="awd-blog-ticker-track">
           {tickerItems.map(
-            (post, index) => (
-              <div
+            (item, index) => (
+              <Link
+                href={item.href}
                 className="awd-blog-ticker-item"
-                key={`${post.title}-${index}`}
+                key={`${item.href}-${index}`}
               >
-                <span className="awd-blog-ticker-arrow">
-                  {isAr ? "←" : "→"}
-                </span>
+                {item.title}
 
-                <span>
-                  {post.title}
-                </span>
-
-                <span className="awd-blog-separator">
+                <span className="awd-blog-ticker-dot">
                   •
                 </span>
-              </div>
+              </Link>
             )
           )}
         </div>
       </div>
 
       <style jsx>{`
+        :global(.awd-hero-description) {
+          display: none !important;
+        }
+
         .awd-blog-ticker {
           width: 100%;
 
-          min-height: 48px;
+          min-height: 96px;
 
-          display: grid;
-
-          grid-template-columns:
-            auto minmax(0, 1fr);
+          display: flex;
 
           align-items: center;
 
           overflow: hidden;
 
-          margin-top: 20px;
+          margin-top: 26px;
+          margin-bottom: 28px;
 
           border: 1px solid
             rgba(
               255,
               105,
               0,
-              0.2
+              0.28
             );
 
-          border-radius: 14px;
+          border-radius: 22px;
 
           background:
             linear-gradient(
@@ -131,93 +91,41 @@ export default function BlogTicker({
                 255,
                 105,
                 0,
-                0.09
+                0.11
               ),
               rgba(
                 7,
                 22,
                 40,
-                0.82
+                0.94
+              ),
+              rgba(
+                255,
+                105,
+                0,
+                0.08
               )
             );
 
           box-shadow:
             inset 0 1px 0
-            rgba(
-              255,
-              255,
-              255,
-              0.025
-            );
-        }
-
-        .awd-blog-ticker-label {
-          position: relative;
-
-          z-index: 3;
-
-          min-height: 48px;
-
-          display: flex;
-
-          align-items: center;
-
-          gap: 6px;
-
-          padding-inline:
-            13px;
-
-          border-inline-end:
-            1px solid
-            rgba(
-              255,
-              105,
-              0,
-              0.18
-            );
-
-          background:
-            rgba(
-              255,
-              105,
-              0,
-              0.08
-            );
-
-          color: #ff9855;
-
-          white-space: nowrap;
-
-          font-size: 10px;
-        }
-
-        .awd-blog-live-dot {
-          width: 6px;
-          height: 6px;
-
-          flex: 0 0 6px;
-
-          border-radius: 999px;
-
-          background: #ff6900;
-
-          box-shadow:
-            0 0 0 4px
-            rgba(
-              255,
-              105,
-              0,
-              0.1
-            );
-
-          animation:
-            awdTickerPulse
-            1.8s ease-in-out
-            infinite;
+              rgba(
+                255,
+                255,
+                255,
+                0.04
+              ),
+            0 12px 32px
+              rgba(
+                0,
+                0,
+                0,
+                0.16
+              );
         }
 
         .awd-blog-ticker-window {
-          min-width: 0;
+          width: 100%;
 
           overflow: hidden;
 
@@ -225,8 +133,8 @@ export default function BlogTicker({
             linear-gradient(
               to right,
               transparent,
-              black 7%,
-              black 93%,
+              black 5%,
+              black 95%,
               transparent
             );
 
@@ -234,8 +142,8 @@ export default function BlogTicker({
             linear-gradient(
               to right,
               transparent,
-              black 7%,
-              black 93%,
+              black 5%,
+              black 95%,
               transparent
             );
         }
@@ -247,9 +155,11 @@ export default function BlogTicker({
 
           align-items: center;
 
+          gap: 80px;
+
           animation:
             awdTickerMove
-            38s linear
+            34s linear
             infinite;
 
           will-change: transform;
@@ -264,43 +174,56 @@ export default function BlogTicker({
         }
 
         .awd-blog-ticker-item {
+          min-height: 96px;
+
           display: flex;
 
           align-items: center;
 
-          gap: 8px;
+          gap: 44px;
 
-          padding-inline:
-            13px;
+          padding-inline: 18px;
 
-          color: #b4c2d4;
+          color: #f5f7fb;
 
           white-space: nowrap;
 
-          font-size: 11px;
+          font-size: 25px;
 
-          line-height: 48px;
+          font-weight: 800;
+
+          line-height: 1.35;
+
+          text-decoration: none;
+
+          transition:
+            color 0.2s ease;
         }
 
-        .awd-blog-ticker-arrow {
-          color: #ff7a21;
-
-          font-weight: 900;
+        .awd-blog-ticker-item:hover {
+          color: #ff8a3d;
         }
 
-        .awd-blog-separator {
-          margin-inline:
-            6px;
+        .awd-blog-ticker-dot {
+          color: #ff6900;
 
-          color:
+          font-size: 30px;
+
+          line-height: 1;
+        }
+
+        .awd-blog-ticker-item:focus-visible {
+          outline: 2px solid
             rgba(
               255,
               105,
               0,
-              0.65
+              0.75
             );
 
-          font-size: 15px;
+          outline-offset: -5px;
+
+          border-radius: 12px;
         }
 
         @keyframes awdTickerMove {
@@ -333,44 +256,39 @@ export default function BlogTicker({
           }
         }
 
-        @keyframes awdTickerPulse {
-          0%,
-          100% {
-            opacity: 1;
-          }
-
-          50% {
-            opacity: 0.4;
-          }
-        }
-
         @media (
           max-width: 600px
         ) {
           .awd-blog-ticker {
-            min-height: 44px;
+            min-height: 88px;
 
-            margin-top: 17px;
+            margin-top: 22px;
+            margin-bottom: 24px;
 
-            border-radius: 12px;
+            border-radius: 18px;
           }
 
-          .awd-blog-ticker-label {
-            min-height: 44px;
+          .awd-blog-ticker-track {
+            gap: 60px;
 
-            padding-inline:
-              10px;
-
-            font-size: 9px;
+            animation-duration:
+              30s;
           }
 
           .awd-blog-ticker-item {
-            padding-inline:
-              10px;
+            min-height: 88px;
 
-            font-size: 10px;
+            padding-inline: 14px;
 
-            line-height: 44px;
+            gap: 34px;
+
+            font-size: 21px;
+
+            font-weight: 800;
+          }
+
+          .awd-blog-ticker-dot {
+            font-size: 26px;
           }
         }
 
@@ -378,8 +296,7 @@ export default function BlogTicker({
           prefers-reduced-motion:
             reduce
         ) {
-          .awd-blog-ticker-track,
-          .awd-blog-live-dot {
+          .awd-blog-ticker-track {
             animation: none;
           }
 
