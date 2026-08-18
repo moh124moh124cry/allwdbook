@@ -936,13 +936,38 @@ export default function AdminPage() {
                   <em>قريبًا</em>
                 </div>
 
-                <div>
-                  <b>👤 العملاء</b>
-                  <small>
-                    البحث بالبريد والخطط
-                  </small>
-                  <em>قريبًا</em>
-                </div>
+                <div
+  role="button"
+  tabIndex={0}
+  onClick={() =>
+    router.push(
+      "/admin/customers"
+    )
+  }
+  onKeyDown={(event) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+
+      router.push(
+        "/admin/customers"
+      );
+    }
+  }}
+  style={{
+    cursor: "pointer",
+  }}
+>
+  <b>👤 العملاء</b>
+
+  <small>
+    البحث بالبريد والخطط والمفاتيح
+  </small>
+
+  <em>فتح ←</em>
+</div>
 
                 <div>
                   <b>🛡️ السجل الأمني</b>
