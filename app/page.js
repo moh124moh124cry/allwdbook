@@ -15,7 +15,7 @@ import {
 import CoverTool from "./covertool";
 import KeywordsPanel from "./keywordspanel";
 import AccountMenu from "./accountmenu";
-
+import BlogTicker from "./blogticker";خ
 import UpgradePrompt, {
   shouldBlockRememberedLimit,
 } from "./upgradeprompt";
