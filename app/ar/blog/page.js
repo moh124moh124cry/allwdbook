@@ -1,7 +1,7 @@
 // app/ar/blog/page.js
 
 import Link from "next/link";
-import { getPublishedBlogArticles } from "@/lib/blog/articles";
+import { getPublishedBlogArticles } from "../../../lib/blog/articles";
 
 export const metadata = {
   title: "مدونة AllWDbook",
