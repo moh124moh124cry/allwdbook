@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import {
+  getAbsoluteBlogUrl,
   getBlogArticleUrl,
   getLocalizedBlogCategory,
 } from "../../lib/blog";
@@ -36,6 +37,105 @@ export default function BlogArticleShell({
 
   const alternateLabel =
     isArabic ? "English" : "العربية";
+
+  const articlePath =
+    getBlogArticleUrl(
+      lang,
+      article.slug
+    );
+
+  const articleUrl =
+    getAbsoluteBlogUrl(
+      articlePath
+    );
+
+  const heroImageUrl =
+    article.heroImage
+      ? getAbsoluteBlogUrl(
+          article.heroImage
+        )
+      : null;
+
+  const schema = {
+    "@context":
+      "https://schema.org",
+
+    "@type":
+      "BlogPosting",
+
+    headline:
+      article.meta.title,
+
+    description:
+      article.meta.description,
+
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": articleUrl,
+    },
+
+    url: articleUrl,
+
+    inLanguage:
+      isArabic
+        ? "ar"
+        : "en",
+
+    ...(category?.name
+      ? {
+          articleSection:
+            category.name,
+        }
+      : {}),
+
+    ...(article.publishDate
+      ? {
+          datePublished:
+            article.publishDate,
+
+          dateModified:
+            article.publishDate,
+        }
+      : {}),
+
+    ...(heroImageUrl
+      ? {
+          image: [
+            heroImageUrl,
+          ],
+        }
+      : {}),
+
+    author: {
+      "@type":
+        "Organization",
+
+      name:
+        "AllWDbook",
+
+      url:
+        "https://www.allwdbook.com",
+    },
+
+    publisher: {
+      "@type":
+        "Organization",
+
+      name:
+        "AllWDbook",
+
+      url:
+        "https://www.allwdbook.com",
+
+      logo: {
+        "@type":
+          "ImageObject",
+
+        url:
+          "https://www.allwdbook.com/logov3.png",
+      },
+    },
+  };
 
   const introParagraphs =
     String(article.content.intro || "")
@@ -135,6 +235,18 @@ export default function BlogArticleShell({
       }
       className="blogArticleShell"
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            schema
+          ).replace(
+            /</g,
+            "\\u003c"
+          ),
+        }}
+      />
+
       <header className="blogArticleHeader">
         <div className="blogTopBar">
           <Link
