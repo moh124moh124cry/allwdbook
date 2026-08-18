@@ -969,13 +969,38 @@ export default function AdminPage() {
   <em>فتح ←</em>
 </div>
 
-                <div>
-                  <b>🛡️ السجل الأمني</b>
-                  <small>
-                    التفعيل والاستعادة
-                  </small>
-                  <em>قريبًا</em>
-                </div>
+                <div
+  role="button"
+  tabIndex={0}
+  onClick={() =>
+    router.push(
+      "/admin/audit"
+    )
+  }
+  onKeyDown={(event) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+
+      router.push(
+        "/admin/audit"
+      );
+    }
+  }}
+  style={{
+    cursor: "pointer",
+  }}
+>
+  <b>🛡️ السجل الأمني</b>
+
+  <small>
+    التفعيل والاستعادة وإجراءات الإدارة
+  </small>
+
+  <em>فتح ←</em>
+</div>
 
               </div>
 
