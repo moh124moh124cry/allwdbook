@@ -11,175 +11,8 @@ import {
 
 import {
   FREE_DAILY_LIMITS,
+  PAYMENT_STATUS,
 } from "../../lib/plans";
-
-/* =========================================================
-   CHECKOUTS
-   نفس الروابط الموجودة في AccountMenu
-   ========================================================= */
-
-const LIFETIME_CHECKOUT_URL =
-  process.env
-    .NEXT_PUBLIC_LEMON_LIFETIME_CHECKOUT_URL ||
-  "";
-
-const PAID_PLANS = [
-  {
-    id: "cover",
-    icon: "📐",
-    ar: "مصمم الأغلفة",
-    en: "Cover Designer",
-    price: "$2.49",
-    periodAr: "/ شهر",
-    periodEn: "/ month",
-    tone: "blue",
-
-    checkoutUrl:
-      "https://allworldfactures.lemonsqueezy.com/checkout/buy/a40b815f-2b2c-4086-b8b8-3afcd0bf7a4d",
-
-    featuresAr: [
-      "مصمم الأغلفة بدون حد يومي",
-      `Micro-Niche: ${FREE_DAILY_LIMITS.microNiche} مرات يوميًا`,
-      `Keywords: ${FREE_DAILY_LIMITS.keywords} مرات يوميًا`,
-      "حاسبة الأرباح بدون حد",
-      "منسق وصف الكتاب بدون حد",
-    ],
-
-    featuresEn: [
-      "Unlimited Cover Designer",
-      `Micro-Niche: ${FREE_DAILY_LIMITS.microNiche} daily uses`,
-      `Keywords: ${FREE_DAILY_LIMITS.keywords} daily uses`,
-      "Unlimited Royalty Calculator",
-      "Unlimited Book Formatter",
-    ],
-  },
-
-  {
-    id: "micro_niche",
-    icon: "🎯",
-    ar: "Micro-Niche",
-    en: "Micro-Niche",
-    price: "$2.49",
-    periodAr: "/ شهر",
-    periodEn: "/ month",
-    tone: "green",
-
-    checkoutUrl:
-      "https://allworldfactures.lemonsqueezy.com/checkout/buy/c205aef7-1c77-4711-9fba-ee2b9a81153b",
-
-    featuresAr: [
-      "Micro-Niche بدون حد يومي",
-      `مصمم الأغلفة: ${FREE_DAILY_LIMITS.coverDesigner} مرات يوميًا`,
-      `Keywords: ${FREE_DAILY_LIMITS.keywords} مرات يوميًا`,
-      "حاسبة الأرباح بدون حد",
-      "منسق وصف الكتاب بدون حد",
-    ],
-
-    featuresEn: [
-      "Unlimited Micro-Niche",
-      `Cover Designer: ${FREE_DAILY_LIMITS.coverDesigner} daily uses`,
-      `Keywords: ${FREE_DAILY_LIMITS.keywords} daily uses`,
-      "Unlimited Royalty Calculator",
-      "Unlimited Book Formatter",
-    ],
-  },
-
-  {
-    id: "keywords",
-    icon: "🔑",
-    ar: "الكلمات المفتاحية",
-    en: "Keyword Research",
-    price: "$2.49",
-    periodAr: "/ شهر",
-    periodEn: "/ month",
-    tone: "violet",
-
-    checkoutUrl:
-      "https://allworldfactures.lemonsqueezy.com/checkout/buy/9a058282-b97a-4f49-bd27-c31aefab98d9",
-
-    featuresAr: [
-      "بحث الكلمات بدون حد يومي",
-      `مصمم الأغلفة: ${FREE_DAILY_LIMITS.coverDesigner} مرات يوميًا`,
-      `Micro-Niche: ${FREE_DAILY_LIMITS.microNiche} مرات يوميًا`,
-      "حاسبة الأرباح بدون حد",
-      "منسق وصف الكتاب بدون حد",
-    ],
-
-    featuresEn: [
-      "Unlimited Keyword Research",
-      `Cover Designer: ${FREE_DAILY_LIMITS.coverDesigner} daily uses`,
-      `Micro-Niche: ${FREE_DAILY_LIMITS.microNiche} daily uses`,
-      "Unlimited Royalty Calculator",
-      "Unlimited Book Formatter",
-    ],
-  },
-
-  {
-    id: "pro_monthly",
-    icon: "⚡",
-    ar: "AllWDbook Pro",
-    en: "AllWDbook Pro",
-    price: "$5.99",
-    periodAr: "/ شهر",
-    periodEn: "/ month",
-    tone: "orange",
-    featured: true,
-
-    checkoutUrl:
-      "https://allworldfactures.lemonsqueezy.com/checkout/buy/00e64ca6-4e8c-42c2-aa44-e9667d745524",
-
-    featuresAr: [
-      "جميع الأدوات بدون حدود يومية",
-      "مصمم الأغلفة الكامل",
-      "Micro-Niche بدون حدود",
-      "Keyword Research بدون حدود",
-      "الحاسبة وFormatter بدون حدود",
-    ],
-
-    featuresEn: [
-      "All tools with no daily limits",
-      "Full Cover Designer",
-      "Unlimited Micro-Niche",
-      "Unlimited Keyword Research",
-      "Unlimited Calculator & Formatter",
-    ],
-  },
-
-  {
-    id: "pro_yearly",
-    icon: "👑",
-    ar: "Pro السنوي",
-    en: "Pro Yearly",
-    price: "$55",
-    periodAr: "/ سنة",
-    periodEn: "/ year",
-    tone: "gold",
-    bestValue: true,
-
-    checkoutUrl:
-      "https://allworldfactures.lemonsqueezy.com/checkout/buy/14a4b6b5-553f-4070-bd39-932ba2270aa5",
-
-    featuresAr: [
-      "جميع مزايا Pro",
-      "جميع الأدوات بدون حدود يومية",
-      "دفع مرة واحدة كل سنة",
-      "أوفر من الاشتراك الشهري",
-      "وصول مستمر طوال مدة الاشتراك",
-    ],
-
-    featuresEn: [
-      "Everything in Pro",
-      "All tools with no daily limits",
-      "One payment per year",
-      "Better value than monthly",
-      "Continuous access during subscription",
-    ],
-  },
-];
-
-/* =========================================================
-   LABELS
-   ========================================================= */
 
 const PLAN_NAMES = {
   free: {
@@ -199,7 +32,7 @@ const PLAN_NAMES = {
 
   keywords: {
     ar: "الكلمات المفتاحية",
-    en: "Keywords",
+    en: "Keyword Research",
   },
 
   pro_monthly: {
@@ -218,10 +51,6 @@ const PLAN_NAMES = {
   },
 };
 
-/* =========================================================
-   PAGE
-   ========================================================= */
-
 export default function SubscriptionPage() {
   const access =
     useAccess();
@@ -231,45 +60,13 @@ export default function SubscriptionPage() {
     setLang,
   ] = useState("ar");
 
-  const [
-    busyPlan,
-    setBusyPlan,
-  ] = useState("");
-
-  const [
-    error,
-    setError,
-  ] = useState("");
-
   const isAr =
     lang === "ar";
-
-  const activePlans =
-    Array.isArray(
-      access.plans,
-    )
-      ? access.plans
-      : [];
-
-  const billingUrl =
-    Array.isArray(
-      access.subscriptions,
-    )
-      ? access.subscriptions.find(
-          (item) =>
-            item?.customer_portal_url,
-        )?.customer_portal_url ||
-        ""
-      : "";
-
-  /* =======================================================
-     LANGUAGE
-     ======================================================= */
 
   useEffect(() => {
     const saved =
       window.localStorage.getItem(
-        "awd_lang",
+        "awd_lang"
       );
 
     if (
@@ -280,12 +77,12 @@ export default function SubscriptionPage() {
     }
 
     function syncLanguage(
-      event,
+      event
     ) {
       const next =
         event?.detail ||
         window.localStorage.getItem(
-          "awd_lang",
+          "awd_lang"
         );
 
       if (
@@ -298,13 +95,13 @@ export default function SubscriptionPage() {
 
     window.addEventListener(
       "awd-language-change",
-      syncLanguage,
+      syncLanguage
     );
 
     return () => {
       window.removeEventListener(
         "awd-language-change",
-        syncLanguage,
+        syncLanguage
       );
     };
   }, []);
@@ -312,7 +109,7 @@ export default function SubscriptionPage() {
   useEffect(() => {
     window.localStorage.setItem(
       "awd_lang",
-      lang,
+      lang
     );
 
     document.documentElement.lang =
@@ -322,7 +119,10 @@ export default function SubscriptionPage() {
       isAr
         ? "rtl"
         : "ltr";
-  }, [lang, isAr]);
+  }, [
+    lang,
+    isAr,
+  ]);
 
   function toggleLanguage() {
     const next =
@@ -334,7 +134,7 @@ export default function SubscriptionPage() {
 
     window.localStorage.setItem(
       "awd_lang",
-      next,
+      next
     );
 
     window.dispatchEvent(
@@ -342,30 +142,31 @@ export default function SubscriptionPage() {
         "awd-language-change",
         {
           detail: next,
-        },
-      ),
+        }
+      )
     );
   }
 
-  /* =======================================================
-     CURRENT PLAN
-     ======================================================= */
+  const activePlans =
+    Array.isArray(
+      access.plans
+    )
+      ? access.plans
+      : [];
 
   function planLabel(
-    planId,
+    planId
   ) {
-    const item =
-      PLAN_NAMES[
-        planId
-      ];
+    const plan =
+      PLAN_NAMES[planId];
 
-    if (!item) {
+    if (!plan) {
       return planId;
     }
 
     return isAr
-      ? item.ar
-      : item.en;
+      ? plan.ar
+      : plan.en;
   }
 
   const currentAccess =
@@ -380,125 +181,33 @@ export default function SubscriptionPage() {
         : activePlans.length
           ? activePlans
               .map(
-                planLabel,
+                planLabel
               )
-              .join(" · ")
+              .join(
+                " · "
+              )
           : planLabel(
               access.plan ||
-                "free",
+                "free"
             );
 
-  function isActive(
-    planId,
-  ) {
-    return activePlans.includes(
-      planId,
-    );
-  }
+  const billingUrl =
+    Array.isArray(
+      access.subscriptions
+    )
+      ? access.subscriptions.find(
+          (item) =>
+            item
+              ?.customer_portal_url
+        )
+          ?.customer_portal_url ||
+        ""
+      : "";
 
-  /* =======================================================
-     CHECKOUT
-     نفس طريقة AccountMenu الحالية
-     ======================================================= */
-
-  async function openCheckout(
-    plan,
-  ) {
-    if (
-      busyPlan ||
-      !plan
-    ) {
-      return;
-    }
-
-    setBusyPlan(
-      plan.id,
-    );
-
-    setError("");
-
-    try {
-      if (
-        !plan.checkoutUrl
-      ) {
-        setError(
-          isAr
-            ? "رابط الدفع لهذه الخطة غير مضبوط بعد."
-            : "Checkout URL is not configured.",
-        );
-
-        return;
-      }
-
-      const session =
-        await access.ensureSession();
-
-      if (
-        !session?.access_token ||
-        !session?.user?.id
-      ) {
-        throw new Error(
-          "SESSION_MISSING",
-        );
-      }
-
-      const checkout =
-        new URL(
-          plan.checkoutUrl,
-        );
-
-      checkout.searchParams.set(
-        "checkout[custom][user_id]",
-        session.user.id,
-      );
-
-      checkout.searchParams.set(
-        "checkout[custom][plan_id]",
-        plan.id,
-      );
-
-      if (
-        session.user.email
-      ) {
-        checkout.searchParams.set(
-          "checkout[email]",
-          session.user.email,
-        );
-      }
-
-      window.location.assign(
-        checkout.toString(),
-      );
-    } catch (
-      checkoutError
-    ) {
-      console.error(
-        "Checkout error:",
-        checkoutError,
-      );
-
-      setError(
-        isAr
-          ? "تعذر فتح صفحة الدفع. حاول مرة أخرى."
-          : "Unable to open checkout. Please try again.",
-      );
-    } finally {
-      setBusyPlan("");
-    }
-  }
-
-  function buyLifetime() {
-    openCheckout({
-      id: "lifetime",
-
-      checkoutUrl:
-        LIFETIME_CHECKOUT_URL,
-    });
-  }
-
-  /* =======================================================
-     FREE FEATURES
-     ======================================================= */
+  const paymentMessage =
+    isAr
+      ? PAYMENT_STATUS.messageAr
+      : PAYMENT_STATUS.messageEn;
 
   const freeFeatures =
     isAr
@@ -517,13 +226,9 @@ export default function SubscriptionPage() {
           "Unlimited Book Formatter",
         ];
 
-  /* =======================================================
-     UI
-     ======================================================= */
-
   return (
     <main
-      className="sub-page"
+      className="payment-page"
       dir={
         isAr
           ? "rtl"
@@ -531,116 +236,85 @@ export default function SubscriptionPage() {
       }
     >
       <style jsx global>{`
-        .sub-page,
-        .sub-page * {
-          box-sizing: border-box;
+        .payment-page,
+        .payment-page * {
+          box-sizing:
+            border-box;
         }
 
-        .sub-page {
-          --sub-black:
-            #02060d;
-
-          --sub-bg:
-            #030b17;
-
-          --sub-navy:
-            #061326;
-
-          --sub-card:
-            #071629;
-
-          --sub-card-2:
-            #091a30;
-
-          --sub-border:
-            #172f4c;
-
-          --sub-text:
-            #f7f9fd;
-
-          --sub-muted:
-            #899bb4;
-
-          --sub-orange:
-            #ff6900;
-
-          width: 100%;
-
+        .payment-page {
           min-height:
             100dvh;
 
-          overflow-x:
-            hidden;
+          margin: 0;
 
           padding-bottom:
             calc(
-              86px +
-                env(
-                  safe-area-inset-bottom
-                )
+              96px +
+              env(
+                safe-area-inset-bottom
+              )
             );
 
           color:
-            var(
-              --sub-text
-            );
+            #f5f7fb;
 
           background:
             radial-gradient(
-              circle
-                at 50%
-                -180px,
+              circle at
+                50% -180px,
               rgba(
-                26,
-                82,
-                148,
-                0.2
+                34,
+                91,
+                160,
+                0.24
               ),
               transparent
-                440px
+                460px
             ),
             linear-gradient(
               180deg,
               #02060d,
               #030b17
-                42%,
+                48%,
               #020812
             );
+
+          font-family:
+            Arial,
+            sans-serif;
         }
 
-        .sub-shell {
-          width: min(
-            1120px,
-            calc(
-              100% -
-                32px
-            )
-          );
+        .payment-shell {
+          width:
+            min(
+              760px,
+              calc(
+                100% -
+                28px
+              )
+            );
 
           margin-inline:
             auto;
         }
 
-        /* =============================================
-           HEADER
-           ============================================= */
-
-        .sub-header-wrap {
+        .payment-header {
           position:
             sticky;
 
           top: 0;
 
           z-index:
-            1000;
+            50;
 
           border-bottom:
             1px solid
             rgba(
-              105,
-              145,
-              195,
-              0.12
+              100,
+              140,
+              190,
+              0.14
             );
 
           background:
@@ -655,9 +329,9 @@ export default function SubscriptionPage() {
             blur(18px);
         }
 
-        .sub-header {
+        .payment-header-inner {
           min-height:
-            72px;
+            70px;
 
           display:
             grid;
@@ -676,8 +350,8 @@ export default function SubscriptionPage() {
           gap: 10px;
         }
 
-        .sub-back,
-        .sub-lang {
+        .payment-back,
+        .payment-lang {
           width: 42px;
           height: 42px;
 
@@ -691,17 +365,13 @@ export default function SubscriptionPage() {
 
           border:
             1px solid
-            #17314e;
+            #17314d;
 
           border-radius:
             13px;
 
           background:
-            linear-gradient(
-              180deg,
-              #0a192d,
-              #061325
-            );
+            #07182a;
 
           color:
             white;
@@ -716,7 +386,7 @@ export default function SubscriptionPage() {
             pointer;
         }
 
-        .sub-brand {
+        .payment-brand {
           min-width: 0;
 
           display:
@@ -725,13 +395,13 @@ export default function SubscriptionPage() {
           align-items:
             center;
 
-          gap: 9px;
+          gap: 10px;
 
           text-decoration:
             none;
         }
 
-        .sub-brand img {
+        .payment-brand img {
           width: 43px;
           height: 43px;
 
@@ -745,56 +415,59 @@ export default function SubscriptionPage() {
             13px;
         }
 
-        .sub-brand-copy {
+        .payment-brand-copy {
           min-width: 0;
         }
 
-        .sub-brand-copy strong {
+        .payment-brand-copy strong {
           display:
             block;
 
-          overflow:
-            hidden;
+          color:
+            white;
+
+          font-size:
+            17px;
 
           white-space:
             nowrap;
 
+          overflow:
+            hidden;
+
           text-overflow:
             ellipsis;
-
-          color: white;
-
-          font-size:
-            18px;
-
-          font-weight:
-            900;
         }
 
-        .sub-brand-copy small {
+        .payment-brand-copy small {
           display:
             block;
 
           margin-top:
-            2px;
+            3px;
 
           color:
-            #71849c;
+            #7f92aa;
 
           font-size:
             10px;
+
+          white-space:
+            nowrap;
+
+          overflow:
+            hidden;
+
+          text-overflow:
+            ellipsis;
         }
 
-        /* =============================================
-           HERO
-           ============================================= */
-
-        .sub-hero {
+        .payment-content {
           padding-top:
-            22px;
+            26px;
         }
 
-        .sub-hero-card {
+        .payment-status-card {
           position:
             relative;
 
@@ -802,65 +475,72 @@ export default function SubscriptionPage() {
             hidden;
 
           padding:
-            38px;
+            28px 22px;
 
           border:
             1px solid
             rgba(
-              92,
-              132,
-              183,
-              0.18
+              255,
+              157,
+              58,
+              0.34
             );
 
           border-radius:
-            28px;
+            24px;
 
           background:
             radial-gradient(
-              circle
-                at 100%
-                0%,
+              circle at
+                100% 0%,
               rgba(
                 255,
                 105,
                 0,
-                0.13
+                0.14
               ),
               transparent
-                38%
+                46%
             ),
             linear-gradient(
-              145deg,
-              #08182c,
-              #04101e
+              155deg,
+              #0a1a2f,
+              #051321
+            );
+
+          box-shadow:
+            0 22px 60px
+            rgba(
+              0,
+              0,
+              0,
+              0.22
             );
         }
 
         [dir="rtl"]
-          .sub-hero-card {
+          .payment-status-card {
           background:
             radial-gradient(
-              circle
-                at 0%
-                0%,
+              circle at
+                0% 0%,
               rgba(
                 255,
                 105,
                 0,
-                0.13
+                0.14
               ),
               transparent
-                38%
+                46%
             ),
             linear-gradient(
-              145deg,
-              #08182c,
-              #04101e
+              155deg,
+              #0a1a2f,
+              #051321
             );
         }
 
-        .sub-kicker {
+        .payment-status-badge {
           display:
             inline-flex;
 
@@ -870,15 +550,15 @@ export default function SubscriptionPage() {
           gap: 7px;
 
           padding:
-            6px 10px;
+            7px 11px;
 
           border:
             1px solid
             rgba(
               255,
-              105,
-              0,
-              0.24
+              151,
+              62,
+              0.32
             );
 
           border-radius:
@@ -889,11 +569,11 @@ export default function SubscriptionPage() {
               255,
               105,
               0,
-              0.07
+              0.09
             );
 
           color:
-            #ff9956;
+            #ff9a57;
 
           font-size:
             10px;
@@ -902,9 +582,7 @@ export default function SubscriptionPage() {
             900;
         }
 
-        .sub-kicker::before {
-          content: "";
-
+        .payment-status-dot {
           width: 7px;
           height: 7px;
 
@@ -912,176 +590,217 @@ export default function SubscriptionPage() {
             50%;
 
           background:
-            var(
-              --sub-orange
+            #ff7c2a;
+
+          box-shadow:
+            0 0 12px
+            rgba(
+              255,
+              105,
+              0,
+              0.65
             );
         }
 
-        .sub-hero h1 {
+        .payment-status-card h1 {
+          margin:
+            20px
+            0
+            0;
+
+          color:
+            white;
+
+          font-size:
+            clamp(
+              29px,
+              7vw,
+              43px
+            );
+
+          line-height:
+            1.15;
+        }
+
+        .payment-status-card h1 span {
+          color:
+            #ff7b2b;
+        }
+
+        .payment-status-text {
           max-width:
-            760px;
+            650px;
 
           margin:
             16px
             0
             0;
 
-          color: white;
-
-          font-size:
-            clamp(
-              34px,
-              5vw,
-              54px
-            );
-
-          line-height:
-            1.1;
-
-          letter-spacing:
-            -1px;
-        }
-
-        .sub-hero h1 span {
           color:
-            var(
-              --sub-orange
-            );
-        }
-
-        .sub-hero-text {
-          max-width:
-            680px;
-
-          margin:
-            14px
-            0
-            0;
-
-          color:
-            #91a2b8;
+            #9eb0c6;
 
           font-size:
             14px;
 
           line-height:
-            1.8;
+            1.85;
         }
 
-        /* =============================================
-           CURRENT ACCESS
-           ============================================= */
-
-        .sub-current {
+        .payment-notice {
           display:
             grid;
 
           grid-template-columns:
+            auto
             minmax(
               0,
               1fr
-            )
-            auto;
+            );
+
+          gap: 12px;
 
           align-items:
-            center;
-
-          gap: 15px;
+            start;
 
           margin-top:
-            24px;
+            22px;
 
           padding:
             15px;
 
           border:
             1px solid
-            #17324f;
+            rgba(
+              255,
+              167,
+              86,
+              0.2
+            );
 
           border-radius:
             16px;
 
           background:
             rgba(
-              2,
-              12,
-              25,
-              0.62
+              255,
+              105,
+              0,
+              0.06
             );
         }
 
-        .sub-current small {
+        .payment-notice-icon {
+          font-size:
+            23px;
+        }
+
+        .payment-notice strong {
           display:
             block;
 
           color:
-            #71849d;
+            #ffd0ad;
 
           font-size:
-            10px;
+            13px;
+        }
+
+        .payment-notice p {
+          margin:
+            5px
+            0
+            0;
+
+          color:
+            #9aabc0;
+
+          font-size:
+            11px;
+
+          line-height:
+            1.7;
+        }
+
+        .payment-section {
+          margin-top:
+            18px;
+
+          padding:
+            20px;
+
+          border:
+            1px solid
+            #142e49;
+
+          border-radius:
+            20px;
+
+          background:
+            linear-gradient(
+              150deg,
+              #07182b,
+              #04111f
+            );
+        }
+
+        .payment-section-label {
+          display:
+            block;
+
+          color:
+            #637b98;
+
+          font-size:
+            9px;
+
+          font-weight:
+            900;
+
+          letter-spacing:
+            1.2px;
+        }
+
+        .payment-section h2 {
+          margin:
+            7px
+            0
+            0;
+
+          color:
+            white;
+
+          font-size:
+            20px;
+        }
+
+        .payment-access-value {
+          margin-top:
+            14px;
+
+          padding:
+            14px;
+
+          border:
+            1px solid
+            #193653;
+
+          border-radius:
+            14px;
+
+          background:
+            #061426;
+
+          color:
+            #dbe8f5;
+
+          font-size:
+            13px;
 
           font-weight:
             800;
         }
 
-        .sub-current strong {
-          display:
-            block;
-
-          margin-top:
-            4px;
-
-          color: white;
-
-          font-size:
-            15px;
-        }
-
-        .sub-live {
-          display:
-            inline-flex;
-
-          align-items:
-            center;
-
-          gap: 6px;
-
-          color:
-            #74dfa9;
-
-          font-size:
-            10px;
-
-          font-weight:
-            900;
-        }
-
-        .sub-live::before {
-          content: "";
-
-          width: 8px;
-          height: 8px;
-
-          border-radius:
-            50%;
-
-          background:
-            #22c987;
-
-          box-shadow:
-            0 0 0 5px
-            rgba(
-              34,
-              201,
-              135,
-              0.1
-            );
-        }
-
-        .sub-billing {
-          min-height:
-            42px;
-
+        .payment-billing {
           display:
             inline-flex;
 
@@ -1091,21 +810,27 @@ export default function SubscriptionPage() {
           justify-content:
             center;
 
-          padding-inline:
-            15px;
+          min-height:
+            43px;
+
+          margin-top:
+            12px;
+
+          padding:
+            9px 14px;
 
           border:
             1px solid
-            #234361;
+            #214365;
 
           border-radius:
-            11px;
+            12px;
 
           background:
-            #08192c;
+            #081b30;
 
           color:
-            #d9e4f0;
+            #c8d7e8;
 
           text-decoration:
             none;
@@ -1117,458 +842,26 @@ export default function SubscriptionPage() {
             800;
         }
 
-        /* =============================================
-           SECTION
-           ============================================= */
-
-        .sub-section {
-          padding-top:
-            34px;
-        }
-
-        .sub-section-head {
-          margin-bottom:
-            17px;
-        }
-
-        .sub-section-head span {
-          display:
-            block;
-
-          margin-bottom:
-            6px;
-
-          color:
-            var(
-              --sub-orange
-            );
-
-          font-size:
-            9px;
-
-          font-weight:
-            900;
-
-          letter-spacing:
-            0.08em;
-        }
-
-        .sub-section-head h2 {
-          margin: 0;
-
-          color: white;
-
-          font-size:
-            27px;
-        }
-
-        .sub-section-head p {
-          margin:
-            7px
-            0
-            0;
-
-          color:
-            var(
-              --sub-muted
-            );
-
-          font-size:
-            12px;
-
-          line-height:
-            1.65;
-        }
-
-        /* =============================================
-           PRICING GRID
-           ============================================= */
-
-        .sub-grid {
+        .payment-free-grid {
           display:
             grid;
 
           grid-template-columns:
             repeat(
-              3,
+              2,
               minmax(
                 0,
                 1fr
               )
             );
 
-          gap: 14px;
-        }
-
-        .sub-card {
-          position:
-            relative;
-
-          min-width: 0;
-
-          display:
-            flex;
-
-          flex-direction:
-            column;
-
-          padding:
-            20px;
-
-          border:
-            1px solid
-            rgba(
-              89,
-              129,
-              178,
-              0.18
-            );
-
-          border-radius:
-            22px;
-
-          background:
-            linear-gradient(
-              155deg,
-              #091a2f,
-              #051322
-                68%,
-              #030d19
-            );
-
-          box-shadow:
-            0 18px 50px
-            rgba(
-              0,
-              0,
-              0,
-              0.16
-            );
-        }
-
-        .sub-card.featured {
-          border-color:
-            rgba(
-              255,
-              105,
-              0,
-              0.56
-            );
-
-          background:
-            radial-gradient(
-              circle
-                at 100%
-                0%,
-              rgba(
-                255,
-                105,
-                0,
-                0.13
-              ),
-              transparent
-                43%
-            ),
-            linear-gradient(
-              155deg,
-              #0b1b30,
-              #061426
-            );
-
-          box-shadow:
-            0 22px 60px
-            rgba(
-              255,
-              105,
-              0,
-              0.08
-            );
-        }
-
-        [dir="rtl"]
-          .sub-card.featured {
-          background:
-            radial-gradient(
-              circle
-                at 0%
-                0%,
-              rgba(
-                255,
-                105,
-                0,
-                0.13
-              ),
-              transparent
-                43%
-            ),
-            linear-gradient(
-              155deg,
-              #0b1b30,
-              #061426
-            );
-        }
-
-        .sub-card.lifetime {
-          border-color:
-            rgba(
-              247,
-              186,
-              74,
-              0.38
-            );
-
-          background:
-            radial-gradient(
-              circle
-                at 50%
-                0%,
-              rgba(
-                255,
-                179,
-                43,
-                0.11
-              ),
-              transparent
-                42%
-            ),
-            linear-gradient(
-              155deg,
-              #101a27,
-              #05111f
-            );
-        }
-
-        .sub-popular {
-          position:
-            absolute;
-
-          top: 15px;
-          inset-inline-end:
-            15px;
-
-          padding:
-            5px 9px;
-
-          border-radius:
-            999px;
-
-          background:
-            var(
-              --sub-orange
-            );
-
-          color: white;
-
-          font-size:
-            8px;
-
-          font-weight:
-            900;
-        }
-
-        .sub-best {
-          position:
-            absolute;
-
-          top: 15px;
-          inset-inline-end:
-            15px;
-
-          padding:
-            5px 9px;
-
-          border:
-            1px solid
-            rgba(
-              245,
-              190,
-              83,
-              0.38
-            );
-
-          border-radius:
-            999px;
-
-          background:
-            rgba(
-              245,
-              190,
-              83,
-              0.1
-            );
-
-          color:
-            #ffd477;
-
-          font-size:
-            8px;
-
-          font-weight:
-            900;
-        }
-
-        .sub-icon {
-          width: 52px;
-          height: 52px;
-
-          display:
-            grid;
-
-          place-items:
-            center;
-
-          border-radius:
-            15px;
-
-          background:
-            #0c1d32;
-
-          font-size:
-            23px;
-        }
-
-        .sub-icon.orange {
-          border:
-            1px solid
-            rgba(
-              255,
-              105,
-              0,
-              0.25
-            );
-
-          background:
-            rgba(
-              255,
-              105,
-              0,
-              0.1
-            );
-        }
-
-        .sub-icon.blue {
-          border:
-            1px solid
-            rgba(
-              67,
-              136,
-              255,
-              0.24
-            );
-        }
-
-        .sub-icon.green {
-          border:
-            1px solid
-            rgba(
-              33,
-              196,
-              135,
-              0.24
-            );
-        }
-
-        .sub-icon.violet {
-          border:
-            1px solid
-            rgba(
-              139,
-              92,
-              246,
-              0.26
-            );
-        }
-
-        .sub-icon.gold {
-          border:
-            1px solid
-            rgba(
-              245,
-              190,
-              83,
-              0.3
-            );
-
-          background:
-            rgba(
-              245,
-              190,
-              83,
-              0.08
-            );
-        }
-
-        .sub-card h3 {
-          margin:
-            17px
-            0
-            0;
-
-          color: white;
-
-          font-size:
-            19px;
-        }
-
-        .sub-price {
-          display:
-            flex;
-
-          align-items:
-            baseline;
-
-          gap: 5px;
-
-          margin-top:
-            12px;
-
-          direction: ltr;
-
-          justify-content:
-            flex-start;
-        }
-
-        [dir="rtl"]
-          .sub-price {
-          justify-content:
-            flex-end;
-        }
-
-        .sub-price strong {
-          color: white;
-
-          font-size:
-            31px;
-
-          line-height: 1;
-        }
-
-        .sub-price span {
-          color:
-            #73859e;
-
-          font-size:
-            10px;
-        }
-
-        .sub-features {
-          display:
-            grid;
-
           gap: 9px;
 
-          margin:
-            19px
-            0
-            20px;
-
-          padding: 0;
-
-          list-style:
-            none;
+          margin-top:
+            15px;
         }
 
-        .sub-features li {
+        .payment-free-item {
           display:
             grid;
 
@@ -1581,214 +874,34 @@ export default function SubscriptionPage() {
 
           gap: 8px;
 
-          color:
-            #aab8c9;
-
-          font-size:
-            11px;
-
-          line-height:
-            1.55;
-        }
-
-        .sub-check {
-          color:
-            #39d497;
-
-          font-weight:
-            900;
-        }
-
-        .sub-card-button {
-          width: 100%;
-
-          min-height:
-            47px;
-
-          margin-top:
-            auto;
-
-          padding:
-            10px
-            12px;
-
-          border:
-            1px solid
-            #1c3857;
-
-          border-radius:
-            12px;
-
-          background:
-            #07182b;
-
-          color:
-            #e8eef7;
-
-          font-size:
-            12px;
-
-          font-weight:
-            900;
-
-          cursor:
-            pointer;
-        }
-
-        .sub-card-button.primary {
-          border-color:
-            var(
-              --sub-orange
-            );
-
-          background:
-            linear-gradient(
-              135deg,
-              #ff6900,
-              #ff7c20
-            );
-
-          color: white;
-
-          box-shadow:
-            0 12px 28px
-            rgba(
-              255,
-              105,
-              0,
-              0.16
-            );
-        }
-
-        .sub-card-button.gold {
-          border-color:
-            rgba(
-              245,
-              190,
-              83,
-              0.4
-            );
-
-          background:
-            rgba(
-              245,
-              190,
-              83,
-              0.09
-            );
-
-          color:
-            #ffd67e;
-        }
-
-        .sub-card-button.active {
-          border-color:
-            rgba(
-              33,
-              196,
-              135,
-              0.35
-            );
-
-          background:
-            rgba(
-              33,
-              196,
-              135,
-              0.08
-            );
-
-          color:
-            #6ce0ad;
-        }
-
-        .sub-card-button:disabled {
-          cursor:
-            default;
-
-          opacity: 1;
-        }
-
-        /* =============================================
-           FREE
-           ============================================= */
-
-        .sub-free {
-          display:
-            grid;
-
-          grid-template-columns:
-            auto
-            minmax(
-              0,
-              1fr
-            )
-            auto;
-
           align-items:
-            center;
-
-          gap: 18px;
+            start;
 
           padding:
-            20px;
+            12px;
 
           border:
             1px solid
-            #17314d;
-
-          border-radius:
-            20px;
-
-          background:
-            linear-gradient(
-              145deg,
-              #07172a,
-              #04101e
+            rgba(
+              67,
+              104,
+              145,
+              0.18
             );
-        }
-
-        .sub-free-icon {
-          width: 58px;
-          height: 58px;
-
-          display:
-            grid;
-
-          place-items:
-            center;
-
-          border:
-            1px solid
-            #193753;
 
           border-radius:
-            16px;
+            13px;
 
           background:
-            #08192c;
-
-          font-size:
-            26px;
-        }
-
-        .sub-free h3 {
-          margin: 0;
-
-          color: white;
-
-          font-size:
-            18px;
-        }
-
-        .sub-free p {
-          margin:
-            5px
-            0
-            0;
+            rgba(
+              7,
+              25,
+              45,
+              0.72
+            );
 
           color:
-            #8295ad;
+            #9dafc4;
 
           font-size:
             11px;
@@ -1797,20 +910,15 @@ export default function SubscriptionPage() {
             1.6;
         }
 
-        .sub-free-price {
-          direction:
-            ltr;
-
-          color: white;
-
-          font-size:
-            27px;
+        .payment-check {
+          color:
+            #43d89a;
 
           font-weight:
             900;
         }
 
-        .sub-free-features {
+        .payment-actions {
           display:
             grid;
 
@@ -1823,47 +931,111 @@ export default function SubscriptionPage() {
               )
             );
 
-          gap:
-            7px
-            14px;
+          gap: 10px;
 
           margin-top:
-            15px;
-
-          padding-top:
-            15px;
-
-          border-top:
-            1px solid
-            rgba(
-              103,
-              143,
-              190,
-              0.13
-            );
+            18px;
         }
 
-        .sub-free-feature {
+        .payment-action {
+          min-height:
+            49px;
+
           display:
             flex;
 
-          gap: 7px;
+          align-items:
+            center;
+
+          justify-content:
+            center;
+
+          padding:
+            10px 14px;
+
+          border:
+            1px solid
+            #1c3b5c;
+
+          border-radius:
+            13px;
+
+          background:
+            #07182b;
 
           color:
-            #93a4b9;
+            #dce8f5;
+
+          text-decoration:
+            none;
+
+          text-align:
+            center;
+
+          font-size:
+            12px;
+
+          font-weight:
+            900;
+        }
+
+        .payment-action.primary {
+          border-color:
+            rgba(
+              255,
+              105,
+              0,
+              0.55
+            );
+
+          background:
+            linear-gradient(
+              135deg,
+              #ff6900,
+              #ff7c22
+            );
+
+          color:
+            white;
+        }
+
+        .payment-footer-note {
+          margin:
+            22px
+            0
+            0;
+
+          padding:
+            0 10px;
+
+          color:
+            #576d86;
+
+          text-align:
+            center;
 
           font-size:
             10px;
 
           line-height:
-            1.5;
+            1.7;
         }
 
-        /* =============================================
-           SECURITY
-           ============================================= */
+        .payment-bottom-nav {
+          position:
+            fixed;
 
-        .sub-trust {
+          inset-inline:
+            0;
+
+          bottom: 0;
+
+          z-index:
+            100;
+
+          min-height:
+            76px;
+
           display:
             grid;
 
@@ -1876,174 +1048,23 @@ export default function SubscriptionPage() {
               )
             );
 
-          gap: 10px;
-
-          margin-top:
-            26px;
-        }
-
-        .sub-trust-item {
-          padding:
-            14px;
-
-          border:
-            1px solid
-            #142d48;
-
-          border-radius:
-            15px;
-
-          background:
-            rgba(
-              5,
-              18,
-              34,
-              0.7
-            );
-
-          color:
-            #8fa1b8;
-
-          text-align:
-            center;
-
-          font-size:
-            10px;
-
-          line-height:
-            1.5;
-        }
-
-        .sub-trust-item b {
-          display:
-            block;
-
-          margin-bottom:
-            5px;
-
-          color:
-            #dbe5f0;
-
-          font-size:
-            12px;
-        }
-
-        /* =============================================
-           ERROR
-           ============================================= */
-
-        .sub-error {
-          margin-top:
-            17px;
-
-          padding:
-            12px
-            14px;
-
-          border:
-            1px solid
-            rgba(
-              248,
-              113,
-              113,
-              0.3
-            );
-
-          border-radius:
-            12px;
-
-          background:
-            rgba(
-              248,
-              113,
-              113,
-              0.07
-            );
-
-          color:
-            #fca5a5;
-
-          font-size:
-            11px;
-
-          line-height:
-            1.6;
-        }
-
-        /* =============================================
-           FOOT NOTE
-           ============================================= */
-
-        .sub-note {
-          padding:
-            30px
-            10px
-            18px;
-
-          color:
-            #536982;
-
-          text-align:
-            center;
-
-          font-size:
-            10px;
-
-          line-height:
-            1.7;
-        }
-
-        /* =============================================
-           BOTTOM NAV
-           ============================================= */
-
-        .sub-bottom-nav {
-          position:
-            fixed;
-
-          inset-inline:
-            0;
-
-          bottom: 0;
-
-          z-index:
-            1500;
-
-          min-height:
-            78px;
-
-          display:
-            grid;
-
-          grid-template-columns:
-            repeat(
-              4,
-              minmax(
-                0,
-                1fr
-              )
-            );
-
-          align-items:
-            center;
-
           padding:
             5px
             8px
             calc(
               5px +
-                env(
-                  safe-area-inset-bottom
-                )
+              env(
+                safe-area-inset-bottom
+              )
             );
 
           border-top:
             1px solid
             rgba(
-              89,
-              128,
-              177,
-              0.15
+              93,
+              132,
+              180,
+              0.16
             );
 
           background:
@@ -2058,9 +1079,9 @@ export default function SubscriptionPage() {
             blur(18px);
         }
 
-        .sub-nav-link {
+        .payment-nav-link {
           min-height:
-            60px;
+            58px;
 
           display:
             flex;
@@ -2077,10 +1098,10 @@ export default function SubscriptionPage() {
           gap: 4px;
 
           border-radius:
-            15px;
+            14px;
 
           color:
-            #61728a;
+            #66798f;
 
           text-decoration:
             none;
@@ -2089,270 +1110,86 @@ export default function SubscriptionPage() {
             10px;
         }
 
-        .sub-nav-icon {
-          min-width:
-            46px;
-
-          height: 31px;
-
-          display:
-            grid;
-
-          place-items:
-            center;
-
-          border-radius:
-            15px;
-
-          font-size:
-            22px;
-        }
-
-        .sub-nav-link.active {
+        .payment-nav-link.active {
           color:
             #ff8540;
-        }
 
-        .sub-nav-link.active
-          .sub-nav-icon {
           background:
             rgba(
               255,
               105,
               0,
-              0.12
+              0.08
             );
         }
 
-        /* =============================================
-           TABLET
-           ============================================= */
-
-        @media (
-          max-width:
-            850px
-        ) {
-          .sub-shell {
-            width: min(
-              100% -
-                24px,
-              680px
-            );
-          }
-
-          .sub-grid {
-            grid-template-columns:
-              repeat(
-                2,
-                minmax(
-                  0,
-                  1fr
-                )
-              );
-          }
+        .payment-nav-icon {
+          font-size:
+            21px;
         }
-
-        /* =============================================
-           MOBILE
-           ============================================= */
 
         @media (
           max-width:
             620px
         ) {
-          .sub-shell {
+          .payment-shell {
             width: 100%;
 
             padding-inline:
               14px;
           }
 
-          .sub-header {
+          .payment-header-inner {
             min-height:
-              69px;
-
-            gap: 7px;
+              68px;
           }
 
-          .sub-back,
-          .sub-lang {
-            width: 39px;
-            height: 39px;
-
-            border-radius:
-              12px;
-          }
-
-          .sub-brand img {
-            width: 39px;
-            height: 39px;
-
-            flex-basis:
-              39px;
-
-            border-radius:
-              12px;
-          }
-
-          .sub-brand-copy strong {
-            font-size:
-              16px;
-          }
-
-          .sub-brand-copy small {
+          .payment-brand-copy small {
             display:
               none;
           }
 
-          .sub-hero {
+          .payment-content {
             padding-top:
-              14px;
+              16px;
           }
 
-          .sub-hero-card {
+          .payment-status-card {
             padding:
-              25px
-              17px;
+              23px 17px;
 
             border-radius:
-              22px;
+              21px;
           }
 
-          .sub-hero h1 {
-            font-size:
-              clamp(
-                29px,
-                8vw,
-                38px
-              );
-          }
-
-          .sub-hero-text {
+          .payment-status-text {
             font-size:
               12px;
           }
 
-          .sub-current {
-            grid-template-columns:
-              1fr;
-
-            gap: 10px;
-
-            margin-top:
-              19px;
-          }
-
-          .sub-billing {
-            width: 100%;
-          }
-
-          .sub-section {
-            padding-top:
-              28px;
-          }
-
-          .sub-section-head h2 {
-            font-size:
-              23px;
-          }
-
-          .sub-grid {
-            grid-template-columns:
-              1fr;
-
-            gap: 10px;
-          }
-
-          .sub-card {
-            min-height: 0;
-
+          .payment-section {
             padding:
               17px;
-
-            border-radius:
-              19px;
           }
 
-          .sub-card h3 {
-            font-size:
-              17px;
-          }
-
-          .sub-price strong {
-            font-size:
-              29px;
-          }
-
-          .sub-features {
-            gap: 8px;
-
-            margin:
-              16px
-              0;
-          }
-
-          .sub-features li {
-            font-size:
-              10.5px;
-          }
-
-          .sub-free {
-            grid-template-columns:
-              50px
-              minmax(
-                0,
-                1fr
-              )
-              auto;
-
-            gap: 10px;
-
-            padding:
-              16px;
-          }
-
-          .sub-free-icon {
-            width: 50px;
-            height: 50px;
-
-            font-size:
-              22px;
-          }
-
-          .sub-free h3 {
-            font-size:
-              16px;
-          }
-
-          .sub-free-price {
-            font-size:
-              23px;
-          }
-
-          .sub-free-features {
+          .payment-free-grid {
             grid-template-columns:
               1fr;
           }
 
-          .sub-trust {
+          .payment-actions {
             grid-template-columns:
               1fr;
-
-            gap: 7px;
           }
         }
       `}</style>
 
-      {/* ===================================================
-          HEADER
-          =================================================== */}
-
-      <div className="sub-header-wrap">
-        <div className="sub-shell">
-          <header className="sub-header">
+      <header className="payment-header">
+        <div className="payment-shell">
+          <div className="payment-header-inner">
             <a
               href="/"
-              className="sub-back"
+              className="payment-back"
               aria-label={
                 isAr
                   ? "العودة"
@@ -2366,14 +1203,14 @@ export default function SubscriptionPage() {
 
             <a
               href="/"
-              className="sub-brand"
+              className="payment-brand"
             >
               <img
                 src="/logov3.png"
                 alt="AllWDbook"
               />
 
-              <div className="sub-brand-copy">
+              <div className="payment-brand-copy">
                 <strong>
                   AllWDbook
                 </strong>
@@ -2386,621 +1223,173 @@ export default function SubscriptionPage() {
 
             <button
               type="button"
-              className="sub-lang"
+              className="payment-lang"
               onClick={
                 toggleLanguage
+              }
+              aria-label={
+                isAr
+                  ? "English"
+                  : "العربية"
               }
             >
               🌐
             </button>
-          </header>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="sub-shell">
+      <div className="payment-shell">
+        <div className="payment-content">
+          <section className="payment-status-card">
+            <span className="payment-status-badge">
+              <span className="payment-status-dot" />
 
-        {/* =================================================
-            HERO
-            ================================================= */}
-
-        <section className="sub-hero">
-          <div className="sub-hero-card">
-
-            <span className="sub-kicker">
-              ALLWDBOOK ACCESS
+              {isAr
+                ? "حالة الدفع"
+                : "PAYMENT STATUS"}
             </span>
 
             <h1>
               {isAr
-                ? "اختر الخطة التي تناسب طريقة "
-                : "Choose the plan that fits how you "}
+                ? "الدفع متوقف "
+                : "Payments are "}
 
               <span>
                 {isAr
-                  ? "عملك."
-                  : "publish."}
+                  ? "مؤقتًا."
+                  : "temporarily paused."}
               </span>
             </h1>
 
-            <p className="sub-hero-text">
-              {isAr
-                ? "ابدأ مجانًا، افتح أداة واحدة بدون حدود، أو انتقل إلى Pro للوصول الكامل. ويمكنك اختيار Lifetime إذا أردت وصولًا دائمًا."
-                : "Start free, unlock one tool, upgrade to Pro for full access, or choose Lifetime for permanent access."}
+            <p className="payment-status-text">
+              {paymentMessage}
             </p>
 
-            <div className="sub-current">
-              <div>
-                <small>
-                  {isAr
-                    ? "وصولك الحالي"
-                    : "CURRENT ACCESS"}
-                </small>
-
-                <strong>
-                  {currentAccess}
-                </strong>
-              </div>
-
-              {billingUrl ? (
-                <a
-                  href={
-                    billingUrl
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="sub-billing"
-                >
-                  ⚙️{" "}
-                  {isAr
-                    ? "إدارة الاشتراك والفواتير"
-                    : "Manage billing"}
-                </a>
-              ) : (
-                <span className="sub-live">
-                  {access.loading
-                    ? isAr
-                      ? "جارٍ التحقق"
-                      : "Checking"
-                    : isAr
-                      ? "الحساب متصل"
-                      : "Account connected"}
-                </span>
-              )}
-            </div>
-
-            {error && (
-              <div className="sub-error">
-                ⚠️ {error}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* =================================================
-            PRO PLANS
-            ================================================= */}
-
-        <section className="sub-section">
-          <div className="sub-section-head">
-            <span>
-              PRO ACCESS
-            </span>
-
-            <h2>
-              {isAr
-                ? "الوصول الكامل"
-                : "Full Access"}
-            </h2>
-
-            <p>
-              {isAr
-                ? "مناسب لمن يستخدم أكثر من أداة بصورة مستمرة."
-                : "Best for publishers who regularly use multiple tools."}
-            </p>
-          </div>
-
-          <div className="sub-grid">
-            {PAID_PLANS.filter(
-              (plan) =>
-                plan.id ===
-                  "pro_monthly" ||
-                plan.id ===
-                  "pro_yearly",
-            ).map(
-              (plan) => {
-                const active =
-                  isActive(
-                    plan.id,
-                  );
-
-                return (
-                  <article
-                    key={
-                      plan.id
-                    }
-                    className={
-                      "sub-card" +
-                      (plan.featured
-                        ? " featured"
-                        : "")
-                    }
-                  >
-                    {plan.featured && (
-                      <span className="sub-popular">
-                        {isAr
-                          ? "الأكثر مرونة"
-                          : "POPULAR"}
-                      </span>
-                    )}
-
-                    {plan.bestValue && (
-                      <span className="sub-best">
-                        {isAr
-                          ? "أفضل قيمة"
-                          : "BEST VALUE"}
-                      </span>
-                    )}
-
-                    <div
-                      className={`sub-icon ${plan.tone}`}
-                    >
-                      {plan.icon}
-                    </div>
-
-                    <h3>
-                      {isAr
-                        ? plan.ar
-                        : plan.en}
-                    </h3>
-
-                    <div className="sub-price">
-                      <strong>
-                        {plan.price}
-                      </strong>
-
-                      <span>
-                        {isAr
-                          ? plan.periodAr
-                          : plan.periodEn}
-                      </span>
-                    </div>
-
-                    <ul className="sub-features">
-                      {(isAr
-                        ? plan.featuresAr
-                        : plan.featuresEn
-                      ).map(
-                        (
-                          feature,
-                        ) => (
-                          <li
-                            key={
-                              feature
-                            }
-                          >
-                            <span className="sub-check">
-                              ✓
-                            </span>
-
-                            <span>
-                              {
-                                feature
-                              }
-                            </span>
-                          </li>
-                        ),
-                      )}
-                    </ul>
-
-                    <button
-                      type="button"
-                      disabled={
-                        active ||
-                        access.lifetime ||
-                        busyPlan ===
-                          plan.id
-                      }
-                      className={
-                        "sub-card-button" +
-                        (active ||
-                        access.lifetime
-                          ? " active"
-                          : " primary")
-                      }
-                      onClick={() =>
-                        openCheckout(
-                          plan,
-                        )
-                      }
-                    >
-                      {access.lifetime
-                        ? isAr
-                          ? "مشمول في Lifetime ✓"
-                          : "Included in Lifetime ✓"
-                        : active
-                          ? isAr
-                            ? "الخطة مفعلة ✓"
-                            : "Active Plan ✓"
-                          : busyPlan ===
-                              plan.id
-                            ? isAr
-                              ? "جارٍ فتح الدفع..."
-                              : "Opening checkout..."
-                            : isAr
-                              ? "اختيار الخطة"
-                              : "Choose Plan"}
-                    </button>
-                  </article>
-                );
-              },
-            )}
-
-            {/* LIFETIME */}
-
-            <article className="sub-card lifetime">
-              <span className="sub-best">
-                LIFETIME
+            <div className="payment-notice">
+              <span className="payment-notice-icon">
+                🛡️
               </span>
 
-              <div className="sub-icon gold">
-                💎
-              </div>
-
-              <h3>
-                {isAr
-                  ? "Lifetime"
-                  : "Lifetime"}
-              </h3>
-
-              <div className="sub-price">
+              <div>
                 <strong>
-                  $125
+                  {isAr
+                    ? "استكمال توثيق مزود الدفع"
+                    : "Payment provider verification"}
                 </strong>
 
-                <span>
+                <p>
                   {isAr
-                    ? "دفعة واحدة"
-                    : "one-time"}
-                </span>
+                    ? "تم إيقاف عمليات الشراء الجديدة مؤقتًا إلى حين اكتمال التوثيق. لا تحتاج إلى القيام بأي شيء، وستعود الخطط المدفوعة بعد اكتمال العملية."
+                    : "New purchases are temporarily disabled while verification is completed. No action is required from you. Paid plans will return after verification."}
+                </p>
               </div>
+            </div>
+          </section>
 
-              <ul className="sub-features">
-                {(
-                  isAr
-                    ? [
-                        "وصول دائم إلى جميع الأدوات الحالية",
-                        "بدون اشتراك شهري أو سنوي",
-                        "مصمم الأغلفة بدون حدود يومية",
-                        "Micro-Niche وKeywords بدون حدود",
-                        "إمكانية الاستعادة عبر كود Lifetime",
-                      ]
-                    : [
-                        "Permanent access to all current tools",
-                        "No monthly or yearly subscription",
-                        "Unlimited Cover Designer",
-                        "Unlimited Micro-Niche & Keywords",
-                        "Lifetime recovery code support",
-                      ]
-                ).map(
-                  (feature) => (
-                    <li
-                      key={
-                        feature
-                      }
-                    >
-                      <span className="sub-check">
-                        ✓
-                      </span>
+          <section className="payment-section">
+            <span className="payment-section-label">
+              {isAr
+                ? "الوصول الحالي"
+                : "CURRENT ACCESS"}
+            </span>
 
-                      <span>
-                        {feature}
-                      </span>
-                    </li>
-                  ),
-                )}
-              </ul>
+            <h2>
+              {isAr
+                ? "خطتك الحالية"
+                : "Your current access"}
+            </h2>
 
-              <button
-                type="button"
-                disabled={
-                  access.lifetime ||
-                  busyPlan ===
-                    "lifetime"
+            <div className="payment-access-value">
+              {currentAccess}
+            </div>
+
+            {billingUrl ? (
+              <a
+                href={
+                  billingUrl
                 }
-                className={
-                  "sub-card-button" +
-                  (access.lifetime
-                    ? " active"
-                    : " gold")
-                }
-                onClick={
-                  buyLifetime
-                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="payment-billing"
               >
-                {access.lifetime
-                  ? isAr
-                    ? "Lifetime مفعل ✓"
-                    : "Lifetime Active ✓"
-                  : busyPlan ===
-                      "lifetime"
-                    ? isAr
-                      ? "جارٍ فتح الدفع..."
-                      : "Opening checkout..."
-                    : isAr
-                      ? "شراء Lifetime"
-                      : "Buy Lifetime"}
-              </button>
-            </article>
-          </div>
-        </section>
+                ⚙️{" "}
+                {isAr
+                  ? "إدارة الاشتراك والفواتير الحالية"
+                  : "Manage existing subscription"}
+              </a>
+            ) : null}
+          </section>
 
-        {/* =================================================
-            SINGLE TOOLS
-            ================================================= */}
-
-        <section className="sub-section">
-          <div className="sub-section-head">
-            <span>
-              SINGLE TOOL
+          <section className="payment-section">
+            <span className="payment-section-label">
+              FREE ACCESS
             </span>
 
             <h2>
               {isAr
-                ? "افتح أداة واحدة"
-                : "Unlock One Tool"}
+                ? "يمكنك الاستمرار مجانًا"
+                : "Keep using AllWDbook for free"}
             </h2>
 
-            <p>
-              {isAr
-                ? "خيار اقتصادي إذا كنت تحتاج أداة واحدة بشكل مكثف."
-                : "A lower-cost option when you mainly need one tool."}
-            </p>
-          </div>
-
-          <div className="sub-grid">
-            {PAID_PLANS.filter(
-              (plan) =>
-                plan.id ===
-                  "cover" ||
-                plan.id ===
-                  "micro_niche" ||
-                plan.id ===
-                  "keywords",
-            ).map(
-              (plan) => {
-                const active =
-                  isActive(
-                    plan.id,
-                  );
-
-                return (
-                  <article
+            <div className="payment-free-grid">
+              {freeFeatures.map(
+                (
+                  feature
+                ) => (
+                  <div
                     key={
-                      plan.id
+                      feature
                     }
-                    className="sub-card"
+                    className="payment-free-item"
                   >
-                    <div
-                      className={`sub-icon ${plan.tone}`}
-                    >
-                      {plan.icon}
-                    </div>
+                    <span className="payment-check">
+                      ✓
+                    </span>
 
-                    <h3>
-                      {isAr
-                        ? plan.ar
-                        : plan.en}
-                    </h3>
-
-                    <div className="sub-price">
-                      <strong>
-                        {plan.price}
-                      </strong>
-
-                      <span>
-                        {isAr
-                          ? plan.periodAr
-                          : plan.periodEn}
-                      </span>
-                    </div>
-
-                    <ul className="sub-features">
-                      {(isAr
-                        ? plan.featuresAr
-                        : plan.featuresEn
-                      ).map(
-                        (
-                          feature,
-                        ) => (
-                          <li
-                            key={
-                              feature
-                            }
-                          >
-                            <span className="sub-check">
-                              ✓
-                            </span>
-
-                            <span>
-                              {
-                                feature
-                              }
-                            </span>
-                          </li>
-                        ),
-                      )}
-                    </ul>
-
-                    <button
-                      type="button"
-                      disabled={
-                        active ||
-                        access.lifetime ||
-                        busyPlan ===
-                          plan.id
-                      }
-                      className={
-                        "sub-card-button" +
-                        (active ||
-                        access.lifetime
-                          ? " active"
-                          : "")
-                      }
-                      onClick={() =>
-                        openCheckout(
-                          plan,
-                        )
-                      }
-                    >
-                      {access.lifetime
-                        ? isAr
-                          ? "مشمول في Lifetime ✓"
-                          : "Included in Lifetime ✓"
-                        : active
-                          ? isAr
-                            ? "مفعلة ✓"
-                            : "Active ✓"
-                          : busyPlan ===
-                              plan.id
-                            ? isAr
-                              ? "جارٍ فتح الدفع..."
-                              : "Opening checkout..."
-                            : isAr
-                              ? "اشترك الآن"
-                              : "Subscribe"}
-                    </button>
-                  </article>
-                );
-              },
-            )}
-          </div>
-        </section>
-
-        {/* =================================================
-            FREE
-            ================================================= */}
-
-        <section className="sub-section">
-          <div className="sub-section-head">
-            <span>
-              START FREE
-            </span>
-
-            <h2>
-              {isAr
-                ? "الخطة المجانية"
-                : "Free Plan"}
-            </h2>
-          </div>
-
-          <article className="sub-free">
-            <div className="sub-free-icon">
-              🚀
+                    <span>
+                      {feature}
+                    </span>
+                  </div>
+                )
+              )}
             </div>
+          </section>
 
-            <div>
-              <h3>
-                {isAr
-                  ? "ابدأ بدون بطاقة بنكية"
-                  : "Start without a credit card"}
-              </h3>
-
-              <p>
-                {isAr
-                  ? "استخدم الأدوات الأساسية يوميًا ثم قم بالترقية فقط عندما تحتاج المزيد."
-                  : "Use the core tools every day and upgrade only when you need more."}
-              </p>
-            </div>
-
-            <div className="sub-free-price">
-              $0
-            </div>
-          </article>
-
-          <div className="sub-free-features">
-            {freeFeatures.map(
-              (feature) => (
-                <div
-                  key={
-                    feature
-                  }
-                  className="sub-free-feature"
-                >
-                  <span className="sub-check">
-                    ✓
-                  </span>
-
-                  <span>
-                    {feature}
-                  </span>
-                </div>
-              ),
-            )}
-          </div>
-        </section>
-
-        {/* =================================================
-            TRUST
-            ================================================= */}
-
-        <div className="sub-trust">
-          <div className="sub-trust-item">
-            <b>
-              🔒{" "}
+          <div className="payment-actions">
+            <a
+              href="/"
+              className="payment-action primary"
+            >
               {isAr
-                ? "دفع آمن"
-                : "Secure checkout"}
-            </b>
+                ? "العودة إلى الأدوات"
+                : "Return to Tools"}
+            </a>
 
-            {isAr
-              ? "عمليات الدفع تتم عبر Lemon Squeezy."
-              : "Payments are processed through Lemon Squeezy."}
-          </div>
-
-          <div className="sub-trust-item">
-            <b>
-              ⚡{" "}
+            <a
+              href="/blog"
+              className="payment-action"
+            >
               {isAr
-                ? "تفعيل تلقائي"
-                : "Automatic access"}
-            </b>
-
-            {isAr
-              ? "بعد نجاح الدفع يتم تحديث وصول الحساب."
-              : "Your account access updates after successful payment."}
+                ? "استكشف المدونة"
+                : "Explore the Blog"}
+            </a>
           </div>
 
-          <div className="sub-trust-item">
-            <b>
-              ⚙️{" "}
-              {isAr
-                ? "إدارة الاشتراك"
-                : "Subscription control"}
-            </b>
-
+          <p className="payment-footer-note">
             {isAr
-              ? "يمكن للمشترك إدارة الفواتير والاشتراك من بوابة العميل."
-              : "Subscribers can manage billing through the customer portal."}
-          </div>
+              ? "أي وصول مدفوع أو Lifetime مفعّل سابقًا يبقى صالحًا. إيقاف الدفع يخص عمليات الشراء الجديدة فقط."
+              : "Existing paid and Lifetime access remains valid. The temporary pause only affects new purchases."}
+          </p>
         </div>
-
-        <p className="sub-note">
-          {isAr
-            ? "يمكن تفعيل أو استعادة Lifetime من القائمة ☰ ← الحساب والوصول. AllWDbook أداة مستقلة وليست تابعة لأي منصة نشر."
-            : "Lifetime activation and recovery are available from ☰ → Account & Access. AllWDbook is an independent publishing tool."}
-        </p>
       </div>
 
-      {/* ===================================================
-          BOTTOM NAV
-          =================================================== */}
-
-      <nav className="sub-bottom-nav">
+      <nav className="payment-bottom-nav">
         <a
-          href="/tools"
-          className="sub-nav-link"
+          href="/"
+          className="payment-nav-link"
         >
-          <span className="sub-nav-icon">
+          <span className="payment-nav-icon">
             🧰
           </span>
 
@@ -3013,9 +1402,9 @@ export default function SubscriptionPage() {
 
         <a
           href="/"
-          className="sub-nav-link"
+          className="payment-nav-link"
         >
-          <span className="sub-nav-icon">
+          <span className="payment-nav-icon">
             🏠
           </span>
 
@@ -3028,31 +1417,16 @@ export default function SubscriptionPage() {
 
         <a
           href="/subscription"
-          className="sub-nav-link active"
+          className="payment-nav-link active"
         >
-          <span className="sub-nav-icon">
-            👑
+          <span className="payment-nav-icon">
+            ⏸️
           </span>
 
           <span>
             {isAr
-              ? "الاشتراك"
-              : "Plan"}
-          </span>
-        </a>
-
-        <a
-          href="/blog"
-          className="sub-nav-link"
-        >
-          <span className="sub-nav-icon">
-            📰
-          </span>
-
-          <span>
-            {isAr
-              ? "المدونة"
-              : "Blog"}
+              ? "الدفع"
+              : "Payments"}
           </span>
         </a>
       </nav>
