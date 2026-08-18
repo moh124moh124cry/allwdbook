@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./payment-freeze.css";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import Feedback from "./feedback";
