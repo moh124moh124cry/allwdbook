@@ -1,9 +1,12 @@
 import "./globals.css";
 import "./payment-freeze.css";
+
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
+
 import Feedback from "./feedback";
 import AdSlot from "./adslot";
+import AdminButton from "./adminbutton";
 
 const ADS_ON = false;
 const MONETAG_ZONE = "";
@@ -177,7 +180,7 @@ const VISITOR_TRACKER = `
 
       if (
         typeof original !==
-        "function"
+          "function"
       ) {
         return;
       }
@@ -382,9 +385,27 @@ export default function RootLayout({
 
         {children}
 
+
+        {/* ===============================================
+            ADMIN BUTTON — ADMIN ACCOUNT ONLY
+            =============================================== */}
+
+        <div
+          style={{
+            position: "fixed",
+            top: 14,
+            right: 14,
+            zIndex: 30000
+          }}
+        >
+          <AdminButton />
+        </div>
+
+
         <Feedback />
 
         <AdSlot />
+
 
         {/* ===============================================
             CUSTOM SUPABASE VISITOR ANALYTICS
