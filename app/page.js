@@ -17,7 +17,6 @@ import {
 import CoverTool from "./covertool";
 import KeywordsPanel from "./keywordspanel";
 import AccountMenu from "./accountmenu";
-import BlogTicker from "./blogticker";
 import UpgradePrompt, {
   shouldBlockRememberedLimit,
 } from "./upgradeprompt";
@@ -1123,7 +1122,7 @@ export default function Home() {
                   ? "مجموعة مركزة من الأدوات تساعدك على البحث عن الفرص، تحليل الكلمات والنيشات، حساب الأرباح، تصميم الأغلفة وتجهيز محتوى كتابك."
                   : "A focused suite of tools for opportunity research, keywords, niche analysis, royalty calculations, cover design and book publishing."}
               </p>
-<BlogTicker isAr={isAr} />
+{/* BlogTicker disabled temporarily for flicker test */}
               <div className="awd-hero-buttons">
                 <button
                   type="button"
