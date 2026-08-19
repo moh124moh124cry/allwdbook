@@ -44,9 +44,14 @@ export default function BlogTicker({
                 className="awd-blog-ticker-item"
                 key={`${item.href}-${index}`}
               >
-                {item.title}
+                <span className="awd-blog-ticker-title">
+                  {item.title}
+                </span>
 
-                <span className="awd-blog-ticker-dot">
+                <span
+                  className="awd-blog-ticker-dot"
+                  aria-hidden="true"
+                >
                   •
                 </span>
               </Link>
@@ -61,12 +66,12 @@ export default function BlogTicker({
         }
 
         .awd-blog-ticker {
-          width: 100%;
+          position: relative;
 
-          min-height: 96px;
+          width: 100%;
+          min-height: 108px;
 
           display: flex;
-
           align-items: center;
 
           overflow: hidden;
@@ -79,31 +84,41 @@ export default function BlogTicker({
               255,
               105,
               0,
-              0.28
+              0.34
             );
 
           border-radius: 22px;
 
           background:
-            linear-gradient(
-              90deg,
+            radial-gradient(
+              circle at 85% 50%,
               rgba(
                 255,
                 105,
                 0,
                 0.11
               ),
-              rgba(
-                7,
-                22,
-                40,
-                0.94
-              ),
+              transparent 38%
+            ),
+            linear-gradient(
+              105deg,
               rgba(
                 255,
                 105,
                 0,
-                0.08
+                0.09
+              ),
+              rgba(
+                7,
+                22,
+                40,
+                0.97
+              ) 44%,
+              rgba(
+                5,
+                15,
+                29,
+                0.98
               )
             );
 
@@ -113,18 +128,53 @@ export default function BlogTicker({
                 255,
                 255,
                 255,
-                0.04
+                0.045
               ),
-            0 12px 32px
+            inset 0 -1px 0
+              rgba(
+                255,
+                105,
+                0,
+                0.08
+              ),
+            0 14px 36px
               rgba(
                 0,
                 0,
                 0,
-                0.16
+                0.2
               );
         }
 
+        .awd-blog-ticker::before {
+          content: "";
+
+          position: absolute;
+          inset: 0;
+
+          pointer-events: none;
+
+          border-radius: inherit;
+
+          background:
+            linear-gradient(
+              115deg,
+              transparent 10%,
+              rgba(
+                255,
+                255,
+                255,
+                0.025
+              ) 40%,
+              transparent 65%
+            );
+        }
+
         .awd-blog-ticker-window {
+          position: relative;
+
+          z-index: 1;
+
           width: 100%;
 
           overflow: hidden;
@@ -152,10 +202,9 @@ export default function BlogTicker({
           width: max-content;
 
           display: flex;
-
           align-items: center;
 
-          gap: 80px;
+          gap: 92px;
 
           animation:
             awdTickerMove
@@ -174,56 +223,183 @@ export default function BlogTicker({
         }
 
         .awd-blog-ticker-item {
-          min-height: 96px;
+          min-height: 108px;
 
           display: flex;
-
           align-items: center;
 
-          gap: 44px;
+          gap: 50px;
 
-          padding-inline: 18px;
-
-          color: #f5f7fb;
+          padding-inline: 23px;
 
           white-space: nowrap;
 
-          font-size: 25px;
+          color: inherit;
 
-          font-weight: 800;
+          text-decoration: none !important;
+          text-decoration-line: none !important;
 
-          line-height: 1.35;
+          border-bottom: 0 !important;
 
-          text-decoration: none;
+          outline: none;
 
-          transition:
-            color 0.2s ease;
+          -webkit-tap-highlight-color:
+            transparent;
         }
 
-        .awd-blog-ticker-item:hover {
-          color: #ff8a3d;
+        .awd-blog-ticker-title {
+          display: inline-block;
+
+          color: #fff8ef;
+
+          font-family:
+            "Segoe Print",
+            "Bradley Hand",
+            "Comic Sans MS",
+            "Noto Naskh Arabic",
+            "Traditional Arabic",
+            cursive;
+
+          font-size: 30px;
+
+          font-weight: 950;
+
+          line-height: 1.45;
+
+          letter-spacing: 0.15px;
+
+          text-decoration: none !important;
+          text-decoration-line: none !important;
+
+          -webkit-text-stroke:
+            1.05px
+            #ff6900;
+
+          paint-order:
+            stroke fill;
+
+          text-shadow:
+            1px 1px 0
+              #ff6900,
+            2px 2px 0
+              #da5200,
+            3px 3px 0
+              #a63e00,
+            4px 4px 0
+              #6f2900,
+            6px 8px 12px
+              rgba(
+                0,
+                0,
+                0,
+                0.65
+              ),
+            0 0 15px
+              rgba(
+                255,
+                105,
+                0,
+                0.17
+              );
+
+          transform:
+            rotate(-0.35deg)
+            translateY(-1px);
+
+          transform-origin:
+            center;
+
+          transition:
+            color 0.2s ease,
+            transform 0.2s ease,
+            text-shadow 0.2s ease,
+            -webkit-text-stroke-color
+              0.2s ease;
+        }
+
+        [dir="rtl"]
+          .awd-blog-ticker-title {
+          transform:
+            rotate(0.3deg)
+            translateY(-1px);
+        }
+
+        .awd-blog-ticker-item:hover
+          .awd-blog-ticker-title {
+          color: #ffffff;
+
+          -webkit-text-stroke-color:
+            #ff8a3d;
+
+          transform:
+            translateY(-3px)
+            scale(1.025)
+            rotate(-0.15deg);
+
+          text-shadow:
+            1px 1px 0
+              #ff7a21,
+            2px 2px 0
+              #e25700,
+            3px 3px 0
+              #b24100,
+            5px 5px 0
+              #762a00,
+            7px 10px 16px
+              rgba(
+                0,
+                0,
+                0,
+                0.72
+              ),
+            0 0 22px
+              rgba(
+                255,
+                105,
+                0,
+                0.3
+              );
+        }
+
+        [dir="rtl"]
+          .awd-blog-ticker-item:hover
+          .awd-blog-ticker-title {
+          transform:
+            translateY(-3px)
+            scale(1.025)
+            rotate(0.15deg);
         }
 
         .awd-blog-ticker-dot {
           color: #ff6900;
 
-          font-size: 30px;
+          font-size: 34px;
+
+          font-weight: 900;
 
           line-height: 1;
+
+          text-shadow:
+            0 0 12px
+              rgba(
+                255,
+                105,
+                0,
+                0.6
+              );
         }
 
         .awd-blog-ticker-item:focus-visible {
-          outline: 2px solid
-            rgba(
-              255,
-              105,
-              0,
-              0.75
-            );
+          border-radius: 14px;
 
-          outline-offset: -5px;
-
-          border-radius: 12px;
+          box-shadow:
+            inset 0 0 0 2px
+              rgba(
+                255,
+                105,
+                0,
+                0.82
+              );
         }
 
         @keyframes awdTickerMove {
@@ -260,35 +436,73 @@ export default function BlogTicker({
           max-width: 600px
         ) {
           .awd-blog-ticker {
-            min-height: 88px;
+            min-height: 100px;
 
             margin-top: 22px;
-            margin-bottom: 24px;
+            margin-bottom: 25px;
 
             border-radius: 18px;
           }
 
           .awd-blog-ticker-track {
-            gap: 60px;
+            gap: 72px;
 
             animation-duration:
-              30s;
+              31s;
           }
 
           .awd-blog-ticker-item {
-            min-height: 88px;
+            min-height: 100px;
 
-            padding-inline: 14px;
+            gap: 38px;
 
-            gap: 34px;
+            padding-inline: 16px;
+          }
 
-            font-size: 21px;
+          .awd-blog-ticker-title {
+            font-size: 24px;
 
-            font-weight: 800;
+            font-weight: 950;
+
+            line-height: 1.45;
+
+            -webkit-text-stroke:
+              0.9px
+              #ff6900;
+
+            text-shadow:
+              1px 1px 0
+                #ff6900,
+              2px 2px 0
+                #d94f00,
+              3px 3px 0
+                #853000,
+              5px 7px 10px
+                rgba(
+                  0,
+                  0,
+                  0,
+                  0.7
+                ),
+              0 0 12px
+                rgba(
+                  255,
+                  105,
+                  0,
+                  0.16
+                );
           }
 
           .awd-blog-ticker-dot {
-            font-size: 26px;
+            font-size: 28px;
+          }
+        }
+
+        @media (
+          max-width: 390px
+        ) {
+          .awd-blog-ticker-title {
+            font-size: 22px;
           }
         }
 
@@ -302,6 +516,10 @@ export default function BlogTicker({
 
           .awd-blog-ticker-window {
             overflow-x: auto;
+          }
+
+          .awd-blog-ticker-title {
+            transform: none;
           }
         }
       `}</style>
