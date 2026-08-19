@@ -248,7 +248,7 @@ const VISITOR_TRACKER = `
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0b1220"
+  themeColor: "#02060d"
 };
 
 
@@ -380,8 +380,23 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
+      style={{
+        backgroundColor:
+          "#02060d",
+
+        colorScheme:
+          "dark"
+      }}
     >
-      <body>
+      <body
+        style={{
+          backgroundColor:
+            "#02060d",
+
+          backgroundAttachment:
+            "scroll"
+        }}
+      >
 
         {children}
 
@@ -390,17 +405,18 @@ export default function RootLayout({
             ADMIN BUTTON — ADMIN ACCOUNT ONLY
             =============================================== */}
 
-      <div
-  style={{
-    position: "fixed",
-    top: 58,
-    left: "50%",
-    transform: "translateX(-50%)",
-    zIndex: 30000
-  }}
->
-  <AdminButton />
-</div>
+        <div
+          style={{
+            position: "fixed",
+            top: 58,
+            left: "50%",
+            transform:
+              "translateX(-50%)",
+            zIndex: 30000
+          }}
+        >
+          <AdminButton />
+        </div>
 
 
         <Feedback />
