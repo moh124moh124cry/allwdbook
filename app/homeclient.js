@@ -506,24 +506,15 @@ export default function HomeClient({
      HERO SLIDER
      ======================================================= */
 
-  useEffect(() => {
-    const timer =
-      window.setInterval(
-        () => {
-          setSlide(
-            (current) =>
-              (current + 1) %
-              HERO_SLIDES.length,
-          );
-        },
-        6000,
-      );
-
-    return () =>
-      window.clearInterval(
-        timer,
-      );
-  }, []);
+  /*
+   * Auto-rotation disabled temporarily.
+   * The user can still switch slides manually
+   * using the dots below the hero.
+   *
+   * This test isolates periodic layout shifts
+   * caused by English headlines wrapping
+   * to different numbers of lines.
+   */
 
   const market =
     MARKETS.find(
