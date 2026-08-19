@@ -155,6 +155,11 @@ const HERO_SLIDES = [
 export default function Home() {
   const [lang, setLang] = useState("ar");
 
+  const [
+    languageReady,
+    setLanguageReady,
+  ] = useState(false);
+
   const [tab, setTab] =
     useState(null);
 
@@ -198,26 +203,54 @@ export default function Home() {
      ======================================================= */
 
   useEffect(() => {
-    const saved =
-      window.localStorage.getItem(
-        "awd_lang",
-      );
+    let initialLanguage =
+      "ar";
 
-    if (
-      saved &&
-      T[saved]
-    ) {
-      setLang(saved);
+    try {
+      const saved =
+        window.localStorage.getItem(
+          "awd_lang",
+        );
+
+      if (
+        saved &&
+        T[saved]
+      ) {
+        initialLanguage =
+          saved;
+      }
+    } catch (error) {
+      /*
+       * إذا تعذر الوصول إلى
+       * localStorage نستعمل العربية
+       * كلغة افتراضية.
+       */
     }
+
+    setLang(
+      initialLanguage,
+    );
+
+    setLanguageReady(
+      true,
+    );
 
     function syncLanguage(
       event,
     ) {
-      const next =
-        event?.detail ||
-        window.localStorage.getItem(
-          "awd_lang",
-        );
+      let next =
+        event?.detail;
+
+      if (!next) {
+        try {
+          next =
+            window.localStorage.getItem(
+              "awd_lang",
+            );
+        } catch (error) {
+          next = null;
+        }
+      }
 
       if (
         next &&
@@ -241,10 +274,27 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(
-      "awd_lang",
-      lang,
-    );
+    /*
+     * مهم:
+     * لا نحفظ "ar" الافتراضية
+     * قبل أن نقرأ اللغة الحقيقية
+     * المحفوظة على الجهاز.
+     */
+    if (!languageReady) {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        "awd_lang",
+        lang,
+      );
+    } catch (error) {
+      /*
+       * تعذر الحفظ لا يجب
+       * أن يعطل الواجهة.
+       */
+    }
 
     document.documentElement.lang =
       lang;
@@ -253,7 +303,11 @@ export default function Home() {
       isAr
         ? "rtl"
         : "ltr";
-  }, [lang, isAr]);
+  }, [
+    lang,
+    isAr,
+    languageReady,
+  ]);
 
   function toggleLanguage() {
     const next =
@@ -263,10 +317,17 @@ export default function Home() {
 
     setLang(next);
 
-    window.localStorage.setItem(
-      "awd_lang",
-      next,
-    );
+    try {
+      window.localStorage.setItem(
+        "awd_lang",
+        next,
+      );
+    } catch (error) {
+      /*
+       * يستمر تغيير اللغة
+       * حتى إذا تعذر التخزين.
+       */
+    }
 
     window.dispatchEvent(
       new CustomEvent(
@@ -524,6 +585,12 @@ export default function Home() {
           ? "rtl"
           : "ltr"
       }
+      style={{
+        visibility:
+          languageReady
+            ? "visible"
+            : "hidden",
+      }}
     >
 
       {/* ===================================================
