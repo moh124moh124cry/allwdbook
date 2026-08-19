@@ -391,15 +391,15 @@ export default function RootLayout({
             =============================================== */}
 
         <div
-          style={{
-            position: "fixed",
-            top: 14,
-            right: 14,
-            zIndex: 30000
-          }}
-        >
-          <AdminButton />
-        </div>
+  style={{
+    position: "fixed",
+    right: 14,
+    bottom: 18,
+    zIndex: 30000
+  }}
+>
+  <AdminButton />
+</div>
 
 
         <Feedback />
