@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import Link from "next/link";
 import "./home.css";
 
@@ -202,7 +202,7 @@ export default function Home() {
      LANGUAGE
      ======================================================= */
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let initialLanguage =
       "ar";
 
@@ -226,6 +226,14 @@ export default function Home() {
        * كلغة افتراضية.
        */
     }
+
+    document.documentElement.lang =
+      initialLanguage;
+
+    document.documentElement.dir =
+      initialLanguage === "ar"
+        ? "rtl"
+        : "ltr";
 
     setLang(
       initialLanguage,
@@ -585,12 +593,6 @@ export default function Home() {
           ? "rtl"
           : "ltr"
       }
-      style={{
-        visibility:
-          languageReady
-            ? "visible"
-            : "hidden",
-      }}
     >
 
       {/* ===================================================
