@@ -2,6 +2,7 @@ import "./globals.css";
 import "./payment-freeze.css";
 
 import Script from "next/script";
+import { cookies } from "next/headers";
 import { Analytics } from "@vercel/analytics/react";
 
 import Feedback from "./feedback";
@@ -225,7 +226,7 @@ const VISITOR_TRACKER = `
 
   if (
     document.readyState ===
-    "loading"
+      "loading"
   ) {
     document.addEventListener(
       "DOMContentLoaded",
@@ -373,13 +374,32 @@ export const metadata = {
    ROOT LAYOUT
    ========================================================= */
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }) {
+  const cookieStore =
+    await cookies();
+
+  const languageCookie =
+    cookieStore.get(
+      "awd_lang"
+    );
+
+  const language =
+    languageCookie?.value ===
+      "en"
+      ? "en"
+      : "ar";
+
+  const direction =
+    language === "ar"
+      ? "rtl"
+      : "ltr";
+
   return (
     <html
-      lang="ar"
-      dir="rtl"
+      lang={language}
+      dir={direction}
       style={{
         backgroundColor:
           "#02060d",
@@ -466,3 +486,4 @@ export default function RootLayout({
     </html>
   );
 }
+
