@@ -360,20 +360,27 @@ export default function HomeClient({
         ? "en"
         : "ar";
 
+    /*
+     * نحفظ اللغة الجديدة أولًا،
+     * ثم نعيد تحميل الصفحة بالكامل.
+     *
+     * السبب:
+     * Root Layout في Next.js لا يعاد
+     * رندره تلقائيًا أثناء التنقل
+     * بين الصفحات، لذلك التبديل الفوري
+     * بين RTL و LTR قد يترك تخطيطًا
+     * قديمًا للحظات ويسبب الوميض.
+     *
+     * إعادة التحميل تجعل الخادم يقرأ
+     * Cookie الجديدة قبل أول Render،
+     * فتظهر اللغة والاتجاه الصحيحان
+     * من البداية.
+     */
     persistLanguage(
       next,
     );
 
-    setLang(next);
-
-    window.dispatchEvent(
-      new CustomEvent(
-        "awd-language-change",
-        {
-          detail: next,
-        },
-      ),
-    );
+    window.location.reload();
   }
 
   /* =======================================================
