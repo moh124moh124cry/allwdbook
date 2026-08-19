@@ -2,28 +2,55 @@
 
 import Link from "next/link";
 
+import {
+  BLOG_ARTICLES,
+} from "../lib/blog/articles";
+
 export default function BlogTicker({
   isAr = true,
 }) {
-  const post = isAr
-    ? {
-        title:
-          "لماذا أنشأت AllWDbook؟ المشكلة التي أردت حلها للناشرين",
-        href:
-          "/ar/blog/why-i-created-allwdbook",
-      }
-    : {
-        title:
-          "Why I Created AllWDbook: The Problem I Wanted to Solve for Publishers",
-        href:
-          "/en/blog/why-i-created-allwdbook",
-      };
+  const language =
+    isAr ? "ar" : "en";
 
-  const tickerItems =
-    Array.from(
-      { length: 6 },
-      () => post
-    );
+  /*
+   * نعرض أول 10 عناوين من سجل المدونة.
+   *
+   * المقالة المنشورة:
+   * يمكن الضغط عليها والانتقال إليها.
+   *
+   * المقالة غير المنشورة:
+   * يظهر عنوانها فقط بدون فتح رابط غير جاهز.
+   */
+  const posts =
+    BLOG_ARTICLES
+      .slice(0, 10)
+      .map((article) => ({
+        id: article.id,
+        title:
+          article[language]
+            ?.title ||
+          article[language]
+            ?.shortTitle ||
+          article.slug,
+        href:
+          article.published
+            ? `/${language}/blog/${article.slug}`
+            : null,
+        published:
+          article.published,
+      }));
+
+  /*
+   * نكرر المجموعة كاملة مرتين
+   * حتى تستمر الحركة بدون فراغ.
+   *
+   * 10 + 10 = 20 عنصرًا داخل المسار،
+   * لكن المحتوى الفعلي هو 10 عناوين مختلفة.
+   */
+  const tickerItems = [
+    ...posts,
+    ...posts,
+  ];
 
   return (
     <div
@@ -31,31 +58,53 @@ export default function BlogTicker({
       dir={isAr ? "rtl" : "ltr"}
       aria-label={
         isAr
-          ? "أحدث مقالات المدونة"
-          : "Latest blog articles"
+          ? "عناوين مقالات المدونة"
+          : "Blog article titles"
       }
     >
       <div className="awd-blog-ticker-window">
         <div className="awd-blog-ticker-track">
           {tickerItems.map(
-            (item, index) => (
-              <Link
-                href={item.href}
-                className="awd-blog-ticker-item"
-                key={`${item.href}-${index}`}
-              >
-                <span className="awd-blog-ticker-title">
-                  {item.title}
-                </span>
+            (item, index) => {
+              const content = (
+                <>
+                  <span className="awd-blog-ticker-title">
+                    {item.title}
+                  </span>
 
-                <span
-                  className="awd-blog-ticker-dot"
-                  aria-hidden="true"
+                  <span
+                    className="awd-blog-ticker-dot"
+                    aria-hidden="true"
+                  >
+                    •
+                  </span>
+                </>
+              );
+
+              if (
+                item.published &&
+                item.href
+              ) {
+                return (
+                  <Link
+                    href={item.href}
+                    className="awd-blog-ticker-item awd-blog-ticker-link"
+                    key={`${item.id}-${index}`}
+                  >
+                    {content}
+                  </Link>
+                );
+              }
+
+              return (
+                <div
+                  className="awd-blog-ticker-item awd-blog-ticker-draft"
+                  key={`${item.id}-${index}`}
                 >
-                  •
-                </span>
-              </Link>
-            )
+                  {content}
+                </div>
+              );
+            }
           )}
         </div>
       </div>
@@ -208,7 +257,7 @@ export default function BlogTicker({
 
           animation:
             awdTickerMove
-            34s linear
+            82s linear
             infinite;
 
           will-change: transform;
@@ -228,6 +277,8 @@ export default function BlogTicker({
           display: flex;
           align-items: center;
 
+          flex: 0 0 auto;
+
           gap: 50px;
 
           padding-inline: 23px;
@@ -245,6 +296,14 @@ export default function BlogTicker({
 
           -webkit-tap-highlight-color:
             transparent;
+        }
+
+        .awd-blog-ticker-link {
+          cursor: pointer;
+        }
+
+        .awd-blog-ticker-draft {
+          cursor: default;
         }
 
         .awd-blog-ticker-title {
@@ -324,7 +383,7 @@ export default function BlogTicker({
             translateY(-1px);
         }
 
-        .awd-blog-ticker-item:hover
+        .awd-blog-ticker-link:hover
           .awd-blog-ticker-title {
           color: #ffffff;
 
@@ -362,7 +421,7 @@ export default function BlogTicker({
         }
 
         [dir="rtl"]
-          .awd-blog-ticker-item:hover
+          .awd-blog-ticker-link:hover
           .awd-blog-ticker-title {
           transform:
             translateY(-3px)
@@ -389,7 +448,7 @@ export default function BlogTicker({
               );
         }
 
-        .awd-blog-ticker-item:focus-visible {
+        .awd-blog-ticker-link:focus-visible {
           border-radius: 14px;
 
           box-shadow:
@@ -448,7 +507,7 @@ export default function BlogTicker({
             gap: 72px;
 
             animation-duration:
-              31s;
+              72s;
           }
 
           .awd-blog-ticker-item {
