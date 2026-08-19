@@ -393,8 +393,9 @@ export default function RootLayout({
         <div
   style={{
     position: "fixed",
-    right: 14,
-    bottom: 18,
+    top: 14,
+    left: "50%",
+    transform: "translateX(-50%)",
     zIndex: 30000
   }}
 >
