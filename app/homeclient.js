@@ -17,6 +17,7 @@ import {
 import CoverTool from "./covertool";
 import KeywordsPanel from "./keywordspanel";
 import AccountMenu from "./accountmenu";
+import BlogTicker from "./blogticker";
 import UpgradePrompt, {
   shouldBlockRememberedLimit,
 } from "./upgradeprompt";
@@ -513,15 +514,24 @@ export default function HomeClient({
      HERO SLIDER
      ======================================================= */
 
-  /*
-   * Auto-rotation disabled temporarily.
-   * The user can still switch slides manually
-   * using the dots below the hero.
-   *
-   * This test isolates periodic layout shifts
-   * caused by English headlines wrapping
-   * to different numbers of lines.
-   */
+  useEffect(() => {
+    const timer =
+      window.setInterval(
+        () => {
+          setSlide(
+            (current) =>
+              (current + 1) %
+              HERO_SLIDES.length,
+          );
+        },
+        6000,
+      );
+
+    return () =>
+      window.clearInterval(
+        timer,
+      );
+  }, []);
 
   const market =
     MARKETS.find(
@@ -1150,7 +1160,7 @@ export default function HomeClient({
                   ? "مجموعة مركزة من الأدوات تساعدك على البحث عن الفرص، تحليل الكلمات والنيشات، حساب الأرباح، تصميم الأغلفة وتجهيز محتوى كتابك."
                   : "A focused suite of tools for opportunity research, keywords, niche analysis, royalty calculations, cover design and book publishing."}
               </p>
-{/* BlogTicker disabled temporarily for flicker test */}
+<BlogTicker isAr={isAr} />
               <div className="awd-hero-buttons">
                 <button
                   type="button"
@@ -2526,4 +2536,5 @@ function Calc({
     </div>
   );
 }
+
 
