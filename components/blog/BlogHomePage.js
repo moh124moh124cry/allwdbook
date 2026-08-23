@@ -12,6 +12,7 @@ import {
 import {
   BLOG_CATEGORIES,
   getBlogArticleUrl,
+  getBlogCategoryUrl,
   getLocalizedBlogCategory,
 } from "../../lib/blog";
 
@@ -457,9 +458,9 @@ export default function BlogHomePage({
                   ).length;
 
                   return (
-                    <a
+                    <Link
                       id={`blog-section-${category.id}`}
-                      href={`#blog-column-${category.id}`}
+                      href={getBlogCategoryUrl(safeLang, category.id)}
                       className={`blogHomeCategoryCard category-${category.id}`}
                       key={category.id}
                     >
@@ -485,7 +486,7 @@ export default function BlogHomePage({
                         {copy.explore}
                         <span aria-hidden="true">←</span>
                       </strong>
-                    </a>
+                    </Link>
                   );
                 })}
               </div>
