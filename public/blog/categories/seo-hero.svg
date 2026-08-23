@@ -1,0 +1,24 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SEO section hero">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#02060d"/>
+      <stop offset="100%" stop-color="#061326"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.75" cy="0.25" r="0.6">
+      <stop offset="0%" stop-color="#ff6900" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#ff6900" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+  <g stroke="#ff6900" stroke-opacity="0.55" fill="none" stroke-width="12" stroke-linecap="round">
+    <path d="M230 650V390"/>
+    <path d="M430 650V330"/>
+    <path d="M630 650V460"/>
+    <path d="M830 650V280"/>
+    <path d="M1030 650V360"/>
+    <path d="M1230 650V220"/>
+    <path d="M220 380L430 325L630 455L830 270L1030 350L1230 210"/>
+  </g>
+  <text x="140" y="190" fill="#f7f9fd" font-size="72" font-family="Inter, Arial, sans-serif" font-weight="700">SEO &amp; Growth</text>
+</svg>

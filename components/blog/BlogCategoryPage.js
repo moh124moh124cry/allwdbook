@@ -181,6 +181,15 @@ export default function BlogCategoryPage({
             </Link>
           </div>
 
+          {category.image && (
+            <div className="blogCategoryHeroImage">
+              <img
+                src={category.image}
+                alt={category.name}
+              />
+            </div>
+          )}
+
           <div className="blogCategoryIcon">
             <CategoryIcon id={categorySlug} />
           </div>

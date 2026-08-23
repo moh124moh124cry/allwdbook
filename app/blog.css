@@ -373,6 +373,35 @@
   line-height: 1.9;
 }
 
+.blogArticleNavLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0 0;
+}
+
+.blogArticleBackLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 7px 13px;
+  border: 1px solid rgba(255, 105, 0, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 105, 0, 0.08);
+  color: #ff8734;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.blogArticleBackLink:hover {
+  background: rgba(255, 105, 0, 0.14);
+  border-color: rgba(255, 105, 0, 0.45);
+}
+
 .blogMeta {
   display: flex;
   flex-wrap: wrap;
