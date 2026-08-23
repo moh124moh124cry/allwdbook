@@ -1,23 +1,11 @@
-"use client";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { useEffect } from "react";
+export default async function BlogPage() {
+  const cookieStore = await cookies();
+  const savedLang = cookieStore.get("awd_lang")?.value;
 
-export default function BlogRedirectPage() {
-  useEffect(() => {
-    const savedLanguage =
-      window.localStorage.getItem(
-        "awd_lang"
-      );
+  const lang = savedLang === "en" ? "en" : "ar";
 
-    const language =
-      savedLanguage === "en"
-        ? "en"
-        : "ar";
-
-    window.location.replace(
-      `/${language}/blog`
-    );
-  }, []);
-
-  return null;
+  redirect(`/${lang}/blog`);
 }
