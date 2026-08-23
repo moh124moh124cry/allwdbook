@@ -3,9 +3,7 @@
 import Link from "next/link";
 
 import {
-  getAllBlogArticles,
   getPublishedBlogArticles,
-  getBlogArticlesByCategory,
 } from "../../lib/blog/articles";
 
 import {
@@ -25,8 +23,13 @@ import {
 
 const COPY = {
   ar: {
+    navHome: "الرئيسية",
+    navJourney: "رحلة AllWDbook",
+    navKdp: "مختبر KDP",
+    navSeo: "SEO والنمو",
+    navProduct: "بناء المنتجات",
     backToHome: "العودة للمدونة",
-    readArticle: "اقرأ المقال",
+    readArticle: "اقرأ المقال كاملاً",
     readingTime: "دقائق قراءة",
     published: "منشورة",
     upcoming: "قادمة",
@@ -35,8 +38,13 @@ const COPY = {
     footer: "جميع الحقوق محفوظة.",
   },
   en: {
+    navHome: "Home",
+    navJourney: "AllWDbook Journey",
+    navKdp: "KDP Lab",
+    navSeo: "SEO & Growth",
+    navProduct: "Product Building",
     backToHome: "Back to Blog",
-    readArticle: "Read Article",
+    readArticle: "Read full article",
     readingTime: "min read",
     published: "published",
     upcoming: "upcoming",
@@ -44,6 +52,13 @@ const COPY = {
     otherCategories: "Other sections",
     footer: "All rights reserved.",
   },
+};
+
+const NAV_KEYS = {
+  allwdbook: "navJourney",
+  kdp: "navKdp",
+  seo: "navSeo",
+  creator: "navProduct",
 };
 
 function CategoryIcon({ id, className = "" }) {
@@ -131,6 +146,15 @@ export default function BlogCategoryPage({
     return (
       <main dir={direction} className="blogCategoryPage isNotFound">
         <div className="blogCategoryShell">
+          <nav className="blogCategoryNav" aria-label="Blog navigation">
+            <Link
+              href="/"
+              className="blogCategoryBrand"
+              aria-label="AllWDbook"
+            >
+              <img src="/logov3.png" alt="AllWDbook" />
+            </Link>
+          </nav>
           <header className="blogCategoryHeader">
             <Link
               href={getBlogHomeUrl(safeLang)}
@@ -165,6 +189,48 @@ export default function BlogCategoryPage({
   return (
     <main dir={direction} className="blogCategoryPage">
       <div className="blogCategoryShell">
+        <nav className="blogCategoryNav" aria-label="Blog navigation">
+          <Link
+            href="/"
+            className="blogCategoryBrand"
+            aria-label="AllWDbook"
+          >
+            <img src="/logov3.png" alt="AllWDbook" />
+          </Link>
+
+          <div className="blogCategoryNavLinks">
+            <Link href={getBlogHomeUrl(safeLang)}>
+              {copy.navHome}
+            </Link>
+            {BLOG_CATEGORIES.map((cat) => (
+              <Link
+                href={getBlogCategoryUrl(
+                  safeLang,
+                  cat.id
+                )}
+                key={cat.id}
+                className={
+                  cat.id === categorySlug
+                    ? "isActive"
+                    : undefined
+                }
+              >
+                {copy[NAV_KEYS[cat.id]]}
+              </Link>
+            ))}
+          </div>
+
+          <Link
+            href={getBlogCategoryUrl(
+              otherLang,
+              categorySlug
+            )}
+            className="blogCategoryLanguageLink"
+          >
+            {otherLang === "ar" ? "العربية" : "English"}
+          </Link>
+        </nav>
+
         <header className="blogCategoryHeader">
           <div className="blogCategoryHeaderTop">
             <Link
@@ -173,22 +239,27 @@ export default function BlogCategoryPage({
             >
               ← {copy.backToHome}
             </Link>
-            <Link
-              href={getBlogCategoryUrl(otherLang, categorySlug)}
-              className="blogCategoryLanguageLink"
-            >
-              {otherLang === "ar" ? "العربية" : "English"}
-            </Link>
           </div>
 
-          <div className="blogCategoryIcon">
-            <CategoryIcon id={categorySlug} />
-          </div>
+          <div className="blogCategoryHero">
+            <div className="blogCategoryHeroMedia">
+              <img
+                src={category.heroImage}
+                alt={category.name}
+              />
+            </div>
 
-          <h1>{category.name}</h1>
-          <p className="blogCategoryDescription">
-            {category.description}
-          </p>
+            <div className="blogCategoryHeroOverlay">
+              <div className="blogCategoryIcon">
+                <CategoryIcon id={categorySlug} />
+              </div>
+
+              <h1>{category.name}</h1>
+              <p className="blogCategoryDescription">
+                {category.description}
+              </p>
+            </div>
+          </div>
         </header>
 
         <section className="blogCategoryArticles">
