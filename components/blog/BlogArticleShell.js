@@ -279,7 +279,7 @@ export default function BlogArticleShell({
               lang,
               article.category,
             )}
-            className="blogArticleBackLink"
+            className="blogArticleBackLink blogArticleBackToSection"
           >
             {isArabic
               ? "العودة للقسم"
@@ -287,7 +287,7 @@ export default function BlogArticleShell({
           </Link>
           <Link
             href={getBlogHomeUrl(lang)}
-            className="blogArticleBackLink"
+            className="blogArticleBackLink blogArticleBackToBlog"
           >
             {isArabic
               ? "العودة للمدونة"
