@@ -6,6 +6,10 @@ import {
   hasBlogContent,
 } from "../lib/blog/content";
 
+import {
+  BLOG_CATEGORIES,
+} from "../lib/blog";
+
 const SITE_URL =
   "https://www.allwdbook.com";
 
@@ -56,6 +60,19 @@ export default function sitemap() {
       }
     );
 
+  const categoryPages = BLOG_CATEGORIES.flatMap((category) => [
+    {
+      url: `${SITE_URL}/ar/blog/category/${category.slug}`,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
+      url: `${SITE_URL}/en/blog/category/${category.slug}`,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+  ]);
+
   return [
     {
       url: SITE_URL,
@@ -74,6 +91,8 @@ export default function sitemap() {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+
+    ...categoryPages,
 
     ...articlePages,
 
