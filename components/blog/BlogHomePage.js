@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import {
   getAllBlogArticles,
+  getFeaturedBlogArticles,
   getPublishedBlogArticles,
 } from "../../lib/blog/articles";
 
@@ -351,8 +352,20 @@ export default function BlogHomePage({
 
   const allArticles = getAllBlogArticles();
 
-  const featuredArticle = publishedArticles[0] || null;
-  const picks = publishedArticles.slice(0, 5);
+  const featuredArticles = getFeaturedBlogArticles()
+    .filter((article) =>
+      hasBlogContent(article.slug, safeLang),
+    );
+
+  const featuredArticle =
+    featuredArticles[0] ||
+    publishedArticles[0] ||
+    null;
+
+  const picks =
+    featuredArticles.length > 0
+      ? featuredArticles.slice(0, 5)
+      : publishedArticles.slice(0, 5);
   const searchResults = query
     ? publishedArticles.filter((article) =>
         matchesSearch(article, safeLang, query),
@@ -754,4 +767,3 @@ export default function BlogHomePage({
     </main>
   );
 }
-
