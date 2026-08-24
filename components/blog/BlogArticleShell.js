@@ -5,6 +5,8 @@ import Link from "next/link";
 import {
   getAbsoluteBlogUrl,
   getBlogArticleUrl,
+  getBlogCategoryUrl,
+  getBlogHomeUrl,
   getLocalizedBlogCategory,
 } from "../../lib/blog";
 
@@ -270,6 +272,28 @@ export default function BlogArticleShell({
             {alternateLabel}
           </Link>
         </div>
+
+        <nav className="blogArticleNavLinks">
+          <Link
+            href={getBlogCategoryUrl(
+              lang,
+              article.category,
+            )}
+            className="blogArticleBackLink blogArticleBackToSection"
+          >
+            {isArabic
+              ? "العودة للقسم"
+              : "Back to section"}
+          </Link>
+          <Link
+            href={getBlogHomeUrl(lang)}
+            className="blogArticleBackLink blogArticleBackToBlog"
+          >
+            {isArabic
+              ? "العودة للمدونة"
+              : "Back to blog"}
+          </Link>
+        </nav>
 
         {category && (
           <p className="blogCategory">
