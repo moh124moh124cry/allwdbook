@@ -199,6 +199,16 @@ export default function BlogCategoryPage({
                   key={article.id}
                   className="blogCategoryArticleCard"
                 >
+                  {article.heroImage && (
+                    <div className="blogCategoryArticleImage">
+                      <img
+                        src={article.heroImage}
+                        alt={article[safeLang]?.title}
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+
                   <div className="blogCategoryArticleContent">
                     <h2>
                       <Link
@@ -232,16 +242,6 @@ export default function BlogCategoryPage({
                       <span aria-hidden="true">←</span>
                     </Link>
                   </div>
-
-                  {article.heroImage && (
-                    <div className="blogCategoryArticleImage">
-                      <img
-                        src={article.heroImage}
-                        alt={article[safeLang]?.title}
-                        loading="lazy"
-                      />
-                    </div>
-                  )}
                 </article>
               ))}
             </div>
