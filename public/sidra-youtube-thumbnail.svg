@@ -1,0 +1,104 @@
+<svg width="1280" height="720" viewBox="0 0 1280 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="80" y1="40" x2="1200" y2="680" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#08111F"/>
+      <stop offset="0.55" stop-color="#0D1E37"/>
+      <stop offset="1" stop-color="#04101D"/>
+    </linearGradient>
+    <linearGradient id="card" x1="730" y1="170" x2="1120" y2="560" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F2745"/>
+      <stop offset="1" stop-color="#091729"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="230" y1="158" x2="636" y2="540" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB347"/>
+      <stop offset="0.5" stop-color="#FF8C2B"/>
+      <stop offset="1" stop-color="#FF5E00"/>
+    </linearGradient>
+    <radialGradient id="glowBlue" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1090 128) rotate(125.892) scale(332.615 332.615)">
+      <stop stop-color="#4CA7FF" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#4CA7FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowOrange" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(346 610) rotate(-37.8284) scale(338.655 212.026)">
+      <stop stop-color="#FF7A1A" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#FF7A1A" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="694" y="137" width="494" height="444" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="16"/>
+      <feGaussianBlur stdDeviation="18"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.0117647 0 0 0 0 0.0313726 0 0 0 0 0.0705882 0 0 0 0.44 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_2"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_2" result="shape"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="720" rx="36" fill="url(#bg)"/>
+  <circle cx="1090" cy="128" r="332" fill="url(#glowBlue)"/>
+  <circle cx="346" cy="610" r="250" fill="url(#glowOrange)"/>
+
+  <path d="M0 560C188 492 316 464 470 476C654 489 786 596 1030 570C1120 560 1206 528 1280 488V720H0V560Z" fill="#07101D" fill-opacity="0.72"/>
+  <path d="M0 612C154 566 316 546 495 562C705 580 918 676 1280 618V720H0V612Z" fill="#0B1829" fill-opacity="0.9"/>
+
+  <g opacity="0.22">
+    <path d="M104 120H560" stroke="#7FC4FF" stroke-width="2"/>
+    <path d="M104 168H628" stroke="#7FC4FF" stroke-width="2"/>
+    <path d="M104 216H518" stroke="#7FC4FF" stroke-width="2"/>
+    <path d="M104 264H598" stroke="#7FC4FF" stroke-width="2"/>
+  </g>
+
+  <rect x="84" y="78" width="186" height="46" rx="23" fill="#FF6A00"/>
+  <text x="177" y="108" fill="#FFF8F0" font-size="26" font-weight="700" text-anchor="middle" font-family="Arial, 'Noto Sans Arabic', sans-serif">فيديو جديد</text>
+
+  <text x="88" y="228" fill="#F7F9FD" font-size="82" font-weight="800" font-family="Arial, 'Noto Sans Arabic', sans-serif">مشروع سيدرا</text>
+  <text x="88" y="314" fill="#FFB347" font-size="56" font-weight="800" font-family="Arial, 'Noto Sans Arabic', sans-serif">من الفكرة إلى التنفيذ</text>
+
+  <text x="90" y="384" fill="#B6C4D8" font-size="33" font-weight="500" font-family="Arial, 'Noto Sans Arabic', sans-serif">
+    <tspan x="90" dy="0">خطة العمل • التطوير • الهوية • عرض النتائج</tspan>
+    <tspan x="90" dy="48">ملخص بصري قوي يجذب المشاهد من أول ثانية</tspan>
+  </text>
+
+  <g>
+    <rect x="88" y="462" width="286" height="74" rx="22" fill="url(#accent)"/>
+    <polygon points="128,487 128,511 152,499" fill="#FFF8F0"/>
+    <text x="182" y="510" fill="#FFF8F0" font-size="31" font-weight="800" font-family="Arial, 'Noto Sans Arabic', sans-serif">شاهد التفاصيل</text>
+  </g>
+
+  <g opacity="0.95">
+    <rect x="88" y="570" width="168" height="52" rx="18" fill="#10233E"/>
+    <text x="172" y="603" fill="#7FC4FF" font-size="24" font-weight="700" text-anchor="middle" font-family="Arial, sans-serif">SIDRA PROJECT</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="730" y="157" width="422" height="372" rx="30" fill="url(#card)"/>
+    <rect x="758" y="187" width="366" height="50" rx="16" fill="#112B4A"/>
+    <circle cx="790" cy="212" r="8" fill="#FF6A00"/>
+    <circle cx="818" cy="212" r="8" fill="#FFC266"/>
+    <circle cx="846" cy="212" r="8" fill="#56D364"/>
+    <rect x="892" y="198" width="190" height="28" rx="10" fill="#17395F"/>
+
+    <rect x="768" y="267" width="158" height="106" rx="22" fill="#10233E"/>
+    <text x="791" y="308" fill="#8EA6C7" font-size="22" font-weight="700" font-family="Arial, 'Noto Sans Arabic', sans-serif">مرحلة</text>
+    <text x="791" y="350" fill="#F7F9FD" font-size="36" font-weight="800" font-family="Arial, 'Noto Sans Arabic', sans-serif">التخطيط</text>
+
+    <rect x="944" y="267" width="170" height="106" rx="22" fill="#10233E"/>
+    <text x="970" y="308" fill="#8EA6C7" font-size="22" font-weight="700" font-family="Arial, 'Noto Sans Arabic', sans-serif">مرحلة</text>
+    <text x="970" y="350" fill="#F7F9FD" font-size="36" font-weight="800" font-family="Arial, 'Noto Sans Arabic', sans-serif">الإطلاق</text>
+
+    <rect x="768" y="393" width="346" height="108" rx="24" fill="#0C1D33"/>
+    <path d="M808 468L868 426L930 442L986 390L1044 408L1080 362" stroke="#FF8C2B" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="808" cy="468" r="8" fill="#FFD6AE"/>
+    <circle cx="868" cy="426" r="8" fill="#FFD6AE"/>
+    <circle cx="930" cy="442" r="8" fill="#FFD6AE"/>
+    <circle cx="986" cy="390" r="8" fill="#FFD6AE"/>
+    <circle cx="1044" cy="408" r="8" fill="#FFD6AE"/>
+    <circle cx="1080" cy="362" r="8" fill="#FFD6AE"/>
+  </g>
+
+  <g opacity="0.9">
+    <circle cx="699" cy="274" r="42" fill="#0E243F"/>
+    <path d="M699 250L707 266L725 269L712 282L715 300L699 291L683 300L686 282L673 269L691 266L699 250Z" fill="#FFB347"/>
+  </g>
+
+  <text x="1092" y="626" fill="#E9EFF7" font-size="26" font-weight="700" text-anchor="end" font-family="Arial, 'Noto Sans Arabic', sans-serif">Thumbnail 1280×720</text>
+</svg>
