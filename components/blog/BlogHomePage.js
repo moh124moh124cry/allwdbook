@@ -364,8 +364,18 @@ export default function BlogHomePage({
 
   const picks =
     featuredArticles.length > 0
-      ? featuredArticles.slice(0, 5)
-      : publishedArticles.slice(0, 5);
+      ? featuredArticles
+          .filter(
+            (article) =>
+              article.id !== featuredArticle?.id,
+          )
+          .slice(0, 5)
+      : publishedArticles
+          .filter(
+            (article) =>
+              article.id !== featuredArticle?.id,
+          )
+          .slice(0, 5);
   const searchResults = query
     ? publishedArticles.filter((article) =>
         matchesSearch(article, safeLang, query),
