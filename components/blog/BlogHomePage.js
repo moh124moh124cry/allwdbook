@@ -12,6 +12,7 @@ import {
 import {
   BLOG_CATEGORIES,
   getBlogArticleUrl,
+  getBlogCategoryUrl,
   getLocalizedBlogCategory,
 } from "../../lib/blog";
 
@@ -378,12 +379,15 @@ export default function BlogHomePage({
               {copy.navHome}
             </Link>
             {BLOG_CATEGORIES.map((category) => (
-              <a
-                href={`#blog-section-${category.id}`}
+              <Link
+                href={getBlogCategoryUrl(
+                  safeLang,
+                  category.id,
+                )}
                 key={category.id}
               >
                 {copy[NAV_KEYS[category.id]]}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -457,15 +461,27 @@ export default function BlogHomePage({
                   ).length;
 
                   return (
-                    <a
-                      id={`blog-section-${category.id}`}
-                      href={`#blog-column-${category.id}`}
+                    <Link
+                      href={getBlogCategoryUrl(
+                        safeLang,
+                        category.id,
+                      )}
                       className={`blogHomeCategoryCard category-${category.id}`}
                       key={category.id}
                     >
                       <span className="blogHomeCategoryNumber">
                         {String(index + 1).padStart(2, "0")}
                       </span>
+                      <div className="blogHomeCategoryImage">
+                        <img
+                          src={
+                            localized?.heroImage ||
+                            category.heroImage
+                          }
+                          alt={localized?.name}
+                          loading="lazy"
+                        />
+                      </div>
                       <span className="blogHomeCategoryIcon">
                         <CategoryIcon id={category.id} />
                       </span>
@@ -485,7 +501,7 @@ export default function BlogHomePage({
                         {copy.explore}
                         <span aria-hidden="true">←</span>
                       </strong>
-                    </a>
+                    </Link>
                   );
                 })}
               </div>
@@ -754,4 +770,3 @@ export default function BlogHomePage({
     </main>
   );
 }
-
