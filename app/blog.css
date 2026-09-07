@@ -1,7 +1,7 @@
 /* app/blog.css */
 
 /* =========================================================
-   ALLWDBOOK BLOG — EDITORIAL DESIGN
+   ALLWDBOOK BLOG — PREMIUM EDITORIAL DESIGN
    ========================================================= */
 
 .blogArticleShell,
@@ -33,13 +33,15 @@
   transition:
     background 0.2s ease,
     border-color 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .blogLanguageLink:hover {
   background: rgba(255, 105, 0, 0.15);
   border-color: #ff6900;
   transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(255, 105, 0, 0.12);
 }
 
 
@@ -300,8 +302,13 @@
 
 .blogArticleShell {
   min-height: 100vh;
-  padding: 28px 20px 70px;
+  padding: 28px 20px 80px;
   background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(255, 105, 0, 0.075),
+      transparent 25%
+    ),
     linear-gradient(
       180deg,
       #02060d 0%,
@@ -341,10 +348,14 @@
 .blogCategory {
   display: inline-block;
   margin: 0 0 12px;
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 105, 0, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 105, 0, 0.07);
   color: #ff8734;
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 1.7;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.6;
 }
 
 .blogSeries {
@@ -397,6 +408,39 @@
 
 
 /* =========================================================
+   ARTICLE NAVIGATION
+   ========================================================= */
+
+.blogBackLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 8px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #dfe6ef;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.blogBackLink:hover {
+  color: #ffffff;
+  background: rgba(255, 105, 0, 0.08);
+  border-color: rgba(255, 105, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
    HERO IMAGE
    ========================================================= */
 
@@ -411,10 +455,82 @@
   width: 100%;
   height: auto;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 22px;
+  border-radius: 24px;
   background: #091a30;
   box-shadow:
-    0 24px 65px rgba(0, 0, 0, 0.34);
+    0 28px 75px rgba(0, 0, 0, 0.38);
+}
+
+
+/* =========================================================
+   ARTICLE LAYOUT
+   ========================================================= */
+
+.blogArticleLayout {
+  width: 100%;
+  max-width: 1180px;
+  margin: 54px auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 48px;
+  align-items: start;
+}
+
+.blogArticleMain {
+  min-width: 0;
+  max-width: 840px;
+}
+
+.blogArticleToc {
+  position: sticky;
+  top: 24px;
+  width: 100%;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(9, 26, 48, 0.9),
+      rgba(4, 12, 24, 0.9)
+    );
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.2);
+}
+
+.blogArticleToc h2 {
+  margin: 0 0 16px;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+.blogArticleToc ol {
+  margin: 0;
+  padding-inline-start: 21px;
+}
+
+.blogArticleToc li {
+  margin-bottom: 10px;
+  color: #7f90aa;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.blogArticleToc li:last-child {
+  margin-bottom: 0;
+}
+
+.blogArticleToc a {
+  color: #b8c3d4;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.blogArticleToc a:hover {
+  color: #ff8734;
 }
 
 
@@ -428,13 +544,11 @@
 .blogToolCallout,
 .blogRelated {
   width: 100%;
-  max-width: 840px;
-  margin-inline: auto;
 }
 
 .blogIntro {
-  margin-top: 48px;
-  padding: 28px;
+  margin-top: 0;
+  padding: 30px;
   border: 1px solid rgba(255, 105, 0, 0.16);
   border-radius: 20px;
   background:
@@ -458,7 +572,8 @@
 }
 
 .blogSectionGroup {
-  margin-bottom: 54px;
+  margin-bottom: 58px;
+  scroll-margin-top: 30px;
 }
 
 .blogSection {
@@ -476,6 +591,28 @@
   line-height: 1.4;
 }
 
+.blogSection h2 {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+}
+
+.blogSectionNumber {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-top: 3px;
+  border-radius: 10px;
+  background: rgba(255, 105, 0, 0.12);
+  color: #ff8734;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .blogArticleShell p,
 .blogArticleShell li {
   color: #dfe6ef;
@@ -489,6 +626,19 @@
 
 .blogSection p:last-child {
   margin-bottom: 0;
+}
+
+.blogArticleShell strong {
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.blogArticleShell a {
+  color: #ff8734;
+}
+
+.blogArticleShell a:hover {
+  color: #ff9a58;
 }
 
 
@@ -559,7 +709,12 @@
   margin-top: 38px;
   padding: 28px;
   border-radius: 20px;
-  background: rgba(255, 105, 0, 0.08);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 105, 0, 0.12),
+      rgba(255, 105, 0, 0.045)
+    );
   border: 1px solid rgba(255, 105, 0, 0.24);
 }
 
@@ -575,19 +730,24 @@
   padding: 10px 22px;
   border-radius: 12px;
   background: #ff6900;
-  color: #ffffff;
+  color: #ffffff !important;
   font-size: 15px;
   font-weight: 900;
   line-height: 1;
-  text-decoration: none;
+  text-decoration: none !important;
+  box-shadow:
+    0 10px 28px rgba(255, 105, 0, 0.18);
   transition:
     transform 0.2s ease,
-    opacity 0.2s ease;
+    opacity 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .blogToolLink:hover {
-  transform: translateY(-1px);
-  opacity: 0.92;
+  transform: translateY(-2px);
+  opacity: 0.94;
+  box-shadow:
+    0 14px 34px rgba(255, 105, 0, 0.24);
 }
 
 
@@ -596,29 +756,134 @@
    ========================================================= */
 
 .blogRelated {
-  margin-top: 52px;
-  padding-top: 34px;
+  max-width: 1180px;
+  margin: 70px auto 0;
+  padding-top: 38px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.blogRelated ul {
-  margin: 0;
-  padding-inline-start: 24px;
+.blogRelated h2 {
+  max-width: 840px;
+  margin-inline: auto;
 }
 
-.blogRelated li {
-  margin-bottom: 14px;
+.blogRelatedGrid {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+  gap: 20px;
+  margin-top: 24px;
 }
 
-.blogRelated a {
-  color: #f7f9fd;
-  font-weight: 700;
-  text-decoration-color: rgba(255, 105, 0, 0.7);
-  text-underline-offset: 5px;
+.blogRelatedCard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(9, 26, 48, 0.88),
+      rgba(4, 12, 24, 0.92)
+    );
+  text-decoration: none;
+  box-shadow:
+    0 16px 38px rgba(0, 0, 0, 0.16);
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
 }
 
-.blogRelated a:hover {
+.blogRelatedCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 105, 0, 0.3);
+  box-shadow:
+    0 22px 48px rgba(0, 0, 0, 0.25);
+}
+
+.blogCardEyebrow {
+  display: block;
+  margin-bottom: 10px;
   color: #ff8734;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.blogRelatedCard h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.55;
+}
+
+.blogRelatedCard:hover h3 {
+  color: #ff8734;
+}
+
+
+/* =========================================================
+   ARTICLE FOOTER
+   ========================================================= */
+
+.blogArticleFooter {
+  width: 100%;
+  max-width: 840px;
+  margin: 56px auto 0;
+  padding-top: 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.blogBackToBlog {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 11px 22px;
+  border: 1px solid rgba(255, 105, 0, 0.35);
+  border-radius: 12px;
+  background: rgba(255, 105, 0, 0.08);
+  color: #ff8734;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.3;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.blogBackToBlog:hover {
+  background: rgba(255, 105, 0, 0.14);
+  border-color: #ff6900;
+  transform: translateY(-2px);
+}
+
+
+/* =========================================================
+   ARTICLE LISTS
+   ========================================================= */
+
+.blogArticleShell ul,
+.blogArticleShell ol {
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+.blogArticleShell li::marker {
+  color: #ff8734;
+  font-weight: 900;
 }
 
 
@@ -641,6 +906,46 @@
 .blogIndexPage[dir="rtl"] .blogIndexHeader,
 .blogIndexPage[dir="ltr"] .blogIndexHeader {
   text-align: center;
+}
+
+.blogArticleShell[dir="rtl"] .blogArticleToc {
+  order: 2;
+}
+
+.blogArticleShell[dir="ltr"] .blogArticleToc {
+  order: 2;
+}
+
+
+/* =========================================================
+   RESPONSIVE — TABLET
+   ========================================================= */
+
+@media (max-width: 980px) {
+  .blogArticleLayout {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .blogArticleMain {
+    max-width: 840px;
+    margin-inline: auto;
+  }
+
+  .blogArticleToc {
+    position: static;
+    order: initial;
+    max-width: 840px;
+    margin-inline: auto;
+  }
+
+  .blogRelatedGrid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
 }
 
 
@@ -668,6 +973,12 @@
     min-height: 38px;
     padding: 7px 13px;
     font-size: 13px;
+  }
+
+  .blogBackLink {
+    min-height: 38px;
+    padding: 7px 12px;
+    font-size: 12px;
   }
 
   .blogIndexHeader h1 {
@@ -733,8 +1044,25 @@
     border-radius: 16px;
   }
 
-  .blogIntro {
+  .blogArticleLayout {
     margin-top: 34px;
+    gap: 26px;
+  }
+
+  .blogArticleToc {
+    padding: 19px;
+    border-radius: 16px;
+  }
+
+  .blogArticleToc h2 {
+    font-size: 16px;
+  }
+
+  .blogArticleToc li {
+    font-size: 12px;
+  }
+
+  .blogIntro {
     padding: 20px;
     border-radius: 16px;
   }
@@ -752,6 +1080,17 @@
   .blogToolCallout h2,
   .blogRelated h2 {
     font-size: 24px;
+  }
+
+  .blogSection h2 {
+    gap: 10px;
+  }
+
+  .blogSectionNumber {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    font-size: 12px;
   }
 
   .blogArticleShell p,
@@ -773,6 +1112,29 @@
     padding: 21px;
     border-radius: 16px;
   }
+
+  .blogRelated {
+    margin-top: 48px;
+    padding-top: 28px;
+  }
+
+  .blogRelatedGrid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .blogRelatedCard {
+    padding: 19px;
+    border-radius: 15px;
+  }
+
+  .blogRelatedCard h3 {
+    font-size: 17px;
+  }
+
+  .blogArticleFooter {
+    margin-top: 42px;
+  }
 }
 
 
@@ -784,6 +1146,28 @@
   .blogArticleShell,
   .blogIndexPage {
     padding-inline: 12px;
+  }
+
+  .blogTopBar,
+  .blogIndexTopBar {
+    gap: 10px;
+  }
+
+  .blogLogo,
+  .blogIndexLogo {
+    width: 88px;
+  }
+
+  .blogLanguageLink {
+    min-height: 36px;
+    padding-inline: 11px;
+    font-size: 12px;
+  }
+
+  .blogBackLink {
+    min-height: 36px;
+    padding-inline: 10px;
+    font-size: 11px;
   }
 
   .blogArticleHeader h1 {
@@ -816,5 +1200,40 @@
 
   .blogEmptyState {
     padding: 24px 18px;
+  }
+
+  .blogArticleToc {
+    padding: 17px;
+  }
+
+  .blogArticleFooter {
+    padding-top: 22px;
+  }
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+.blogArticleShell a:focus-visible,
+.blogIndexPage a:focus-visible {
+  outline: 2px solid #ff8734;
+  outline-offset: 4px;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .blogLanguageLink,
+  .blogIndexCard,
+  .blogBackLink,
+  .blogToolLink,
+  .blogRelatedCard,
+  .blogBackToBlog {
+    transition: none;
   }
 }
