@@ -138,14 +138,23 @@ export default function BlogCategoryPage({
             >
               ← {copy.backToHome}
             </Link>
-            <h1>{isArabic ? "القسم غير موجود" : "Category Not Found"}</h1>
+
+            <h1>
+              {isArabic
+                ? "القسم غير موجود"
+                : "Category Not Found"}
+            </h1>
           </header>
         </div>
       </main>
     );
   }
 
-  const category = getLocalizedBlogCategory(categoryData, safeLang);
+  const category = getLocalizedBlogCategory(
+    categoryData,
+    safeLang
+  );
+
   const publishedArticles = getPublishedBlogArticles()
     .filter(
       (article) =>
@@ -163,22 +172,35 @@ export default function BlogCategoryPage({
   );
 
   return (
-    <main dir={direction} className="blogCategoryPage">
+    <main
+      dir={direction}
+      className="blogCategoryPage"
+    >
       <div className="blogCategoryShell">
+
         <header className="blogCategoryHeader">
+
           <div className="blogCategoryHeaderTop">
+
             <Link
               href={getBlogHomeUrl(safeLang)}
               className="blogCategoryBackLink"
             >
               ← {copy.backToHome}
             </Link>
+
             <Link
-              href={getBlogCategoryUrl(otherLang, categorySlug)}
+              href={getBlogCategoryUrl(
+                otherLang,
+                categorySlug
+              )}
               className="blogCategoryLanguageLink"
             >
-              {otherLang === "ar" ? "العربية" : "English"}
+              {otherLang === "ar"
+                ? "العربية"
+                : "English"}
             </Link>
+
           </div>
 
           <div className="blogCategoryIcon">
@@ -186,23 +208,34 @@ export default function BlogCategoryPage({
           </div>
 
           <h1>{category.name}</h1>
+
           <p className="blogCategoryDescription">
             {category.description}
           </p>
+
         </header>
 
         <section className="blogCategoryArticles">
+
           {publishedArticles.length > 0 ? (
+
             <div className="blogCategoryArticlesList">
+
               {publishedArticles.map((article) => (
+
                 <article
                   key={article.id}
                   className="blogCategoryArticleCard"
                 >
+
                   <div className="blogCategoryArticleContent">
+
                     <h2>
                       <Link
-                        href={getBlogArticleUrl(safeLang, article.slug)}
+                        href={getBlogArticleUrl(
+                          safeLang,
+                          article.slug
+                        )}
                       >
                         {article[safeLang]?.title ||
                           article[safeLang]?.shortTitle}
@@ -214,78 +247,141 @@ export default function BlogCategoryPage({
                     </p>
 
                     <div className="blogCategoryArticleMeta">
+
                       {article.publishDate && (
                         <span className="blogCategoryArticleDate">
-                          {formatDate(article.publishDate, safeLang)}
+                          {formatDate(
+                            article.publishDate,
+                            safeLang
+                          )}
                         </span>
                       )}
+
                       <span className="blogCategoryArticleReadingTime">
-                        {article.readingTime?.[safeLang]} {copy.readingTime}
+                        {article.readingTime?.[safeLang]}{" "}
+                        {copy.readingTime}
                       </span>
+
                     </div>
 
                     <Link
-                      href={getBlogArticleUrl(safeLang, article.slug)}
+                      href={getBlogArticleUrl(
+                        safeLang,
+                        article.slug
+                      )}
                       className="blogCategoryArticleLink"
                     >
                       {copy.readArticle}
-                      <span aria-hidden="true">←</span>
+
+                      <span aria-hidden="true">
+                        ←
+                      </span>
                     </Link>
+
                   </div>
 
                   {article.heroImage && (
                     <div className="blogCategoryArticleImage">
+
                       <img
                         src={article.heroImage}
-                        alt={article[safeLang]?.title}
+                        alt={
+                          article[safeLang]?.title
+                        }
                         loading="lazy"
                       />
+
                     </div>
                   )}
+
                 </article>
+
               ))}
+
             </div>
+
           ) : (
+
             <div className="blogCategoryEmpty">
               <p>{copy.noArticles}</p>
             </div>
+
           )}
+
         </section>
 
         <section className="blogCategoryOthers">
+
           <h2>{copy.otherCategories}</h2>
+
           <div className="blogCategoryOthersList">
+
             {otherCategories.map((cat) => {
-              const catLocalized = getLocalizedBlogCategory(cat, safeLang);
-              const catArticleCount = getPublishedBlogArticles().filter(
-                (article) =>
-                  article.category === cat.id &&
-                  hasBlogContent(article.slug, safeLang)
-              ).length;
+
+              const catLocalized =
+                getLocalizedBlogCategory(
+                  cat,
+                  safeLang
+                );
+
+              const catArticleCount =
+                getPublishedBlogArticles().filter(
+                  (article) =>
+                    article.category === cat.id &&
+                    hasBlogContent(
+                      article.slug,
+                      safeLang
+                    )
+                ).length;
 
               return (
                 <Link
-                  href={getBlogCategoryUrl(safeLang, cat.id)}
+                  href={getBlogCategoryUrl(
+                    safeLang,
+                    cat.id
+                  )}
                   key={cat.id}
                   className="blogCategoryOtherCard"
                 >
+
                   <div className="blogCategoryOtherIcon">
                     <CategoryIcon id={cat.id} />
                   </div>
+
                   <div>
-                    <h3>{catLocalized.shortName}</h3>
-                    <p>{catArticleCount} {copy.published}</p>
+
+                    <h3>
+                      {catLocalized.shortName}
+                    </h3>
+
+                    <p>
+                      {catArticleCount}{" "}
+                      {copy.published}
+                    </p>
+
                   </div>
-                  <span className="blogCategoryOtherArrow">→</span>
+
+                  <span className="blogCategoryOtherArrow">
+                    →
+                  </span>
+
                 </Link>
               );
             })}
+
           </div>
+
         </section>
 
         <footer className="blogCategoryFooter">
-          <p>© {new Date().getFullYear()} AllWDbook — {copy.footer}</p>
+
+          <p>
+            © {new Date().getFullYear()}{" "}
+            ALLWDBOOK — {copy.footer}
+          </p>
+
         </footer>
+
       </div>
     </main>
   );
