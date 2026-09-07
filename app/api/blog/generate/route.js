@@ -17,6 +17,27 @@ function isAuthorized(request) {
   return authorization === `Bearer ${cronSecret}`;
 }
 
+async function generateAndPublish(language) {
+  try {
+    const result = await publishArticle({
+      language,
+      topicId: null,
+    });
+
+    return {
+      language,
+      ...result,
+    };
+  } catch (error) {
+    return {
+      language,
+      success: false,
+      status: "error",
+      error: error?.message || "Unknown error.",
+    };
+  }
+}
+
 export async function POST(request) {
   try {
     // حماية الـ API
@@ -32,49 +53,28 @@ export async function POST(request) {
       );
     }
 
-    // قراءة البيانات المرسلة
-    let body = {};
+    // إنشاء مقال إنجليزي ومقال عربي
+    const [englishResult, arabicResult] = await Promise.all([
+      generateAndPublish("en"),
+      generateAndPublish("ar"),
+    ]);
 
-    try {
-      body = await request.json();
-    } catch {
-      body = {};
-    }
+    const success =
+      englishResult.success || arabicResult.success;
 
-    // اللغة: ar أو en
-    const language = body?.language === "ar" ? "ar" : "en";
-
-    // الموضوع اختياري
-    const topicId =
-      typeof body?.topicId === "string" &&
-      body.topicId.trim()
-        ? body.topicId.trim()
-        : null;
-
-    // تشغيل نظام إنشاء ونشر المقال
-    const result = await publishArticle({
-      language,
-      topicId,
-    });
-
-    // مقال تم نشره بنجاح
-    if (result.success) {
-      return NextResponse.json(result, {
-        status: 200,
-      });
-    }
-
-    // المقال موجود مسبقًا
-    if (result.status === "duplicate") {
-      return NextResponse.json(result, {
-        status: 409,
-      });
-    }
-
-    // خطأ أثناء التوليد أو النشر
-    return NextResponse.json(result, {
-      status: 500,
-    });
+    return NextResponse.json(
+      {
+        success,
+        status: success ? "completed" : "failed",
+        results: {
+          en: englishResult,
+          ar: arabicResult,
+        },
+      },
+      {
+        status: success ? 200 : 500,
+      }
+    );
   } catch (error) {
     console.error(
       "Blog generation API error:",
