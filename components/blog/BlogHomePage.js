@@ -174,19 +174,53 @@ function HeroBeacon() {
           <stop offset="1" stopColor="#ff6900" stopOpacity="0" />
         </radialGradient>
       </defs>
+
       <rect width="560" height="280" fill="url(#sea)" />
       <circle cx="118" cy="104" r="145" fill="url(#light)" />
+
       <path
         d="M0 232 56 215l42 8 42-34 54 9 50 27 57 2 54 28H0Z"
         fill="#02050a"
       />
-      <path d="M102 182h32l-5-61h-22l-5 61Z" fill="#07101c" stroke="#ff8734" strokeOpacity="0.55" />
-      <path d="M105 121h26l-3-15h-20l-3 15Z" fill="#0b1625" stroke="#ff8734" strokeOpacity="0.7" />
-      <rect x="111" y="96" width="14" height="12" rx="2" fill="#ffd0a1" />
+
+      <path
+        d="M102 182h32l-5-61h-22l-5 61Z"
+        fill="#07101c"
+        stroke="#ff8734"
+        strokeOpacity="0.55"
+      />
+
+      <path
+        d="M105 121h26l-3-15h-20l-3 15Z"
+        fill="#0b1625"
+        stroke="#ff8734"
+        strokeOpacity="0.7"
+      />
+
+      <rect
+        x="111"
+        y="96"
+        width="14"
+        height="12"
+        rx="2"
+        fill="#ffd0a1"
+      />
+
       <path d="M118 96V82" stroke="#ff8734" strokeWidth="3" />
       <path d="M112 82h12" stroke="#ff8734" strokeWidth="3" />
-      <path d="m127 100 240-46" stroke="#ff8a36" strokeWidth="2" strokeOpacity="0.15" />
-      <path d="m127 104 330 2" stroke="#ff8a36" strokeWidth="2" strokeOpacity="0.08" />
+      <path
+        d="m127 100 240-46"
+        stroke="#ff8a36"
+        strokeWidth="2"
+        strokeOpacity="0.15"
+      />
+      <path
+        d="m127 104 330 2"
+        stroke="#ff8a36"
+        strokeWidth="2"
+        strokeOpacity="0.08"
+      />
+
       <circle cx="422" cy="64" r="1.4" fill="#d5e3f6" opacity="0.55" />
       <circle cx="472" cy="94" r="1" fill="#d5e3f6" opacity="0.42" />
       <circle cx="382" cy="126" r="1" fill="#d5e3f6" opacity="0.4" />
@@ -226,7 +260,12 @@ function FeaturedArt({ article }) {
             strokeWidth="9"
           />
           <circle cx="80" cy="103" r="8" fill="currentColor" />
-          <path d="M80 111v15" stroke="currentColor" strokeWidth="7" strokeLinecap="round" />
+          <path
+            d="M80 111v15"
+            stroke="currentColor"
+            strokeWidth="7"
+            strokeLinecap="round"
+          />
         </svg>
       ) : (
         <CategoryIcon id={article?.category || "allwdbook"} />
@@ -270,11 +309,17 @@ function matchesSearch(article, lang, query) {
   );
 }
 
-function ArticleMini({ article, lang, copy, upcoming = false }) {
+function ArticleMini({
+  article,
+  lang,
+  copy,
+  upcoming = false,
+}) {
   const category = getLocalizedBlogCategory(
     article.category,
     lang,
   );
+
   const title =
     article?.[lang]?.shortTitle ||
     article?.[lang]?.title ||
@@ -287,11 +332,14 @@ function ArticleMini({ article, lang, copy, upcoming = false }) {
       >
         <CategoryIcon id={article.category} />
       </div>
+
       <div className="blogHomeMiniText">
         <p className="blogHomeMiniCategory">
           {category?.shortName}
         </p>
+
         <h4>{title}</h4>
+
         <div className="blogHomeMiniMeta">
           {upcoming ? (
             <span className="blogHomeComingBadge">
@@ -300,10 +348,17 @@ function ArticleMini({ article, lang, copy, upcoming = false }) {
           ) : (
             <>
               {article.publishDate && (
-                <span>{formatDate(article.publishDate, lang)}</span>
+                <span>
+                  {formatDate(
+                    article.publishDate,
+                    lang,
+                  )}
+                </span>
               )}
+
               <span>
-                {article.readingTime?.[lang]} {copy.readingTime}
+                {article.readingTime?.[lang]}{" "}
+                {copy.readingTime}
               </span>
             </>
           )}
@@ -324,6 +379,7 @@ function ArticleMini({ article, lang, copy, upcoming = false }) {
     <Link
       href={getBlogArticleUrl(lang, article.slug)}
       className="blogHomeMiniArticle"
+      scroll={true}
     >
       {content}
     </Link>
@@ -351,16 +407,25 @@ export default function BlogHomePage({
 
   const allArticles = getAllBlogArticles();
 
-  const featuredArticle = publishedArticles[0] || null;
+  const featuredArticle =
+    publishedArticles[0] || null;
+
   const picks = publishedArticles.slice(0, 5);
+
   const searchResults = query
     ? publishedArticles.filter((article) =>
-        matchesSearch(article, safeLang, query),
+        matchesSearch(
+          article,
+          safeLang,
+          query,
+        ),
       )
     : [];
 
   const otherLang = isArabic ? "en" : "ar";
-  const languageLabel = isArabic ? "English" : "العربية";
+  const languageLabel = isArabic
+    ? "English"
+    : "العربية";
 
   return (
     <main
@@ -368,15 +433,31 @@ export default function BlogHomePage({
       className="blogHomePage"
     >
       <div className="blogHomeShell">
-        <nav className="blogHomeNav" aria-label="Blog navigation">
-          <Link href="/" className="blogHomeBrand" aria-label="AllWDbook">
-            <img src="/logov3.png" alt="AllWDbook" />
+        <nav
+          className="blogHomeNav"
+          aria-label="Blog navigation"
+        >
+          <Link
+            href="/"
+            className="blogHomeBrand"
+            aria-label="AllWDbook"
+            scroll={true}
+          >
+            <img
+              src="/logov3.png"
+              alt="AllWDbook"
+            />
           </Link>
 
           <div className="blogHomeNavLinks">
-            <Link href={`/${safeLang}/blog`} className="isActive">
+            <Link
+              href={`/${safeLang}/blog`}
+              className="isActive"
+              scroll={true}
+            >
               {copy.navHome}
             </Link>
+
             {BLOG_CATEGORIES.map((category) => (
               <a
                 href={`#blog-section-${category.id}`}
@@ -396,12 +477,25 @@ export default function BlogHomePage({
                 type="search"
                 name="q"
                 defaultValue={query}
-                placeholder={copy.searchPlaceholder}
+                placeholder={
+                  copy.searchPlaceholder
+                }
                 aria-label={copy.searchLabel}
               />
-              <button type="submit" aria-label={copy.searchLabel}>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="11" cy="11" r="6.5" />
+
+              <button
+                type="submit"
+                aria-label={copy.searchLabel}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <circle
+                    cx="11"
+                    cy="11"
+                    r="6.5"
+                  />
                   <path d="m16 16 4 4" />
                 </svg>
               </button>
@@ -410,6 +504,7 @@ export default function BlogHomePage({
             <Link
               href={`/${otherLang}/blog`}
               className="blogHomeLanguage"
+              scroll={true}
             >
               {languageLabel}
             </Link>
@@ -418,7 +513,9 @@ export default function BlogHomePage({
 
         <header className="blogHomeHero">
           <HeroBeacon />
+
           <div className="blogHomeHeroShade" />
+
           <div className="blogHomeHeroContent">
             <h1>{copy.heroTitle}</h1>
             <span className="blogHomeHeroLine" />
@@ -426,15 +523,24 @@ export default function BlogHomePage({
           </div>
         </header>
 
-        <div className="blogHomeBody" dir="ltr">
-          <div className="blogHomeMain" dir={direction}>
+        <div
+          className="blogHomeBody"
+          dir="ltr"
+        >
+          <div
+            className="blogHomeMain"
+            dir={direction}
+          >
             <section
               className="blogHomeCategories"
               aria-labelledby="blog-categories-title"
             >
               <div className="blogHomeSectionHeader compact">
                 <div>
-                  <p className="blogHomeEyebrow">AllWDbook Editorial</p>
+                  <p className="blogHomeEyebrow">
+                    AllWDbook Editorial
+                  </p>
+
                   <h2 id="blog-categories-title">
                     {copy.categoriesTitle}
                   </h2>
@@ -442,52 +548,81 @@ export default function BlogHomePage({
               </div>
 
               <div className="blogHomeCategoryGrid">
-                {BLOG_CATEGORIES.map((category, index) => {
-                  const localized = getLocalizedBlogCategory(
-                    category,
-                    safeLang,
-                  );
-                  const publishedCount = publishedArticles.filter(
-                    (article) => article.category === category.id,
-                  ).length;
-                  const upcomingCount = allArticles.filter(
-                    (article) =>
-                      article.category === category.id &&
-                      !article.published,
-                  ).length;
+                {BLOG_CATEGORIES.map(
+                  (category, index) => {
+                    const localized =
+                      getLocalizedBlogCategory(
+                        category,
+                        safeLang,
+                      );
 
-                  return (
-                    <a
-                      id={`blog-section-${category.id}`}
-                      href={`#blog-column-${category.id}`}
-                      className={`blogHomeCategoryCard category-${category.id}`}
-                      key={category.id}
-                    >
-                      <span className="blogHomeCategoryNumber">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <span className="blogHomeCategoryIcon">
-                        <CategoryIcon id={category.id} />
-                      </span>
-                      <h3>{localized?.name}</h3>
-                      <p>{localized?.description}</p>
-                      <div className="blogHomeCategoryStats">
-                        <span>
-                          {publishedCount} {copy.published}
+                    const publishedCount =
+                      publishedArticles.filter(
+                        (article) =>
+                          article.category ===
+                          category.id,
+                      ).length;
+
+                    const upcomingCount =
+                      allArticles.filter(
+                        (article) =>
+                          article.category ===
+                            category.id &&
+                          !article.published,
+                      ).length;
+
+                    return (
+                      <a
+                        id={`blog-section-${category.id}`}
+                        href={`#blog-column-${category.id}`}
+                        className={`blogHomeCategoryCard category-${category.id}`}
+                        key={category.id}
+                      >
+                        <span className="blogHomeCategoryNumber">
+                          {String(index + 1).padStart(
+                            2,
+                            "0",
+                          )}
                         </span>
-                        {upcomingCount > 0 && (
+
+                        <span className="blogHomeCategoryIcon">
+                          <CategoryIcon
+                            id={category.id}
+                          />
+                        </span>
+
+                        <h3>
+                          {localized?.name}
+                        </h3>
+
+                        <p>
+                          {localized?.description}
+                        </p>
+
+                        <div className="blogHomeCategoryStats">
                           <span>
-                            {upcomingCount} {copy.upcoming}
+                            {publishedCount}{" "}
+                            {copy.published}
                           </span>
-                        )}
-                      </div>
-                      <strong>
-                        {copy.explore}
-                        <span aria-hidden="true">←</span>
-                      </strong>
-                    </a>
-                  );
-                })}
+
+                          {upcomingCount > 0 && (
+                            <span>
+                              {upcomingCount}{" "}
+                              {copy.upcoming}
+                            </span>
+                          )}
+                        </div>
+
+                        <strong>
+                          {copy.explore}
+                          <span aria-hidden="true">
+                            ←
+                          </span>
+                        </strong>
+                      </a>
+                    );
+                  },
+                )}
               </div>
             </section>
 
@@ -498,13 +633,16 @@ export default function BlogHomePage({
                     <p className="blogHomeEyebrow">
                       {copy.searchResults}
                     </p>
+
                     <h2>
                       {copy.searchFor} “{query}”
                     </h2>
                   </div>
+
                   <Link
                     href={`/${safeLang}/blog`}
                     className="blogHomeTextLink"
+                    scroll={true}
                   >
                     {copy.clearSearch}
                   </Link>
@@ -512,14 +650,16 @@ export default function BlogHomePage({
 
                 {searchResults.length > 0 ? (
                   <div className="blogHomeSearchGrid">
-                    {searchResults.map((article) => (
-                      <ArticleMini
-                        key={article.id}
-                        article={article}
-                        lang={safeLang}
-                        copy={copy}
-                      />
-                    ))}
+                    {searchResults.map(
+                      (article) => (
+                        <ArticleMini
+                          key={article.id}
+                          article={article}
+                          lang={safeLang}
+                          copy={copy}
+                        />
+                      ),
+                    )}
                   </div>
                 ) : (
                   <div className="blogHomeNoResults">
@@ -535,7 +675,10 @@ export default function BlogHomePage({
                   <span className="blogHomeFeaturedBadge">
                     {copy.featured}
                   </span>
-                  <FeaturedArt article={featuredArticle} />
+
+                  <FeaturedArt
+                    article={featuredArticle}
+                  />
                 </div>
 
                 <div className="blogHomeFeaturedCopy">
@@ -547,12 +690,23 @@ export default function BlogHomePage({
                       )?.shortName
                     }
                   </p>
+
                   <h2>
-                    {featuredArticle[safeLang]?.title}
+                    {
+                      featuredArticle[
+                        safeLang
+                      ]?.title
+                    }
                   </h2>
+
                   <p className="blogHomeFeaturedDescription">
-                    {featuredArticle[safeLang]?.description}
+                    {
+                      featuredArticle[
+                        safeLang
+                      ]?.description
+                    }
                   </p>
+
                   <div className="blogHomeFeaturedMeta">
                     {featuredArticle.publishDate && (
                       <span>
@@ -562,19 +716,30 @@ export default function BlogHomePage({
                         )}
                       </span>
                     )}
+
                     <span>
-                      {featuredArticle.readingTime?.[safeLang]} {copy.readingTime}
+                      {
+                        featuredArticle
+                          .readingTime?.[
+                          safeLang
+                        ]
+                      }{" "}
+                      {copy.readingTime}
                     </span>
                   </div>
+
                   <Link
                     href={getBlogArticleUrl(
                       safeLang,
                       featuredArticle.slug,
                     )}
                     className="blogHomePrimaryButton"
+                    scroll={true}
                   >
                     {copy.readArticle}
-                    <span aria-hidden="true">←</span>
+                    <span aria-hidden="true">
+                      ←
+                    </span>
                   </Link>
                 </div>
               </section>
@@ -583,158 +748,283 @@ export default function BlogHomePage({
             <section className="blogHomeLatest">
               <div className="blogHomeSectionHeader">
                 <div>
-                  <p className="blogHomeEyebrow">AllWDbook Editorial</p>
-                  <h2>{copy.latestTitle}</h2>
-                  <p>{copy.latestDescription}</p>
+                  <p className="blogHomeEyebrow">
+                    AllWDbook Editorial
+                  </p>
+
+                  <h2>
+                    {copy.latestTitle}
+                  </h2>
+
+                  <p>
+                    {copy.latestDescription}
+                  </p>
                 </div>
               </div>
 
               <div className="blogHomeColumns">
-                {BLOG_CATEGORIES.map((category) => {
-                  const localized = getLocalizedBlogCategory(
-                    category,
-                    safeLang,
-                  );
+                {BLOG_CATEGORIES.map(
+                  (category) => {
+                    const localized =
+                      getLocalizedBlogCategory(
+                        category,
+                        safeLang,
+                      );
 
-                  const publishedInCategory = publishedArticles.filter(
-                    (article) => article.category === category.id,
-                  );
+                    const publishedInCategory =
+                      publishedArticles.filter(
+                        (article) =>
+                          article.category ===
+                          category.id,
+                      );
 
-                  const upcomingInCategory = allArticles
-                    .filter(
-                      (article) =>
-                        article.category === category.id &&
-                        !article.published,
-                    )
-                    .slice(0, Math.max(0, 3 - publishedInCategory.length));
+                    const upcomingInCategory =
+                      allArticles
+                        .filter(
+                          (article) =>
+                            article.category ===
+                              category.id &&
+                            !article.published,
+                        )
+                        .slice(
+                          0,
+                          Math.max(
+                            0,
+                            3 -
+                              publishedInCategory.length,
+                          ),
+                        );
 
-                  const items = [
-                    ...publishedInCategory.slice(0, 3).map((article) => ({
-                      article,
-                      upcoming: false,
-                    })),
-                    ...upcomingInCategory.map((article) => ({
-                      article,
-                      upcoming: true,
-                    })),
-                  ].slice(0, 3);
+                    const items = [
+                      ...publishedInCategory
+                        .slice(0, 3)
+                        .map((article) => ({
+                          article,
+                          upcoming: false,
+                        })),
 
-                  return (
-                    <article
-                      className={`blogHomeCategoryColumn category-${category.id}`}
-                      id={`blog-column-${category.id}`}
-                      key={category.id}
-                    >
-                      <header>
-                        <span className="blogHomeColumnIcon">
-                          <CategoryIcon id={category.id} />
-                        </span>
-                        <div>
-                          <h3>{localized?.shortName}</h3>
-                          <p>{localized?.description}</p>
-                        </div>
-                      </header>
+                      ...upcomingInCategory.map(
+                        (article) => ({
+                          article,
+                          upcoming: true,
+                        }),
+                      ),
+                    ].slice(0, 3);
 
-                      <div className="blogHomeColumnList">
-                        {items.length > 0 ? (
-                          items.map(({ article, upcoming }) => (
-                            <ArticleMini
-                              key={article.id}
-                              article={article}
-                              lang={safeLang}
-                              copy={copy}
-                              upcoming={upcoming}
+                    return (
+                      <article
+                        className={`blogHomeCategoryColumn category-${category.id}`}
+                        id={`blog-column-${category.id}`}
+                        key={category.id}
+                      >
+                        <header>
+                          <span className="blogHomeColumnIcon">
+                            <CategoryIcon
+                              id={category.id}
                             />
-                          ))
-                        ) : (
-                          <div className="blogHomeColumnEmpty">
-                            {copy.noPublished}
+                          </span>
+
+                          <div>
+                            <h3>
+                              {
+                                localized?.shortName
+                              }
+                            </h3>
+
+                            <p>
+                              {
+                                localized?.description
+                              }
+                            </p>
                           </div>
-                        )}
-                      </div>
-                    </article>
-                  );
-                })}
+                        </header>
+
+                        <div className="blogHomeColumnList">
+                          {items.length > 0 ? (
+                            items.map(
+                              ({
+                                article,
+                                upcoming,
+                              }) => (
+                                <ArticleMini
+                                  key={article.id}
+                                  article={article}
+                                  lang={safeLang}
+                                  copy={copy}
+                                  upcoming={
+                                    upcoming
+                                  }
+                                />
+                              ),
+                            )
+                          ) : (
+                            <div className="blogHomeColumnEmpty">
+                              {copy.noPublished}
+                            </div>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  },
+                )}
               </div>
             </section>
           </div>
 
-          <aside className="blogHomeSidebar" dir={direction}>
+          <aside
+            className="blogHomeSidebar"
+            dir={direction}
+          >
             <section className="blogHomeSidebarCard">
               <div className="blogHomeSidebarTitle">
-                <span className="blogHomeSidebarTitleIcon">↗</span>
+                <span className="blogHomeSidebarTitleIcon">
+                  ↗
+                </span>
+
                 <h2>{copy.picksTitle}</h2>
               </div>
 
               <div className="blogHomePicks">
-                {picks.map((article, index) => (
-                  <Link
-                    href={getBlogArticleUrl(safeLang, article.slug)}
-                    className="blogHomePick"
-                    key={article.id}
-                  >
-                    <span className="blogHomePickRank">
-                      {index + 1}
-                    </span>
-                    <div className="blogHomePickIcon">
-                      <CategoryIcon id={article.category} />
-                    </div>
-                    <div>
-                      <h3>
-                        {article[safeLang]?.shortTitle ||
-                          article[safeLang]?.title}
-                      </h3>
-                      <span>
-                        {article.readingTime?.[safeLang]} {copy.readingTime}
+                {picks.map(
+                  (article, index) => (
+                    <Link
+                      href={getBlogArticleUrl(
+                        safeLang,
+                        article.slug,
+                      )}
+                      className="blogHomePick"
+                      key={article.id}
+                      scroll={true}
+                    >
+                      <span className="blogHomePickRank">
+                        {index + 1}
                       </span>
-                    </div>
-                  </Link>
-                ))}
+
+                      <div className="blogHomePickIcon">
+                        <CategoryIcon
+                          id={article.category}
+                        />
+                      </div>
+
+                      <div>
+                        <h3>
+                          {
+                            article[
+                              safeLang
+                            ]?.shortTitle ||
+                              article[
+                                safeLang
+                              ]?.title
+                          }
+                        </h3>
+
+                        <span>
+                          {
+                            article
+                              .readingTime?.[
+                              safeLang
+                            ]
+                          }{" "}
+                          {copy.readingTime}
+                        </span>
+                      </div>
+                    </Link>
+                  ),
+                )}
               </div>
             </section>
 
             <section className="blogHomeSidebarCard blogHomeNewsletterCard">
-              <div className="blogHomeNewsletterIcon">✉</div>
-              <h2>{copy.newsletterTitle}</h2>
-              <p>{copy.newsletterText}</p>
-              <button type="button" disabled>
+              <div className="blogHomeNewsletterIcon">
+                ✉
+              </div>
+
+              <h2>
+                {copy.newsletterTitle}
+              </h2>
+
+              <p>
+                {copy.newsletterText}
+              </p>
+
+              <button
+                type="button"
+                disabled
+              >
                 {copy.newsletterSoon}
               </button>
             </section>
 
             <section className="blogHomeSidebarCard">
               <div className="blogHomeSidebarTitle">
-                <span className="blogHomeSidebarTitleIcon">#</span>
+                <span className="blogHomeSidebarTitleIcon">
+                  #
+                </span>
+
                 <h2>{copy.tagsTitle}</h2>
               </div>
+
               <div className="blogHomeTagCloud">
-                {BLOG_CATEGORIES.map((category) => {
-                  const localized = getLocalizedBlogCategory(
-                    category,
-                    safeLang,
-                  );
-                  return (
-                    <a
-                      href={`#blog-column-${category.id}`}
-                      key={category.id}
-                    >
-                      {localized?.shortName}
-                    </a>
-                  );
-                })}
+                {BLOG_CATEGORIES.map(
+                  (category) => {
+                    const localized =
+                      getLocalizedBlogCategory(
+                        category,
+                        safeLang,
+                      );
+
+                    return (
+                      <a
+                        href={`#blog-column-${category.id}`}
+                        key={category.id}
+                      >
+                        {
+                          localized?.shortName
+                        }
+                      </a>
+                    );
+                  },
+                )}
               </div>
             </section>
 
             <section className="blogHomeSidebarCard">
               <div className="blogHomeSidebarTitle">
-                <span className="blogHomeSidebarTitleIcon">☷</span>
-                <h2>{copy.quickLinksTitle}</h2>
+                <span className="blogHomeSidebarTitleIcon">
+                  ☷
+                </span>
+
+                <h2>
+                  {copy.quickLinksTitle}
+                </h2>
               </div>
+
               <div className="blogHomeQuickLinks">
-                <Link href="/">{copy.backHome}</Link>
-                <Link href="/about">{copy.about}</Link>
-                <Link href="/privacy">{copy.privacy}</Link>
-                <Link href={`/${otherLang}/blog`}>
+                <Link
+                  href="/"
+                  scroll={true}
+                >
+                  {copy.backHome}
+                </Link>
+
+                <Link
+                  href="/about"
+                  scroll={true}
+                >
+                  {copy.about}
+                </Link>
+
+                <Link
+                  href="/privacy"
+                  scroll={true}
+                >
+                  {copy.privacy}
+                </Link>
+
+                <Link
+                  href={`/${otherLang}/blog`}
+                  scroll={true}
+                >
                   {languageLabel}
                 </Link>
               </div>
@@ -743,15 +1033,23 @@ export default function BlogHomePage({
         </div>
 
         <footer className="blogHomeFooter">
-          <Link href="/" className="blogHomeFooterBrand">
-            <img src="/logov3.png" alt="AllWDbook" />
+          <Link
+            href="/"
+            className="blogHomeFooterBrand"
+            scroll={true}
+          >
+            <img
+              src="/logov3.png"
+              alt="AllWDbook"
+            />
           </Link>
+
           <p>
-            © {new Date().getFullYear()} AllWDbook — {copy.footer}
+            © {new Date().getFullYear()}{" "}
+            AllWDbook — {copy.footer}
           </p>
         </footer>
       </div>
     </main>
   );
 }
-
