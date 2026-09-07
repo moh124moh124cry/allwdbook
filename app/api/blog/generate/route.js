@@ -38,7 +38,7 @@ async function generateAndPublish(language) {
   }
 }
 
-export async function POST(request) {
+async function handleGeneration(request) {
   try {
     // حماية الـ API
     if (!isAuthorized(request)) {
@@ -96,19 +96,12 @@ export async function POST(request) {
   }
 }
 
-// GET غير مسموح به
-export async function GET() {
-  return NextResponse.json(
-    {
-      success: false,
-      error:
-        "Use POST with the required authorization.",
-    },
-    {
-      status: 405,
-      headers: {
-        Allow: "POST",
-      },
-    }
-  );
+// POST للتشغيل اليدوي
+export async function POST(request) {
+  return handleGeneration(request);
+}
+
+// GET مطلوب لتشغيل Vercel Cron
+export async function GET(request) {
+  return handleGeneration(request);
 }
