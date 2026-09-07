@@ -1,50 +1,25 @@
 import { NextResponse } from "next/server";
 
-import {
-  publishArticle,
-} from "@/lib/blog/automation/publish.js";
+import { publishArticle } from "../../../../lib/blog/automation/publish.js";
 
 export const runtime = "nodejs";
-
 export const dynamic = "force-dynamic";
 
-/**
- * API لتوليد ونشر مقال في المدونة.
- *
- * هذه المرحلة مخصصة للاختبار.
- *
- * يمكن لاحقًا استدعاء نفس العملية
- * بواسطة Vercel Cron.
- */
-
 function isAuthorized(request) {
-  const cronSecret =
-    process.env.CRON_SECRET;
+  const cronSecret = process.env.CRON_SECRET;
 
-  /**
-   * إذا لم يتم إعداد السر،
-   * نمنع الوصول بدل فتح endpoint.
-   */
   if (!cronSecret) {
     return false;
   }
 
-  const authorization =
-    request.headers.get(
-      "authorization"
-    );
+  const authorization = request.headers.get("authorization");
 
-  return (
-    authorization ===
-    `Bearer ${cronSecret}`
-  );
+  return authorization === `Bearer ${cronSecret}`;
 }
 
 export async function POST(request) {
   try {
-    /**
-     * حماية endpoint.
-     */
+    // حماية الـ API
     if (!isAuthorized(request)) {
       return NextResponse.json(
         {
@@ -57,6 +32,7 @@ export async function POST(request) {
       );
     }
 
+    // قراءة البيانات المرسلة
     let body = {};
 
     try {
@@ -65,63 +41,40 @@ export async function POST(request) {
       body = {};
     }
 
-    /**
-     * اللغة الافتراضية English.
-     */
-    const language =
-      body?.language === "ar"
-        ? "ar"
-        : "en";
+    // اللغة: ar أو en
+    const language = body?.language === "ar" ? "ar" : "en";
 
-    /**
-     * يمكن تحديد موضوع معين،
-     * أو ترك النظام يختار موضوعًا تلقائيًا.
-     */
+    // الموضوع اختياري
     const topicId =
       typeof body?.topicId === "string" &&
       body.topicId.trim()
         ? body.topicId.trim()
         : null;
 
-    /**
-     * تشغيل النظام الكامل.
-     */
-    const result =
-      await publishArticle({
-        language,
-        topicId,
-      });
+    // تشغيل نظام إنشاء ونشر المقال
+    const result = await publishArticle({
+      language,
+      topicId,
+    });
 
-    /**
-     * تحديد HTTP status مناسب.
-     */
+    // مقال تم نشره بنجاح
     if (result.success) {
-      return NextResponse.json(
-        result,
-        {
-          status: 200,
-        }
-      );
+      return NextResponse.json(result, {
+        status: 200,
+      });
     }
 
-    if (
-      result.status ===
-      "duplicate"
-    ) {
-      return NextResponse.json(
-        result,
-        {
-          status: 409,
-        }
-      );
+    // المقال موجود مسبقًا
+    if (result.status === "duplicate") {
+      return NextResponse.json(result, {
+        status: 409,
+      });
     }
 
-    return NextResponse.json(
-      result,
-      {
-        status: 500,
-      }
-    );
+    // خطأ أثناء التوليد أو النشر
+    return NextResponse.json(result, {
+      status: 500,
+    });
   } catch (error) {
     console.error(
       "Blog generation API error:",
@@ -143,10 +96,7 @@ export async function POST(request) {
   }
 }
 
-/**
- * منع GET لأن endpoint مخصص
- * للتشغيل المحمي عبر POST.
- */
+// GET غير مسموح به
 export async function GET() {
   return NextResponse.json(
     {
